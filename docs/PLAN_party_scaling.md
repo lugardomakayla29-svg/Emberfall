@@ -87,11 +87,13 @@ Let `n` = `RunManager.partySize(slot)`, fixed at run start in option (b) (so it 
 
 The coefficients (0.5, 0.75, 0.6, 10) are **guesses**. They are placeholders to make the structure concrete; they must be tuned against the measured targets in section 5 before they mean anything.
 
-Why not 5 or 10 players: at 10 the cap would be 130 live hostile entities. Nobody has measured the server cost of 40 (the current cap) with several players, let alone 130. I propose a hard party cap of **4 for v1** and leave 5/10 as a later question that needs a load measurement first. **Koda: did you intend 10 as a real target?**
+**The cap row is unmeasured.** `40 + 10 * (n - 1)` would be 130 live hostile entities at n = 10, and nobody has measured the server cost of even 40 with several players. So the first measurement is **server MSPT with the bot at caps 40 / 60 / 80**, not a formula. Until that exists, treat the cap row as a placeholder.
+
+**10 players is a real target** (the owner's issue #6: "join near the gate (10+)", acceptance "1/2/5/10 players"). It is not dropped. Staging: the maximum party size is **one constant** (`PartyScaling.MAX_PARTY`), **v1 ships it at 4**, then it is measured and raised stage by stage toward 10. Every formula above must stay valid for `n` up to that constant, and the pure check asserts the maths for `n = 1..10` even while the shipped limit is 4, so raising it is a one-line change with the maths already proven. The owner is asked to confirm the staging.
 
 **Fairness rule for rewards (proposal).**
 1. Silver stays per player and uses the player's own kills, level and gold, exactly as today.
-2. The two boss bonuses (+50 / +150) are **currently given to every member of the slot, including a player who did nothing**. In a party that is a free ride. Proposal: a member gets the boss bonus only if they dealt at least **10% of the damage the boss took** (needs a per-player damage tally on the boss; a new small structure, see R3). Below that they get half.
+2. The two boss bonuses (+50 / +150) are currently given to every member of the slot, including a player who did nothing. **Decision (Koda, on PR #19): accept this in v1.** No boss `hurt` hook (the bosses are large hotspot classes). It is recorded here and in `STATUS.md` as a **known limitation**: in a party, a member who does no damage still receives the full boss bonus. Revisit only after a per-player damage tally has its own approved plan.
 3. XP and Gold orbs: keep ownerless, but do not multiply the orb value by party size (more mobs already means more orbs). Known weak spot: the nearest player takes a drop (R4).
 4. No reward is divided by `n`. Dividing would make a party strictly worse than four solos.
 
@@ -105,11 +107,7 @@ The issue asks for time-to-kill and damage-taken targets per party size. **I hav
 
 ## 6. Tests
 
-**Pure maths.** The repo has no `src/test` and no JUnit in `build.gradle` (checked). So "unit tests" need a decision:
-- (i) add JUnit and a `test` task (new dependency, touches `build.gradle`), or
-- (ii) keep the project's pattern: `PartyScaling` is pure Java and is exercised from a `tools/testbot` script that calls it through a tiny `/emberfall partyscale <n>` debug command printing the numbers.
-
-I recommend (ii): no build change, and it tests the shipped jar. **Koda: (i) or (ii)?**
+**Pure maths. Decision (Koda, PR #19): a pure class driven from `tools/testbot`, no JUnit, no build change.** The repo has no `src/test` and no JUnit in `build.gradle` (checked). So `PartyScaling` is pure Java with no game types, and its check is a plain `tools/testbot/relic_math/PartyScalingCheck.java` in the same style as the 26 existing `*Check.java` files (prints `PASS` / `FAIL` and `ALL PASS`). The CI loop picks up every `*Check.java` automatically, so it also runs in the CI maths step; the loop's `n_ok -ge 20` floor is unaffected. No debug command is needed unless the class ends up needing game types, which it should not.
 
 Assertions (pure, any choice): `n=1` returns exactly the current values (`1.0` everywhere, cap 40, interval unchanged), so solo is provably unchanged; each multiplier is monotonic in `n`; the cap never falls below 40; nothing is NaN or negative for `n` in 1..4; `n` out of range is clamped, not thrown.
 
@@ -117,24 +115,32 @@ Assertions (pure, any choice): `n=1` returns exactly the current values (`1.0` e
 
 ## 7. The gate loadout screen (the issue's last question)
 
-Today the click only runs the countdown (`GateManager.click`). A screen is needed for a party, so the host and joiners can see who is in. Proposal, smallest thing that works: a **chest-style menu** opened by the click, server-driven (no client code, so it can be tested headless), with: the party list, each member's character, and a Start/Leave button. Confirming starts the countdown. **Caveat: the look is unverifiable for me** (no real client), so the layout is a guess until the owner or Koda sees it.
-Alternative: skip the screen and show the party in the action bar during the countdown. Cheaper, less to go wrong. **Koda's call.**
+**Decision (Koda, PR #19): an action-bar party list first.** During the countdown the action bar shows who is in the party ("Party 2/4: NameA, NameB"), next to the existing "Departing in N" line. It is smaller, testable headless, and has less to go wrong. A real menu is a later, separate PR, only after someone with a real client can see it. My caveat still holds: I cannot see any screen, so the wording and placement of the action-bar text are unverified until a person looks.
 
 ## 8. What could break (ranked)
 
 - **R1. Entity cost.** Cap 70 at `n=4` (section 4) is unmeasured. Mitigation: measure MSPT with the bot at caps 40/50/70 before choosing; the cap formula is the most likely number to change.
 - **R2. `joinPlayer` resets build/relics/weapon.** Fine at the countdown (nobody has anything yet); catastrophic if a player joins mid-run. The "no late join" rule must be enforced in `tryStartFrom`, with a test.
-- **R3. Per-player boss damage tally** does not exist. It needs a hook on boss `hurt`; the bosses are big classes (`EmberGuardian`, `DevourerBrain`) and conflict hotspots. Fallback with no new hook: keep the boss bonus for everyone (today's behaviour) and accept the free ride in v1.
+- **R3. Per-player boss damage tally** does not exist and is **not built in v1** (decision on PR #19). The free ride on the boss bonus is accepted and recorded as a known limitation.
 - **R4. Ownerless orbs.** First player to the orb takes it; a player standing back gets less XP/gold. Not fixed in v1; measure first.
 - **R5. Shrines** (`RunModifiers`) are per slot and "used once per run". With a party, one player's choice changes everyone's run. v1: only the host can use a shrine. Needs a test.
 - **R6. Disconnect.** `n` is fixed at start, so a leaver does not change scaling (the rest keep the harder run). Simple, slightly unfair; the alternative (recompute live) changes mob health mid-fight, which I would avoid.
-- **R7. Death/respawn.** What happens when one member dies but others live is not covered here. I have not read `RunEndHandler` for the multi-player case. **Not analysed: needs its own read before code.**
-- **R8. The run-end HUD and `RunEndPayload`** are built for one player. Unread.
-- **R9. Hub `GateRules` tests** exist in `tools/testbot`; changing `Pending` may break them. Not checked.
+- **R7. Death and leaving (read `RunEndHandler`, `finishRun`; NOT yet observed, step 0 will confirm).**
+  - `finishRun` is **per player**: a member who falls (`endRunInsteadOfDying`), disconnects or runs `/expedition leave` is paid, sent home (`ReturnPoints.sendBack`) and removed with `RunManager.leavePlayer`. The arena and `WaveDirector` are stopped **only when `!hasAnyPlayers(slot)`**, so survivors keep fighting. Good: the run does not end for everyone.
+  - **Consequence 1 (trade-off):** `n` is fixed at start (R6), so when a member falls the survivors keep the `n`-scaled run with fewer people. The party gets harder exactly as it gets weaker. Accepted for v1 because recomputing live would change mob health mid-fight; the alternative is listed, not chosen.
+  - **Consequence 2 (reward):** the boss flags (`RunTelemetry.wasHydraDefeated(slot)`) are read **at the moment the player leaves**. A member who falls at minute 2 is paid without any boss bonus even if the party kills the boss at minute 10. This partly offsets the free ride (a member who did nothing but stayed alive is paid both). Not a bug; a property to state on the run-end screen later.
+  - **Consequence 3:** Totem of Returning cancels a lethal hit **per player** (`RelicDefenceEvents.tryTotem`), so one member can be saved while another falls.
+  - Still to observe in step 0: that the arena really survives when one of two leaves, that the leaver lands at their own return point, and that the gate lockout (`GateManager.runEnded`) is per player.
+- **R8. Run-end screen: resolved by reading, no change needed.** `RunEndPayload` (`cause, seconds, level, kills, gold, hydraDown, devourerDown, silverEarned, silverTotal`) carries **that one player's** numbers and is sent only to them from `finishRun`. A party member's screen already shows their own run. The look is unverified (no real client).
+- **R9. Existing gate tests that a `Pending` / `GateManager` change could break (counted, not felt):**
+  - **Pure, runs in CI:** `tools/testbot/relic_math/GateCheck.java` asserts 7 `GateRules` members: `LOCKOUT_TICKS`, `countdownDone`, `lockedOut`, `moved`, `returnSpot`, `returnSpots`, `secondsLeft`. Part A keeps `GateRules` unchanged, so this should stay green; it must be re-run.
+  - **Live, the only suite that exercises `GateManager.click` / `Pending`:** `tools/testbot/gate_test.js` (11 checks; verdicts from the server log via `gate_grade.py`). It drives the gate with the op debug command `/emberfall hubclick hubact_gate`, not a block click. Most at risk: **T2** (click, countdown, run starts), **T4** (gate works again after the lockout), **T4b** (a click right after a run ends is refused as "settling"). It is listed in `regress4.sh` and `regress_guardian.sh`.
+  - **Named "gate" but with no gate reference found by grep:** `gate_noterrain_test.js`, `gate_weapon_test.js`, `attack_gate_test.js` (also in both regress lists). I have not shown they are independent of the gate; treat them as "re-run, not known safe".
+  - Not checked: whether `hubclick` itself calls `GateManager.click` unchanged (it must keep its signature; section 3 does).
 
 ## 9. Order of work (each a separate PR, each needs Koda's approval)
 
-0. **Measure before designing further (optional, no mod code):** with two bots and the existing `/emberfall join <slot> <player>`, record what really happens to a second player in a live run: does `joinPlayer` wipe their build, do mobs target both, what does `WaveDirector` do, what does `awardRunReward` pay each. This replaces several guesses in sections 4 and 8 with observations. Only a new `tools/testbot` script, nothing shared.
+0. **Measure before designing further (approved by Koda, do this first):** with two bots and the existing `/emberfall join <slot> <player>`, record what really happens to a second player in a live run: does `joinPlayer` wipe their build, do mobs target both, what does `WaveDirector` do, what does `awardRunReward` pay each. This replaces several guesses in sections 4 and 8 with observations. Only a new `tools/testbot` script, nothing shared.
 1. Decision on section 2 (a/b/c) and the open questions below. **No code.**
 2. `PartyScaling` + its test (pure maths, solo unchanged). Touches no hotspot.
 3. Part A: `GateManager` + `RunCommand.tryStartParty` + `RunManager.partySize`. Hotspots.
@@ -142,15 +148,15 @@ Alternative: skip the screen and show the party in the action bar during the cou
 5. Rewards fairness (boss bonus share), only if R3's hook is approved.
 6. Loadout screen.
 
-## 10. Questions for Koda (what I need, what I do not understand)
+## 10. Questions for Koda: answered on PR #19
 
-1. Section 2: **(a), (b) or (c)?** I recommend (b).
-2. Was **10 players** a real target? I propose capping v1 at 4 until the entity cost is measured.
-3. Can the bot give me the two measurement tables in section 5? Without them every coefficient in section 4 is a guess.
-4. Tests: JUnit (i) or testbot (ii)?
-5. Loadout: real menu, or action-bar party list?
-6. I do not understand how **you** want the boss-bonus free ride handled (R3). Accept it in v1, or build the damage tally?
-7. Should I do step 0 (the two-bot measurement with `/emberfall join`) first? It would turn R2, R4, R7 and R8 from guesses into observations. Related: R7/R8 (death of one member, run-end screen) I have not read. Should I read them before you review, or after you choose (a/b/c)?
+1. Party model: **(b)** host-and-join during the countdown, no late join.
+2. 10 players: **a real target** (owner's issue #6). v1 ships `MAX_PARTY = 4`, one constant, raised after measurement. The owner is asked to confirm the staging.
+3. Bot tables (DPS vs mob at `statMultiplier` 1.0/2.0; damage taken per minute at threat 0/10/20): **not available yet**; they depend on Koda's issue #2 (the walk fix). Koda will post them on #13. Not blocking: the pure class is written first.
+4. Tests: **(ii)**, `tools/testbot/relic_math/PartyScalingCheck.java`.
+5. Loadout: **action-bar party list** first.
+6. Boss-bonus free ride: **accepted in v1**, recorded as a known limitation.
+7. Step 0 (two-bot measurement with `/emberfall join`): **yes, first**, after reading `RunEndHandler` (R7) and `RunEndPayload` (R8). New file under `tools/testbot` only; two bots that are not EmberTester; record, do not fix.
 
 ## 11. Not verified
 
