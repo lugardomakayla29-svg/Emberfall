@@ -53,7 +53,7 @@ Everything below assumes (b). If Koda picks (a), sections 3 to 6 become a shelve
 
 Proposed behaviour, to be approved:
 1. A player clicks the gate. Today that starts a private countdown. New: it opens a **loadout screen** (section 7) and, on confirm, starts the countdown as **host**.
-2. During the countdown, another player who clicks the **same gate** joins that pending run (max 4; see section 4 for why not 10). Moving away cancels only their own participation; the host moving away cancels the run (today's rule, unchanged).
+2. During the countdown, another player who clicks the **same gate** joins that pending run (up to `MAX_PARTY`, which is **10**; see section 4 for how the numbers are staged). Moving away cancels only their own participation; the host moving away cancels the run (today's rule, unchanged).
 3. When the countdown ends, every participant goes through the existing `joinPlayer` for the **same** slot. `tryStartFrom` is called once for the host and the others attach to that instance.
 4. After the run starts, `tryStartFrom` for a non-member of an active slot stays refused. No late join in v1.
 
@@ -89,12 +89,16 @@ The coefficients (0.5, 0.75, 0.6, 10) are **guesses**. They are placeholders to 
 
 **The cap row is unmeasured.** `40 + 10 * (n - 1)` would be 130 live hostile entities at n = 10, and nobody has measured the server cost of even 40 with several players. So the first measurement is **server MSPT with the bot at caps 40 / 60 / 80**, not a formula. Until that exists, treat the cap row as a placeholder.
 
-**10 players is a real target** (the owner's issue #6: "join near the gate (10+)", acceptance "1/2/5/10 players"). It is not dropped. Staging: the maximum party size is **one constant** (`PartyScaling.MAX_PARTY`), **v1 ships it at 4**, then it is measured and raised stage by stage toward 10. Every formula above must stay valid for `n` up to that constant, and the pure check asserts the maths for `n = 1..10` even while the shipped limit is 4, so raising it is a one-line change with the maths already proven. The owner is asked to confirm the staging.
+**The cap is 10, and every test and measurement uses 5 (decided by the owner on issue #13, restated by Koda on PR #19).**
+- `PartyScaling.MAX_PARTY = 10`, one constant. The owner's issue #6 asks for 10+ at the gate (acceptance "1/2/5/10 players"); it is not staged down to 4.
+- **Every live test and every measurement uses `n = 5` players.** Nothing is claimed about `n` from 6 to 10 by running it; those sizes are covered by the pure check only.
+- The hostile-cap formula `40 + 10 * (n - 1)` **may not be applied above `n = 5` until the MSPT measurement exists.** So `HOSTILE_CAP` growth stops at its `n = 5` value (`40 + 10 * 4 = 80`) for every larger party. That value is itself a placeholder until the MSPT-at-40/60/80 measurement, run **with 5 joined players**, is in.
+- The pure check (`relic_math/PartyScalingCheck.java`) asserts the maths for `n = 1..10`, so the constant and the frozen cap can move later without re-deriving anything.
 
 **Fairness rule for rewards (proposal).**
 1. Silver stays per player and uses the player's own kills, level and gold, exactly as today.
 2. The two boss bonuses (+50 / +150) are currently given to every member of the slot, including a player who did nothing. **Decision (Koda, on PR #19): accept this in v1.** No boss `hurt` hook (the bosses are large hotspot classes). It is recorded here and in `STATUS.md` as a **known limitation**: in a party, a member who does no damage still receives the full boss bonus. Revisit only after a per-player damage tally has its own approved plan.
-3. XP and Gold orbs: keep ownerless, but do not multiply the orb value by party size (more mobs already means more orbs). Known weak spot: the nearest player takes a drop (R4).
+3. XP and Gold orbs: keep ownerless, but do not multiply the orb value by party size (more mobs already means more orbs). The nearest run player takes a drop (R4, measured below), so a player standing back gets less.
 4. No reward is divided by `n`. Dividing would make a party strictly worse than four solos.
 
 ## 5. Measurable targets (to be filled by measurement, not promised)
@@ -119,10 +123,10 @@ Assertions (pure, any choice): `n=1` returns exactly the current values (`1.0` e
 
 ## 8. What could break (ranked)
 
-- **R1. Entity cost.** Cap 70 at `n=4` (section 4) is unmeasured. Mitigation: measure MSPT with the bot at caps 40 / 60 / 80 before choosing (same as section 4); the cap formula is the most likely number to change.
+- **R1. Entity cost.** The cap formula (section 4) is unmeasured. Mitigation: measure MSPT with the bot at caps 40 / 60 / 80 **with 5 joined players** before choosing (same as section 4); the cap formula is the most likely number to change, and growth above `n = 5` stays frozen until then.
 - **R2. `joinPlayer` on a RUNNING run: MEASURED (step 0, `tools/testbot/party_join_measure.js`, PR #25; runs 2-4 identical, run 1 void).** A join does not touch the players already in the run. Joining a player who already holds things **wipes their relics but keeps their gold**: A held `ember_ledger` and 77 gold, was joined again, and read `owned={}` with `wallet=77`. So a late join leaves a player with gold and no relics, which is worse than a clean reset. Only one relic and one gold value were tried, and `PlayerBuild.reset` (tomes) and `PlayerWeapon.reset` were **not** measured. The "no late join" rule must still be enforced in `tryStartFrom`, with a test.
 - **R3. Per-player boss damage tally** does not exist and is **not built in v1** (decision on PR #19). The free ride on the boss bonus is accepted and recorded as a known limitation.
-- **R4. Ownerless orbs.** First player to the orb takes it; a player standing back gets less XP/gold. Not fixed in v1; measure first.
+- **R4. Ownerless orbs: MEASURED for gold (step 0b, `tools/testbot/party_pickup_measure.js`, PR #28).** `PickupSystem.tickLevel` gives a pickup to the **nearest run player** (a kill is credited to the killer; the orb is not). With both bots pinned and the server confirming who was within the 1.6 collect range: the near player won 3 of 3 when the other was 2.5 away (both ways round), and an exact tie went to PartyA 3 of 3 (list order). A first version of this measurement showed PartyA winning every contested case; that was a **test artifact** (unpinned bots, arithmetic distances, a syntax-error server check that always read false) and is superseded. Not measured: XP pickups (same loop), 3+ players, a dead player, the magnet pulling a pickup from outside 1.6. Not fixed in v1: a player standing back still gets less XP and gold.
 - **R5. Shrines** (`RunModifiers`) are per slot and "used once per run". With a party, one player's choice changes everyone's run. v1: only the host can use a shrine. Needs a test.
 - **R6. Disconnect.** `n` is fixed at start, so a leaver does not change scaling (the rest keep the harder run). Simple, slightly unfair; the alternative (recompute live) changes mob health mid-fight, which I would avoid.
 - **R7. Death and leaving (read `RunEndHandler`, `finishRun`; NOT yet observed, step 0 will confirm).**
@@ -141,7 +145,9 @@ Assertions (pure, any choice): `n=1` returns exactly the current values (`1.0` e
 
 ## 9. Order of work (each a separate PR, each needs Koda's approval)
 
-0. **Measure before designing further (approved by Koda, do this first):** with two bots and the existing `/emberfall join <slot> <player>`, record what really happens to a second player in a live run: does `joinPlayer` wipe their build, do mobs target both, what does `WaveDirector` do, what does `awardRunReward` pay each. This replaces several guesses in sections 4 and 8 with observations. Only a new `tools/testbot` script, nothing shared.
+0. **Measure before designing further (approved by Koda, do this first).**
+   - **Done with two bots:** `party_join_measure.js` (PR #25, merged: R2 and R7) and `party_pickup_measure.js` (PR #28: R4). Each is one new `tools/testbot` file.
+   - **Still to do, with five bots (owner's test size):** a new `tools/testbot` file with **five bots, none of them EmberTester**, joined with `/emberfall join <slot> <player>`. **Untested that the command and the run accept five names;** step one is only to check that, before promising any result. Then record: do mobs target all five, what does `WaveDirector` do, what does `awardRunReward` pay each, and the MSPT at caps 40 / 60 / 80 with five players.
 1. Decision on section 2 (a/b/c) and the open questions below. **No code.**
 2. `PartyScaling` + its test (pure maths, solo unchanged). Touches no hotspot.
 3. Part A: `GateManager` + `RunCommand.tryStartParty` + `RunManager.partySize`. Hotspots.
@@ -152,13 +158,13 @@ Assertions (pure, any choice): `n=1` returns exactly the current values (`1.0` e
 ## 10. Questions for Koda: answered on PR #19
 
 1. Party model: **(b)** host-and-join during the countdown, no late join.
-2. 10 players: **a real target** (owner's issue #6). v1 ships `MAX_PARTY = 4`, one constant, raised after measurement. The owner is asked to confirm the staging.
+2. 10 players: **a real target** (owner's issue #6). **`MAX_PARTY = 10`**, one constant. **All tests and measurements use 5 players.** `HOSTILE_CAP` growth stops at its `n = 5` value until the MSPT measurement exists. Confirmed by the owner (issue #13) and restated by Koda (PR #19, 18:53 and 19:02); no confirmation is pending.
 3. Bot tables (DPS vs mob at `statMultiplier` 1.0/2.0; damage taken per minute at threat 0/10/20): **not available yet**; they depend on Koda's issue #2 (the walk fix). Koda will post them on #13. Not blocking: the pure class is written first.
 4. Tests: **(ii)**, `tools/testbot/relic_math/PartyScalingCheck.java`.
 5. Loadout: **action-bar party list** first.
 6. Boss-bonus free ride: **accepted in v1**, recorded as a known limitation.
-7. Step 0 (two-bot measurement with `/emberfall join`): **yes, first**, after reading `RunEndHandler` (R7) and `RunEndPayload` (R8). New file under `tools/testbot` only; two bots that are not EmberTester; record, do not fix.
+7. Step 0 (measurement with `/emberfall join`): **yes, first**, after reading `RunEndHandler` (R7) and `RunEndPayload` (R8). New files under `tools/testbot` only; bots that are not EmberTester; record, do not fix. The two-bot part is done (PR #25, PR #28); the **five-bot** part (the owner's test size) is still to do.
 
 ## 11. Not verified
 
-Everything here is from reading source at `460ead2`. Nothing was run. The formulas in section 4 are proposals with guessed coefficients. No multiplayer path has been tested because none exists. The look of any screen is unverified.
+Sections 1 to 8 are from reading source at `460ead2`; R2, R4 and R7 (partly) were later **observed** with two bots (PR #25, PR #28), everything else was not run. The formulas in section 4 are proposals with guessed coefficients. No multiplayer path has been tested because none exists. The look of any screen is unverified.
