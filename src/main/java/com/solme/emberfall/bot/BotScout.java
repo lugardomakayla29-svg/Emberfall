@@ -56,7 +56,15 @@ public final class BotScout {
     public static List<BotWalk.Point> route(ServerLevel level, double fromX, double fromY, double fromZ, BlockPos target, int range) {
         Mob scout = scoutFor(level);
         scout.setPos(fromX, fromY, fromZ);
-        Path path = scout.getNavigation().createPath(target, range);
+        // Vanilla ground navigation refuses to search (returns null) unless the mob is on the ground, in liquid or riding
+        // (GroundPathNavigation.canUpdatePath, read from the 1.21.11 bytecode). The scout is never ticked and has no gravity,
+        // so it would never count as grounded; claim it, because it is placed on walkable floor by construction.
+        scout.setOnGround(true);
+        // createPath(pos, accuracy): the int is the ACCURACY (a node within that many blocks of the target counts as arrived) and
+        // the search distance is a fixed 8. Passing the search range there made the start block "arrived" (a one-node path, read
+        // from PathNavigation.createPath in the 1.21.11 bytecode). The three-argument form sets both: land within 1 block, look
+        // up to `range` blocks away.
+        Path path = scout.getNavigation().createPath(target, 1, range);
         List<BotWalk.Point> points = new ArrayList<>();
         if (path == null || !path.canReach()) {
             return points;
