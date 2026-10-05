@@ -71,6 +71,9 @@ public final class RunMobPurge {
         if (entity instanceof TamableAnimal tame && tame.isTame()) {
             return false; // a player's pet
         }
+        if (mob.getTags().contains(com.solme.emberfall.bot.BotScout.TAG)) {
+            return false; // the EmberTester's path scout: one per level, kept, or it would be respawned every sweep
+        }
         return !(mob.hasCustomName() || mob.isLeashed());
     }
 
