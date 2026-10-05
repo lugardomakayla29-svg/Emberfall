@@ -20,7 +20,10 @@ for t in map_build_test map_run_test map_boundary_test shrine_test shrine_payout
   p=$(grep -cE "^PASS|^\s+PASS| PASS " /tmp/r4_$t.txt); f=$(grep -cE "^FAIL|FAILED|Error:|ECONNREFUSED" /tmp/r4_$t.txt)
   v=$(grep -E "ALL PASS|ALL PASSED|ALL OK|FAILED|SOME FAIL" /tmp/r4_$t.txt | tail -1 | cut -c1-50)
   ex=$(grep -c "Exception\|Ticking entity" $W/server_run.log)
-  echo "$t | pass $p | fail $f | exceptions $ex | ${v:-no verdict line}" >> /tmp/r4_summary.txt
+  # a suite that ran NO checks is never a pass (issue #17): it is reported as its own loud state
+  flag=""; [ "$p" -eq 0 ] && flag=" | NO CHECKS RAN"
+  echo "$t | pass $p | fail $f | exceptions $ex | ${v:-no verdict line}$flag" >> /tmp/r4_summary.txt
 done
 bash redeploy.sh > /dev/null 2>&1
+echo "TALLY: $(grep -c 'NO CHECKS RAN' /tmp/r4_summary.txt) suites ran no checks, $(grep -cE '\| fail [1-9]' /tmp/r4_summary.txt) suites failed, $(grep -cE 'exceptions [1-9]' /tmp/r4_summary.txt) with server exceptions" >> /tmp/r4_summary.txt
 echo REGRESS4_DONE >> /tmp/r4_summary.txt

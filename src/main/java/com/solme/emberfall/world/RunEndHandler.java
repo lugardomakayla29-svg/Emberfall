@@ -42,6 +42,8 @@ import net.minecraft.world.level.Level;
  * spawn before anything else can happen to them.
  */
 public final class RunEndHandler {
+    private static final boolean TEST_MODE = Boolean.getBoolean("emberfall.testMode");
+
     private RunEndHandler() {}
 
     public static void register() {
@@ -183,6 +185,12 @@ public final class RunEndHandler {
         if (cause != null) {
             net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, new com.solme.emberfall.network.RunEndPayload(
                     cause, (int) Math.min(Integer.MAX_VALUE, seconds), level, kills, gold, hydra, devourer, earned, total));
+        }
+        if (TEST_MODE) {
+            // server truth for the EmberTester run-end check: what the screen was told, and what was left of the run afterwards
+            EmberfallMod.LOGGER.info("RUNEND_TEST player={} cause={} screen={} slotAfter={} goldAfter={} earned={} total={}",
+                    player.getGameProfile().name(), cause, cause != null, RunManager.slotOf(player),
+                    com.solme.emberfall.pickup.PickupSystem.gold(player), earned, total);
         }
     }
 }
