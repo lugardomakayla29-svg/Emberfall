@@ -1,0 +1,57 @@
+# The 29 suites that have an exit path and still false-pass (issue #17)
+# Read-only work list for Koda. Nothing here was edited. Tested headless, look unverified.
+#
+# WHAT 'FALSE-PASS' MEANS HERE: run with NO server on port 25565, the suite exited 0 and printed no FAIL line.
+# Measured, 2026-10-05, base 86c6c83. Re-checked against main 66c1357: none of these 29 files changed since; main has 202 suites
+# (bot_runend_test and bot_shrine_test are new, Koda's, and are not in the CSV, so not classified here). Source: docs/audit/suite_verdict_audit_2026-10-05.csv (static_class = 'verdict + exit code'
+# AND can_false_pass = YES).
+#
+# WHY 29 AND NOT 30: the class 'verdict + exit code' has 30 suites. map_build_test exits 1 on a stopped server, so it does
+# not false-pass and is NOT in this list. 30 = have an exit path; 29 = have an exit path AND false-pass.
+#
+# COLUMN 2, est. checks: the number of call sites of the suite's own check helper in the source, MINUS its definition.
+#   It is an ESTIMATE from a regex, not a count of checks that run. Measured once: relic_test shows 26 call sites and prints
+#   27 PASS lines live, so expect it to be off by a few. table_craft_test calls check() once inside a loop, so its real count
+#   depends on the recipes it loops over: shown as '?' and listed last. Sorted by est. checks, most first, then by name.
+#
+# COLUMN 3, exit style (read from the LAST process.exit in the file):
+#   A = process.exit(fails ? 1 : 0). Fails if a check fails, but a run that executes ZERO checks has fails = 0 and exits 0.
+#       The fix is to also exit 1 when no check ran.
+#   B = process.exit(0) unconditionally at the end. A failed check never changes the exit code. Needs the fix in A, plus the
+#       failure counter it does not have (or has but ignores).
+#   Some suites also call process.exit(1) early for a bad setup; those are correct and not listed.
+#
+# suite                           est.checks  style
+relic_test.js                           26  A
+circle_test.js                          10  A
+broadsword_test.js                       8  B
+bot_walk_test.js                         7  B
+hub_click_test.js                        7  A
+relic_defence_test.js                    7  A
+relic_onhit_test.js                      5  A
+relic_threat_test.js                     5  A
+square_test.js                           5  A
+cone_test.js                             4  A
+explosion_test.js                        4  A
+plate_test.js                            4  A
+protect_test.js                          4  A
+relic_hourglass_test.js                  4  A
+relic_persist_test.js                    4  A
+relic_reward_test.js                     4  A
+telegraph_test.js                        4  A
+relic_mirror_test.js                     3  A
+relic_regen_test.js                      3  A
+devourer_leap_test.js                    2  B
+perm_test.js                             2  A
+relic_melee_test.js                      2  A
+relic_quiver_sickle_test.js              2  A
+relic_quiver_test.js                     2  A
+fire_test.js                             1  A
+relic_bonk_test.js                       1  A
+relic_cowl_test.js                       1  A
+relic_offence_test.js                    1  A
+table_craft_test.js                      ?  B
+#
+# TOTAL 29: style A = 25, style B = 4.
+# NOT VERIFIED: that each suite's PASS lines appear when it runs LIVE (only relic_test and chest_test were run live, in V0);
+# the est. checks column; the style letter was read from the last exit line only, not by executing each file.
