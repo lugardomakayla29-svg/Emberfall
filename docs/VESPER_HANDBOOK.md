@@ -22,8 +22,9 @@ The player loop:
 4. The player has **weapons** that fire **automatically** (there is no attack key). They gain XP, level up, and pick **tomes**
    (stackable stat upgrades) and sometimes new weapons on a popup. Gold drops from kills.
 5. **Chests** on the map cost gold (price rises each opening); **free chests** drop from elites, bosses and shrines. Chests
-   give **relics** (run items with a rarity). **Testificate merchants** (invulnerable Nitwit-villager model) visit every 3 min
-   (first at 2:00) and sell 3 items.
+   give **relics** (run items with a rarity). **Testificate merchants** (invulnerable Nitwit-villager model) visit one at a time:
+   the first at 2:00, then each next one 3 min after the previous one LEAVES. A merchant stays up to 1 min, so arrivals are 3 min
+   apart if it left at once (after a purchase) and up to 4 min apart if nobody buys. They sell 3 items.
 6. Three **map shrines** (Challenge, Boss Curse, Statue of Greed) give risk/reward choices.
 7. **Bosses**: Ember Guardian (first, at 10:00; magma head, lava tentacles, 4 pylons) and the Devourer (segmented worm).
 8. After the Devourer dies the **Final Swarm** starts: endless powerful mobs, a silver **multiplier** that climbs 0.1x per 20 s
@@ -48,7 +49,7 @@ every weapon must have more strikes/projectiles per level, a jaw-dropping ultima
 | `tome/`, `progression/`, `leveling/`, `character/`, `pickup/` | Tomes and offers, meta progress/shop, XP curve, the 8 characters, gold/XP pickups. |
 | `hub/` | Hearth, `GateManager`/`GateRules`, hub builder, `HubInteractions`. |
 | `shrine/` | `MapShrines`, `RunModifiers`. (`ShrineManager` is the old proximity shrine, unused on map runs.) |
-| `network/` | ~22 custom packet payloads (HUD sync, choices, swarm HUD...). Shared files. |
+| `network/` | 18 custom packet payloads plus 4 helper classes (HUD sync, choices, swarm HUD...). Shared files. |
 | `mixin/` | 6 mixins (hostility, no vanilla orbs, tab-list filter...). |
 | `bot/` | **EmberTester**, the test-bot player (see PART 4). Koda's area. |
 | `src/client/java/.../client/` | Client only: HUD, screens, renderers. |
@@ -71,7 +72,7 @@ Data lives in `src/main/resources/`: `assets/emberfall` (textures, models, lang,
 ## PART 2. HONEST STATE OF THE PROJECT
 
 ### 2.1 Done and proven by live tests
-Weapons 1-10 and all 8 ultimates; tomes (29) with stacking and class gating; relic pool (24) with unlock meta-progress;
+Weapons 1-10 and all 8 ultimates; tomes (31) with stacking and class gating; relic pool (24) with unlock meta-progress;
 paid/free/gold chests; Testificate merchants; relic HUD; Final Swarm with portal and multiplier; Expedition Gate (plate loop
 fixed); creative tab with mob eggs, bosses, and summoner items; EmberTester joins as a real player and chooses its own
 character, weapons and tomes (bot_brain_test 5/5). Mobs: hordes, Tiki, Witch, Pink Slime, Kraken/Guardian, Devourer.
@@ -104,7 +105,10 @@ test proves logic, never appearance. Never write "looks good". Write "tested hea
 5. **Anti-tamper on every custom item** carrying PersistentData/data-component tags.
 6. **Custom mobs mirror player behaviour and stay off the tab list.** Player-head textures from minecraft-heads.com or similar.
 7. **Do NOT use sub-agents** for research or design. Do the reading and design yourself.
-8. **A test that prints no verdict proves nothing.** Every suite prints `PASS`/`FAIL`. Never loosen an assertion unless measured
+8. **A test that prints no verdict proves nothing.** A suite you write or touch must print `PASS`/`FAIL` lines and a total.
+   Not every existing suite does: of 200 `*_test.js`, 56 are measurements that print numbers with no check and 17 print per-line
+   `PASS`/`FAIL` with no total (issue #17, data in `docs/audit/README_suite_verdict_audit.md`). Exit codes are no evidence either:
+   191 of 200 exit 0 against a stopped server. Never loosen an assertion unless measured
    numbers show the test was wrong, and say so in the PR.
 9. **No rushing. Check twice.** Say plainly what is unverified.
 10. **Armour sets and the weapons shop are END GAME and LAST** (issue #9). Do not start them.
@@ -143,7 +147,7 @@ Claim something works without showing the test output. Overwrite the other agent
 ### 4.1 Three layers
 1. **Pure maths checks** (`tools/testbot/relic_math/*Check.java`): plain Java, no server, prove numbers and rules. 24 exist, 21
    run in CI. Compile with `javac -sourcepath src/main/java`. They print `PASS`/`FAIL` and `ALL PASS`.
-2. **Live suites** (`tools/testbot/*_test.js`, ~197 scripts): a mineflayer bot joins a real server, runs commands and asserts.
+2. **Live suites** (`tools/testbot/*_test.js`, 200 scripts): a mineflayer bot joins a real server, runs commands and asserts.
    Run with `tools/testbot/one_suite.sh <suite> <seconds>`, read `/tmp/one_<suite>.txt` (ends `ONE_DONE`), and check
    `grep -c Exception run/server_run.log` is 0.
 3. **Regression bundles** (`tools/testbot/regress*.sh`, `reg_*.sh`): run many suites. `regress4.sh` is the big one (61 runs).
