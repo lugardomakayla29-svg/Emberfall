@@ -9,9 +9,26 @@
 const mineflayer = require('mineflayer');
 const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const lines = []; bot.on('message', m => lines.push(m.toString())); bot.on('error', e => console.log('ERR', e.message));
+const lines = []; bot.on('message', m => lines.push(m.toString()));
 const ask = async (x, w = 500) => { const n = lines.length; bot.chat(x); await sleep(w); return lines.slice(n).join(' | '); };
-let fails = 0; const R = (n, ok, extra = '') => { console.log(`${ok ? 'PASS' : 'FAIL'} ${n} ${extra}`); if (!ok) fails++; };
+// EXPECTED_CHECKS is the number of checks a complete run makes (measured live: 9). A run with fewer did not finish, and a run
+// with none (no server) must never read as a pass: the verdict needs fails === 0 AND ran >= EXPECTED_CHECKS.
+const EXPECTED_CHECKS = 9;
+let fails = 0; let ran = 0;
+const R = (n, ok, extra = '') => { ran++; console.log(`${ok ? 'PASS' : 'FAIL'} ${n} ${extra}`); if (!ok) fails++; };
+// Print the verdict and return the exit code that agrees with it. Every exit goes through here so none can disagree.
+function finish() {
+  const short_ = ran < EXPECTED_CHECKS;
+  if (fails === 0 && !short_) { console.log('ALL PASS (' + ran + ' checks)'); return 0; }
+  console.log('SOME FAIL ' + (fails || 1) + (short_ ? ' (only ' + ran + ' of ' + EXPECTED_CHECKS + ' checks ran)' : ''));
+  return 1;
+}
+// A refused connection never fires 'spawn', so the handler below would never run and node would exit 0 with nothing printed
+// (measured in #35). The error handler must end the run itself.
+bot.on('error', e => { console.log('FAIL connection error: ' + e.message); fails++; process.exit(finish()); });
+bot.on('kicked', r => { console.log('FAIL kicked: ' + JSON.stringify(r).slice(0, 160)); fails++; process.exit(finish()); });
+// Backstop: a server that takes the socket but never spawns the bot would hang the same way.
+const spawnTimer = setTimeout(() => { console.log('FAIL the bot did not spawn within 60 s'); fails++; process.exit(finish()); }, 60000);
 const hp = async tag => { const r = await ask(`/data get entity @e[tag=${tag},limit=1] Health`, 450); const m = /entity data: (-?[\d.]+)f/.exec(r); return m ? +m[1] : null; };
 const meter = async () => { const r = await ask('/emberfall debugweapongrowth EmberTester', 700); const m = /growth slot 0 broadsword kills=(\d+) level=(\d+) meter=(\d+)/.exec(r); return m ? { kills: +m[1], level: +m[2], meter: +m[3] } : null; };
 // a frozen 1000 hp foe at (dx, dz) relative to the pinned player at the arena origin
@@ -20,7 +37,7 @@ const foe = async (tag, dx, dz) => {
   await ask(`/attribute @e[tag=${tag},limit=1] minecraft:max_health base set 1000`, 150);
   await ask(`/data modify entity @e[tag=${tag},limit=1] Health set value 1000.0f`, 150);
 };
-bot.once('spawn', async () => {
+const main = async () => {
   await sleep(5000);
   await ask('/gamemode survival'); await ask('/effect clear @s');
   await ask('/character select vanguard'); await ask('/expedition', 2500);
@@ -75,6 +92,9 @@ bot.once('spawn', async () => {
 
   clearInterval(pin);
   await ask('/kill @e[tag=keep]', 300); await ask('/expedition leave', 800);
-  console.log(fails === 0 ? 'ALL PASS' : 'SOME FAIL ' + fails);
-  bot.quit(); setTimeout(() => process.exit(0), 400);
-});
+  const code = finish();
+  bot.quit(); setTimeout(() => process.exit(code), 400);
+};
+// The body is a named async function so a throw inside it is caught here: an async 'spawn' listener would turn it into an
+// unhandled rejection and node would not exit 1 for it.
+bot.once('spawn', () => { clearTimeout(spawnTimer); main().catch(e => { console.log('FAIL suite crashed: ' + (e && e.stack || e)); console.log('SOME FAIL (crashed)'); process.exit(1); }); });
