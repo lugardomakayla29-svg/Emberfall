@@ -62,13 +62,25 @@ bot.once('spawn', async () => {
   const g3b = await gold(); const s3b = await state();
   check('enough gold: charged exactly the price', g3a - g3b === price0 || (chestIsGold && g3a - g3b === price0), `${g3a} -> ${g3b} (price ${price0})`);
   check('a relic was handed over', s3b.owned !== s3a.owned, `${s3a.owned} -> ${s3b.owned}`);
-  check('the opened counter rose by 1 and the next price is higher', s3b.opened === s3a.opened + 1 && s3b.price > s3a.price, `${s3a.opened}->${s3b.opened}, ${s3a.price}->${s3b.price}`);
+  // The relic that arrives with the opening decides which rule applies: Ember Ledger freezes the price on purpose
+  // (PlayerRelics.addChestOpened returns early), so neither the counter nor the price may rise. Decide from s3b, not s3a.
+  const ledger = /ember_ledger/.test(s3b.owned);
+  console.log('BRANCH: ' + (ledger ? 'ember_ledger (price frozen by design)' : 'normal (price rises)'));
+  if (ledger) {
+    check('Ember Ledger: the opened counter and the next price are unchanged', s3b.opened === s3a.opened && s3b.price === s3a.price, `${s3a.opened}->${s3b.opened}, ${s3a.price}->${s3b.price}`);
+  } else {
+    check('the opened counter rose by 1 and the next price is higher', s3b.opened === s3a.opened + 1 && s3b.price > s3a.price, `${s3a.opened}->${s3b.opened}, ${s3a.price}->${s3b.price}`);
+  }
   check('the block flipped to opened=true', await isOpen(ch.x, ch.y, ch.z));
   const ch2 = await chests(); check('registry now shows 15 closed', ch2.closed === 15, JSON.stringify(ch2));
   // 3b the HUD price follows the opening: hold gold constant at the value the opening left, so only the price can have changed
   await sleep(2500);
   const h = hud[hud.length - 1];
-  check('HUD packet carries the new price (38) after one opening', h && h.active && h.price === 38 && h.used === h.len, h ? `price ${h.price}, bytes ${h.used}/${h.len}` : 'no packet');
+  if (ledger) {
+    check(`Ember Ledger: HUD packet carries the unchanged price (${s3b.price}) after one opening`, h && h.active && h.price === s3b.price && h.used === h.len, h ? `price ${h.price}, bytes ${h.used}/${h.len}` : 'no packet');
+  } else {
+    check('HUD packet carries the new price (38) after one opening', h && h.active && h.price === 38 && h.used === h.len, h ? `price ${h.price}, bytes ${h.used}/${h.len}` : 'no packet');
+  }
   // 4 second click on the open chest does nothing
   await setGold(500); const g4a = await gold(); const s4a = await state();
   await click(ch.x, ch.y, ch.z);
