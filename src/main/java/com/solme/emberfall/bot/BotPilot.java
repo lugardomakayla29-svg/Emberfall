@@ -4,6 +4,7 @@ import com.solme.emberfall.combat.AutoAttackSystem;
 import com.solme.emberfall.item.Loadout;
 import com.solme.emberfall.pickup.PickupSystem;
 import com.solme.emberfall.relic.MerchantManager;
+import com.solme.emberfall.shrine.MapShrines;
 import com.solme.emberfall.world.ArenaInstance;
 import com.solme.emberfall.world.RunManager;
 import net.minecraft.core.BlockPos;
@@ -47,6 +48,14 @@ public final class BotPilot {
     static final long MERCHANT_LOOK_GOLD = 60;
     /** Ticks before the bot will open the same merchant's screen again. */
     static final long MERCHANT_RETRY = 100;
+    /** Blocks from the Challenge Shrine the bot stops at (the game accepts a click within 10 of its anchor). */
+    static final double SHRINE_STAND = 4.0;
+    /** The bot only starts a trial at this fraction of its health or better. */
+    static final double SHRINE_MIN_HEALTH = 0.6;
+    /** Ticks before the bot tries the same shrine again (a refused open must not be spammed). */
+    static final long SHRINE_RETRY = 100;
+    /** Test control (like -Demberfall.noLegion): a suite about something else, such as the walk to one planted foe, sets this. */
+    static final boolean NO_SHRINE_VISIT = Boolean.getBoolean("emberfall.noShrineVisit");
 
     private static final class State {
         List<BotWalk.Point> route = List.of();
@@ -56,6 +65,7 @@ public final class BotPilot {
         double goalZ = Double.NaN;
         double startX;
         double startZ;
+        long lastShrine = -1_000_000L;
         long lastBrowse = -1_000_000L; // not Long.MIN_VALUE: now - MIN_VALUE overflows and is never >= the retry gap
     }
 
@@ -112,8 +122,19 @@ public final class BotPilot {
             st.lastBrowse = now;
             MerchantManager.onInteract(bot, merchant);
         }
+        // the free Challenge Shrine, once per run, when no merchant is worth the trip and the bot is healthy
+        BlockPos shrine = visit ? null : MapShrines.openChallengeAnchor(RunManager.slotOf(bot));
+        boolean goShrine = shrine != null && !NO_SHRINE_VISIT
+                && BotPlan.shouldVisitShrine(true, false, bot.getHealth() / Math.max(1.0F, bot.getMaxHealth()), SHRINE_MIN_HEALTH);
+        if (goShrine && Math.hypot(bot.getX() - (shrine.getX() + 0.5), bot.getZ() - (shrine.getZ() + 0.5)) <= SHRINE_STAND + 1.5
+                && now - st.lastShrine >= SHRINE_RETRY) {
+            st.lastShrine = now;
+            MapShrines.botChallenge(bot);
+        }
         BotPlan.Goal goal = visit
                 ? BotPlan.goalFor(bot.getX(), bot.getZ(), new BotPlan.Foe(merchant.getX(), merchant.getZ(), 0), MERCHANT_STAND)
+                : goShrine
+                ? BotPlan.goalFor(bot.getX(), bot.getZ(), new BotPlan.Foe(shrine.getX() + 0.5, shrine.getZ() + 0.5, 0), SHRINE_STAND)
                 : pick >= 0
                 ? BotPlan.goalFor(bot.getX(), bot.getZ(), foes.get(pick), BotPlan.standOff(reach))
                 : BotPlan.wander(bot.getX(), bot.getZ(), arena.origin().getX() + 0.5, arena.origin().getZ() + 0.5, 6.0);
@@ -129,7 +150,7 @@ public final class BotPilot {
             st.plannedAt = now;
             st.index = 0;
             BlockPos target = BlockPos.containing(goal.x(), bot.getY(), goal.z());
-            st.route = BotScout.route(level, bot.getX(), bot.getY(), bot.getZ(), target, visit ? MERCHANT_PATH_RANGE : PATH_RANGE);
+            st.route = BotScout.route(level, bot.getX(), bot.getY(), bot.getZ(), target, visit || goShrine ? MERCHANT_PATH_RANGE : PATH_RANGE);
         }
 
         // 3. one step along it

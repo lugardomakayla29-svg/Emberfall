@@ -85,4 +85,14 @@ public final class BotPlan {
         }
         return gold - reserve >= cheapestPrice;
     }
+
+    /**
+     * Whether a bot should walk to the Challenge Shrine: it is free, pays gold, XP and Silver, and failing costs nothing, so a
+     * tester always takes it once. It is skipped while the bot is already in a shrine fight (the shrine is "busy"), when it was
+     * already used this run, or when the bot is too hurt to take on guardians. The Curse and the Statue of Greed are never
+     * visited: they make the bot's own run harder, which a tester must not do on its own.
+     */
+    public static boolean shouldVisitShrine(boolean challengeUnused, boolean challengeBusy, double healthFraction, double minHealth) {
+        return challengeUnused && !challengeBusy && healthFraction >= minHealth;
+    }
 }
