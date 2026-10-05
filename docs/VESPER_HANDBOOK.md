@@ -82,14 +82,18 @@ character, weapons and tomes (bot_brain_test 5/5). Mobs: hordes, Tiki, Witch, Pi
 looks, ultimates, the merchant GUI, chest animation, boss looks, screens and audio are all **LOOK UNVERIFIED**. A passing bot
 test proves logic, never appearance. Never write "looks good". Write "tested headless, look unverified".
 
-### 2.3 Open and unresolved
-- **Issue #2 (Koda owns): the bot walk test fails.** Pure maths passes (BotWalk 21/21, BotPlan 17/17), but live the summoned
-  foe and the path scout vanish and the bot never moves. Cause unknown. Do not touch `bot/`.
-- Live suites were made portable (paths rewritten) but **not re-run from the new layout**. Expect path fixes.
-- `./gradlew build` was not re-run from the cleaned repo tree. Vesper's first job proves it (see PART 7).
+### 2.3 Open and unresolved (refreshed 2026-10-05 by Koda)
+- **Bot invulnerable inside a run (Koda owns, `bot/`, do not touch).** `/kill` and `/damage` do not end a BOT's run, so the death path
+  (fallen cause, run-end screen) is untested for bots. Found so far: a bot has no client, so `hasClientLoaded()` stays false and the
+  server treats it as invulnerable; sending the loaded packet fixes a fresh bot, but inside a run it is invulnerable again. Cause open.
+  (Issue #2, the bot walk, is FIXED and merged: PR #22.)
+- CI is INSTALLED (`.github/workflows/build.yml`). The first real run on a GitHub runner passed both jobs (`build`, `math-checks`;
+  run 37377803126, reported on #16), and `main` passed on its own push. `./gradlew build` therefore works from a clean checkout.
+- Live suites use portable paths and were re-run from the new layout for the suites touched since (see STATUS.md). A full re-run of
+  all 200+ suites from a clean clone has NOT been done.
 - Known obsolete/red: `boundary_test` (old box arena). Several suites print no verdict (attack, attack_gate, beam,
   ring_phase3, ring_tower): they were stripped of debug lines and not re-proven.
-- CI is parked in `docs/ci/build.yml.txt` (token has no `workflow` scope).
+- Not verified by anyone: anything on a real graphical client (HUD, ultimates, look). Issue #12 needs the owner.
 
 ---------------------------------------------------------------------------------------------------------------------------
 
