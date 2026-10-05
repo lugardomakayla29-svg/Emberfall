@@ -1,0 +1,23 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const chat = []; bot.on('message', m => chat.push(m.toString()));
+const ask = async (cmd) => { chat.length = 0; bot.chat(cmd); await sleep(900); return chat.join(' ').replace(/\s+/g, ' ').slice(0, 260); };
+bot.once('spawn', async () => {
+  await sleep(6000);
+  const c = async (x, w = 800) => { bot.chat(x); await sleep(w); };
+  await c('/gamemode survival'); await c('/effect give @s minecraft:resistance 900 4 true', 400);
+  await c('/tp @s 60 72 40.5', 2500);
+  await c('/kill @e[type=!player,distance=..80]', 800);
+  await c('/summon emberfall:plague_colossus 40.5 72 40.5 {Tags:["pc"]}', 1200);
+  await c('/attribute @e[tag=pc,limit=1] minecraft:movement_speed base set 0', 600);
+  console.log('max_health attr :', await ask('/attribute @e[tag=pc,limit=1] minecraft:max_health get'));
+  console.log('health          :', await ask('/data get entity @e[tag=pc,limit=1] Health'));
+  await c('/data merge entity @e[tag=pc,limit=1] {Health:10f}', 900);
+  console.log('health after set:', await ask('/data get entity @e[tag=pc,limit=1] Health'));
+  await sleep(3000);
+  console.log('health 3s later :', await ask('/data get entity @e[tag=pc,limit=1] Health'));
+  console.log('alive?          :', await ask('/execute if entity @e[tag=pc]'));
+  await c('/kill @e[tag=pc]', 500);
+  bot.quit(); process.exit(0);
+});

@@ -1,0 +1,36 @@
+{
+ "variants": {
+  "facing=north,opened=false": {
+   "model": "emberfall:block/ember_chest_free_closed",
+   "y": 0
+  },
+  "facing=north,opened=true": {
+   "model": "emberfall:block/ember_chest_free_open",
+   "y": 0
+  },
+  "facing=east,opened=false": {
+   "model": "emberfall:block/ember_chest_free_closed",
+   "y": 90
+  },
+  "facing=east,opened=true": {
+   "model": "emberfall:block/ember_chest_free_open",
+   "y": 90
+  },
+  "facing=south,opened=false": {
+   "model": "emberfall:block/ember_chest_free_closed",
+   "y": 180
+  },
+  "facing=south,opened=true": {
+   "model": "emberfall:block/ember_chest_free_open",
+   "y": 180
+  },
+  "facing=west,opened=false": {
+   "model": "emberfall:block/ember_chest_free_closed",
+   "y": 270
+  },
+  "facing=west,opened=true": {
+   "model": "emberfall:block/ember_chest_free_open",
+   "y": 270
+  }
+ }
+}

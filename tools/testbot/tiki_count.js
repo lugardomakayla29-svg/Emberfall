@@ -1,0 +1,22 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+bot.on('error', e => console.log('ERROR', e));
+bot.on('message', m => { const t=m.toString(); if (/Test (passed|failed)/.test(t)) console.log('   ', t); });
+const c = async (x, w=500) => { bot.chat(x); await sleep(w); };
+const which = process.argv[2];
+bot.once('spawn', async () => {
+  await sleep(6000);
+  await c('/gamemode creative'); await c('/tp @s 0 200 10', 1500);
+  await c('/kill @e[type=emberfall:tiki_magma]', 500); await c('/kill @e[type=emberfall:tiki_segment]', 500);
+  await c('/kill @e[type=minecraft:item_display]', 500); await c('/kill @e[type=minecraft:block_display]', 500); await c('/kill @e[type=minecraft:text_display]', 500);
+  await sleep(6000);
+  console.log('after cleanup, segments alive:'); await c('/execute if entity @e[type=emberfall:tiki_segment]', 600);
+  console.log('spawning', which); await c(`/emberfall spawnelite ${which}`, 2500);
+  console.log('displays BEFORE spawn (item):'); 
+  console.log('segment count:'); await c('/execute if entity @e[type=emberfall:tiki_segment]', 600);
+  console.log('displays (item):'); await c('/execute if entity @e[type=minecraft:item_display]', 600);
+  console.log('displays (block):'); await c('/execute if entity @e[type=minecraft:block_display]', 600);
+  console.log('mobs:'); await c('/execute if entity @e[type=emberfall:tiki_magma]', 600);
+  bot.quit(); process.exit(0);
+});

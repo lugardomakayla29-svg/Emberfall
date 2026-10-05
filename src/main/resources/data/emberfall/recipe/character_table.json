@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:lectern",
+    "minecraft:iron_ingot",
+    "minecraft:iron_ingot",
+    "minecraft:emerald",
+    "minecraft:book"
+  ],
+  "result": {
+    "id": "emberfall:character_table",
+    "count": 1
+  }
+}

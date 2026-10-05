@@ -1,0 +1,17 @@
+# build + tooling
+build/
+.gradle/
+.idea/
+*.iml
+run/
+node_modules/
+out/
+*.class
+# test output
+*.log
+tools/testbot/out*/
+# never commit
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+.env
+*.pem

@@ -1,0 +1,37 @@
+name: build
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '25' }
+      - run: chmod +x gradlew && ./gradlew build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with: { name: emberfall-jar, path: build/libs/*.jar }
+  math-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '25' }
+      - name: Pure-maths checks (no server needed)
+        # AirCheck, ChestSpotCheck and PlanCheck load StaticMap, which needs the Minecraft jar; they run in the live suites instead.
+        # Any OTHER check that does not compile or does not print a pass FAILS the job.
+        run: |
+          cd tools/testbot/relic_math
+          OUT=$(mktemp -d); fail=0; n_ok=0
+          for c in *Check.java; do
+            n=${c%.java}
+            case "$n" in AirCheck|ChestSpotCheck|PlanCheck) echo "skip $n (needs Minecraft jar)"; continue;; esac
+            mkdir -p "$OUT/$n"
+            if ! javac -sourcepath ../../../src/main/java -d "$OUT/$n" "$c"; then echo "FAIL $n (does not compile)"; fail=1; continue; fi
+            java -cp "$OUT/$n" "$n" > "$OUT/$n.txt" 2>&1
+            if grep -q "^FAIL" "$OUT/$n.txt" || ! grep -qE "ALL PASS|ALL PASSED" "$OUT/$n.txt"; then echo "FAIL $n"; tail -3 "$OUT/$n.txt"; fail=1; else echo "ok   $n"; n_ok=$((n_ok+1)); fi
+          done
+          echo "$n_ok checks passed"
+          [ "$n_ok" -ge 20 ] || { echo "too few checks ran"; fail=1; }
+          exit $fail

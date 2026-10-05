@@ -1,0 +1,17 @@
+const mineflayer = require('mineflayer'); const sleep = ms => new Promise(r => setTimeout(r, ms));
+const op = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const pl = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'PlainPlayer', version: '1.21.11', auth: 'offline' });
+const chat = []; op.on('message', m => chat.push(m.toString()));
+const ask = async c => { chat.length = 0; op.chat(c); await sleep(900); console.log(c, '=>', chat.join(' | ').slice(0, 200)); };
+let n = 0; const go = async () => { if (++n < 2) return; await sleep(4000);
+  await ask('/execute in emberfall:expedition run forceload add -16 -16 16 16');
+  await ask('/gamemode survival PlainPlayer');
+  await ask('/execute as PlainPlayer in emberfall:expedition run tp @s 0.5 64 0.5');
+  await sleep(1500);
+  await ask('/execute as PlainPlayer if dimension emberfall:expedition run say IN_EXP');
+  await ask('/data get entity PlainPlayer Dimension');
+  await ask('/data get entity PlainPlayer Pos');
+  await ask('/data get entity PlainPlayer playerGameType');
+  console.log('bot side: gameMode=', pl.game.gameMode, 'dimension=', pl.game.dimension, 'y=', pl.entity.position.y);
+  process.exit(0); };
+op.once('spawn', go); pl.once('spawn', go);

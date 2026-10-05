@@ -1,0 +1,20 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const lines = []; bot.on('message', m => lines.push(m.toString()));
+bot.once('spawn', async () => {
+  await sleep(6000);
+  const c = async x => { const n = lines.length; bot.chat(x); await sleep(900); console.log(x, '=>', lines.slice(n).join(' | ').slice(0, 160)); };
+  await c('/gamemode survival');
+  await c('/data get entity @s Pos');
+  await c('/setblock ~ ~ ~2 emberfall:character_table');
+  await c('/execute if block ~ ~ ~2 emberfall:character_table');
+  const p = bot.entity.position;
+  const b = bot.blockAt(p.offset(0, 0, 2).floored());
+  console.log('blockAt', b && b.name, 'type', b && b.type, 'pos', p.toString());
+  const f = bot.findBlock({ matching: x => x.name === 'character_table', maxDistance: 6 });
+  console.log('findBlock by name:', f ? f.name : null);
+  const g = bot.findBlock({ matching: x => x.name === 'unknown' || x.name === 'bookshelf', maxDistance: 6 });
+  console.log('findBlock unknown/bookshelf:', g ? g.name + ' at ' + g.position : null);
+  bot.quit(); setTimeout(() => process.exit(0), 300);
+});

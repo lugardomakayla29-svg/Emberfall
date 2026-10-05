@@ -1,0 +1,40 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const chat = [];
+bot.on('error', e => console.log('ERROR', e));
+bot.on('kicked', r => console.log('KICKED', JSON.stringify(r)));
+bot.on('message', m => { const t = m.toString(); if (t.trim()) chat.push(t); });
+const c = async (x, w = 900) => { bot.chat(x); await sleep(w); };
+const X = -29, Y = 75, Z = -2;
+const TAG = `emberfall_hub_${X}_${Y + 1}_${Z}`;
+const CELLS = { 'bustN':[0,-3], 'bustE':[3,0], 'keeper':[0,1], 'plate':[0,-1], 'hearth':[0,0], 'ringNE':[2,-2] };
+const at = async (dx, dy, dz) => {
+  chat.length = 0;
+  await c(`/emberfall blockat ${X + dx} ${Y + dy} ${Z + dz}`, 900);
+  const m = chat.join(' ').match(/= (\S+)/);
+  return m ? m[1] : '??' + chat.join('|');
+};
+const snap = async () => { const o = {}; for (const [k,[dx,dz]] of Object.entries(CELLS)) o[k] = await at(dx, 1, dz); return o; };
+const ents = async () => { chat.length = 0; await c(`/execute if entity @e[tag=${TAG},distance=..20]`, 900); const m = chat.join(' ').match(/Count: (\d+)/); return m ? +m[1] : 0; };
+bot.once('spawn', async () => {
+  await sleep(6000);
+  await c('/gamemode creative', 700);
+  await c(`/tp @s ${X + 0.5} ${Y + 1} ${Z + 6.5}`, 3000);
+  const before = await snap();
+  console.log('BEFORE  ', JSON.stringify(before), 'entities', await ents());
+  await c(`/setblock ${X} ${Y + 1} ${Z} emberfall:ember_hearth`, 900);
+  await c(`/emberfall hubactivate ${X} ${Y + 1} ${Z}`, 3000);
+  const built = await snap();
+  console.log('BUILT   ', JSON.stringify(built), 'entities', await ents());
+  await c(`/setblock ${X} ${Y + 1} ${Z} minecraft:air`, 3000);
+  const after = await snap();
+  console.log('AFTER   ', JSON.stringify(after), 'entities', await ents());
+  const unreadable = [before, built, after].some(o => Object.values(o).some(v => String(v).startsWith('??')));
+  if (unreadable) { console.log('INVALID RUN: some block reads failed, result not trusted'); bot.quit(); process.exit(1); }
+  const bad = Object.keys(CELLS).filter(k => k !== 'hearth' && after[k] !== before[k]);
+  console.log('hearth cell after break:', after.hearth, '(must be air)');
+  console.log(bad.length ? 'MISMATCH cells: ' + bad.join(',') : 'ALL CELLS RESTORED TO ORIGINAL');
+  console.log('FINISHED');
+  bot.quit(); process.exit(0);
+});

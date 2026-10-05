@@ -1,0 +1,22 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const lines = []; bot.on('message', m => lines.push(m.toString()));
+bot.once('spawn', async () => {
+  await sleep(6000);
+  const ask = async (x, w = 1300) => { const n = lines.length; bot.chat(x); await sleep(w); return lines.slice(n).filter(l => !/Teleported/.test(l)).join(' | ').slice(0, 200); };
+  console.log('gm      :', await ask('/gamemode survival'));
+  console.log('leave   :', await ask('/expedition leave'));
+  console.log('char    :', await ask('/character select juggernaut'));
+  console.log('start   :', await ask('/expedition', 4000));
+  console.log('summon  :', await ask('/execute at @s run summon emberfall:horde_zombie ~2.5 ~ ~0 {Tags:["a1","keep"],PersistenceRequired:1b}'));
+  console.log('tagcount:', await ask('/execute if entity @e[tag=a1]'));
+  console.log('attr    :', await ask('/attribute @e[tag=a1,limit=1] minecraft:max_health base set 1000'));
+  console.log('attrget :', await ask('/attribute @e[tag=a1,limit=1] minecraft:max_health get'));
+  console.log('health  :', await ask('/data get entity @e[tag=a1,limit=1] Health'));
+  await new Promise(r=>setTimeout(r,3000));
+  console.log('tag 3s  :', await ask('/execute if entity @e[tag=a1]'));
+  console.log('health2 :', await ask('/data get entity @e[tag=a1,limit=1] Health'));
+  await ask('/kill @e[tag=a1]');
+  bot.quit(); setTimeout(() => process.exit(0), 500);
+});

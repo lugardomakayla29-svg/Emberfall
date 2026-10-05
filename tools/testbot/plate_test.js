@@ -1,0 +1,44 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const chat = [];
+bot.on('error', e => console.log('ERROR', e));
+bot.on('kicked', r => console.log('KICKED', JSON.stringify(r)));
+bot.on('message', m => { const t = m.toString(); if (t.trim()) chat.push(t); });
+const c = async (x, w = 900) => { bot.chat(x); await sleep(w); };
+const say = async (cmd, w = 1000) => { chat.length = 0; await c(cmd, w); return chat.slice(); };
+const X = -29, Y = 75, Z = -2;
+const TAG = `emberfall_hub_${X}_${Y + 1}_${Z}`;
+let fails = 0;
+const check = (label, ok, extra = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + label + (extra ? '  ' + extra : '')); if (!ok) fails++; };
+const blockAt = async (dx, dz) => { const r = (await say(`/emberfall blockat ${X + dx} ${Y + 1} ${Z + dz}`)).join(' '); const m = r.match(/= (\S+)/); return m ? m[1] : '??'; };
+const inRun = async () => (await say('/expedition leave', 1500)).join(' ').includes('You left the expedition');
+bot.once('spawn', async () => {
+  await sleep(6000);
+  await c('/gamemode survival', 700);
+  await c(`/tp @s ${X + 0.5} ${Y + 1} ${Z + 6.5}`, 3000);
+  const before = await blockAt(0, -1);
+  await c(`/setblock ${X} ${Y + 1} ${Z} emberfall:ember_hearth`, 900);
+  await c(`/emberfall hubactivate ${X} ${Y + 1} ${Z}`, 3000);
+  check('plate cell holds emberfall:departure_plate', (await blockAt(0, -1)) === 'emberfall:departure_plate', await blockAt(0, -1));
+  check('not in a run before stepping on the plate', !(await inRun()));
+  // step onto the plate cell (0,-1): server-side teleport into the cell triggers entityInside
+  chat.length = 0;
+  await c(`/tp @s ${X + 0.5} ${Y + 1} ${Z - 1 + 0.5}`, 2500);
+  const stepMsgs = chat.slice();
+  check('stepping on the plate starts a run (leave succeeds)', await inRun(), stepMsgs.join('|').slice(0, 90));
+  // linger: while already in a run, a second attempt should be refused at most once per cooldown, not every tick
+  await c(`/tp @s ${X + 0.5} ${Y + 1} ${Z + 6.5}`, 1200);
+  chat.length = 0;
+  await c(`/tp @s ${X + 0.5} ${Y + 1} ${Z - 1 + 0.5}`, 500);
+  await sleep(5000);
+  const refusals = chat.filter(t => /already on an expedition/i.test(t)).length;
+  check('lingering on the plate does not spam (<= 2 refusals in 5.5s)', refusals >= 1 && refusals <= 2, 'refusals=' + refusals);
+  await c('/expedition leave', 1500);
+  await c(`/tp @s ${X + 0.5} ${Y + 1} ${Z + 6.5}`, 2500);
+  await c(`/setblock ${X} ${Y + 1} ${Z} minecraft:air`, 3000);
+  const after = await blockAt(0, -1);
+  check('teardown restores the plate cell to its original block', after === before && after !== 'emberfall:departure_plate', `before=${before} after=${after}`);
+  console.log(fails ? `RESULT: ${fails} FAILED` : 'RESULT: ALL PASSED');
+  bot.quit(); process.exit(fails ? 1 : 0);
+});

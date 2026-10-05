@@ -1,0 +1,21 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const lines = []; bot.on('message', m => lines.push(m.toString()));
+const ask = async (x, w = 600) => { const n = lines.length; bot.chat(x); await sleep(w); return lines.slice(n).join(' | '); };
+const cnt = async sel => { await ask(`/execute store result score #n emberfall_t run execute if entity ${sel}`, 400); const r = await ask('/scoreboard players get #n emberfall_t', 400); const m = /has (-?\d+)/.exec(r); return m ? +m[1] : -1; };
+bot.once('spawn', async () => {
+  await sleep(6000);
+  await ask('/gamemode survival'); await ask('/kill @e[type=minecraft:cave_spider]', 400);
+  await ask('/summon minecraft:cave_spider ~3 ~ ~', 800);
+  console.log('OUTSIDE a run, 1 cave spider summoned, alive:', await cnt('@e[type=minecraft:cave_spider]'));
+  await ask('/kill @e[type=minecraft:cave_spider]', 400);
+  await ask('/character select duelist', 700); await ask('/expedition leave', 800); await ask('/expedition', 3500);
+  await ask('/summon minecraft:cave_spider ~3 ~ ~', 300);
+  await ask('/summon minecraft:cave_spider ~-3 ~ ~', 300);
+  console.log('INSIDE a run, 2 cave spiders summoned, alive after 0.3s:', await cnt('@e[type=minecraft:cave_spider]'));
+  await sleep(1500);
+  console.log('INSIDE a run, alive after 1.8s:', await cnt('@e[type=minecraft:cave_spider]'));
+  await ask('/expedition leave', 800);
+  bot.quit(); setTimeout(() => process.exit(0), 300);
+});

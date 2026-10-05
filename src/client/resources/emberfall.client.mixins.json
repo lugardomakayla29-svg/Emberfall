@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "com.solme.emberfall.client.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"EmberfallClientMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

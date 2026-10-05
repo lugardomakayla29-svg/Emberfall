@@ -1,0 +1,22 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+bot.on('error', e => console.log('ERROR', e));
+bot.on('message', m => { const t=m.toString(); if (/Test (passed|failed)|has the following/.test(t)) console.log('MSG:', t.slice(0,110)); });
+const parts = {};
+bot._client.on('packet', (d, m) => { if (m.name === 'world_particles') { const k = JSON.stringify(d.particle?.type ?? d.particleId); parts[k] = (parts[k]||0)+1; } });
+const c = async (x, w=600) => { bot.chat(x); await sleep(w); };
+bot.once('spawn', async () => {
+  await sleep(6000);
+  await c('/gamemode creative'); await c('/tp @s 0 200 0', 1500);
+  await c('/fill -12 199 -12 12 199 12 minecraft:stone', 900);
+  await c('/kill @e[type=!player,distance=..40]', 600);
+  await c('/effect give @s minecraft:resistance 900 4 true');
+  await c('/emberfall spawnelite tiki_magma', 2000);
+  for (const k of Object.keys(parts)) delete parts[k];
+  await c('/tp @s 0 200 6', 500);
+  await sleep(15000);
+  console.log('PARTICLES over 15s near an Elite Tiki:', JSON.stringify(parts));
+  await c('/execute if entity @e[type=emberfall:tiki_segment]', 500);
+  bot.quit(); process.exit(0);
+});

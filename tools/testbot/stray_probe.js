@@ -1,0 +1,21 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const lines = []; bot.on('message', m => lines.push(m.toString()));
+const ask = async (x, w = 500) => { const n = lines.length; bot.chat(x); await sleep(w); return lines.slice(n).join(' | '); };
+const HEAD = '@e[type=minecraft:item_display,nbt={item:{id:"minecraft:player_head"}}]';
+bot.once('spawn', async () => {
+  await sleep(6500);
+  await ask('/kill @e[type=!player]', 600); await ask('/kill @e[type=minecraft:item_display]', 600); await sleep(2000);
+  console.log('A heads in a clean world :', (await ask(`/execute if entity ${HEAD}`, 500)).slice(0, 60));
+  await ask('/gamemode survival'); await ask('/effect give @s minecraft:resistance 999 4 true', 300);
+  await ask('/character select juggernaut', 600); await ask('/expedition', 1500); await sleep(1500);
+  console.log('B heads in a run, no boss :', (await ask(`/execute if entity ${HEAD}`, 500)).slice(0, 60));
+  console.log('   what/where:', (await ask(`/execute as ${HEAD} at @s run data get entity @s Tags`, 700)).slice(0, 220));
+  await ask('/emberfall bossdevourer 0', 1200); await sleep(2500);
+  await ask('/kill @e[type=emberfall:devourer_brain]', 800); await sleep(5000);
+  console.log('C heads after boss killed :', (await ask(`/execute if entity ${HEAD}`, 500)).slice(0, 60));
+  console.log('   what/where:', (await ask(`/execute as ${HEAD} at @s run data get entity @s Tags`, 700)).slice(0, 220));
+  bot.quit(); setTimeout(() => process.exit(0), 300);
+});
+bot.on('error', e => console.log('ERR', e.message));

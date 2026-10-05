@@ -1,0 +1,19 @@
+{
+	"required": true,
+	"package": "com.solme.emberfall.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"EmberfallMixin",
+		"EmberfallHostilityMixin",
+		"EmberfallNoOrbMixin",
+		"EmberfallExplosionMixin",
+		"EmberfallRelicDamageMixin",
+		"EmberfallTabListMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

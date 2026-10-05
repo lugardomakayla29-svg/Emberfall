@@ -1,0 +1,60 @@
+{
+  "textures": {
+    "frame": "emberfall:item/pyre_lantern",
+    "particle": "emberfall:item/pyre_lantern"
+  },
+  "elements": [
+    {
+      "name": "base",
+      "from": [4, 0, 4], "to": [12, 2, 12],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 4], "texture": "#frame"}, "south": {"uv": [0, 0, 16, 4], "texture": "#frame"},
+        "east":  {"uv": [0, 0, 16, 4], "texture": "#frame"}, "west":  {"uv": [0, 0, 16, 4], "texture": "#frame"},
+        "up":    {"uv": [0, 0, 16, 8], "texture": "#frame"}, "down":  {"uv": [0, 0, 16, 8], "texture": "#frame"}
+      }
+    },
+    {
+      "name": "core",
+      "from": [5, 2, 5], "to": [11, 10, 11],
+      "shade": false,
+      "faces": {
+        "north": {"uv": [0, 8, 16, 16], "texture": "#frame"}, "south": {"uv": [0, 8, 16, 16], "texture": "#frame"},
+        "east":  {"uv": [0, 8, 16, 16], "texture": "#frame"}, "west":  {"uv": [0, 8, 16, 16], "texture": "#frame"},
+        "up":    {"uv": [0, 8, 16, 16], "texture": "#frame"}, "down":  {"uv": [0, 8, 16, 16], "texture": "#frame"}
+      }
+    },
+    {
+      "name": "post_a", "from": [4, 2, 4], "to": [5, 10, 5],
+      "faces": {"north": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "south": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "east": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "west": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "up": {"uv": [0, 0, 2, 2], "texture": "#frame"}}
+    },
+    {
+      "name": "post_b", "from": [11, 2, 4], "to": [12, 10, 5],
+      "faces": {"north": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "south": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "east": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "west": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "up": {"uv": [0, 0, 2, 2], "texture": "#frame"}}
+    },
+    {
+      "name": "post_c", "from": [4, 2, 11], "to": [5, 10, 12],
+      "faces": {"north": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "south": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "east": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "west": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "up": {"uv": [0, 0, 2, 2], "texture": "#frame"}}
+    },
+    {
+      "name": "post_d", "from": [11, 2, 11], "to": [12, 10, 12],
+      "faces": {"north": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "south": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "east": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "west": {"uv": [0, 0, 2, 8], "texture": "#frame"}, "up": {"uv": [0, 0, 2, 2], "texture": "#frame"}}
+    },
+    {
+      "name": "cap",
+      "from": [4, 10, 4], "to": [12, 12, 12],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 4], "texture": "#frame"}, "south": {"uv": [0, 0, 16, 4], "texture": "#frame"},
+        "east":  {"uv": [0, 0, 16, 4], "texture": "#frame"}, "west":  {"uv": [0, 0, 16, 4], "texture": "#frame"},
+        "up":    {"uv": [0, 0, 16, 8], "texture": "#frame"}, "down":  {"uv": [0, 0, 16, 8], "texture": "#frame"}
+      }
+    },
+    {
+      "name": "handle",
+      "from": [6, 12, 7.5], "to": [10, 15, 8.5],
+      "faces": {"north": {"uv": [0, 0, 8, 6], "texture": "#frame"}, "south": {"uv": [0, 0, 8, 6], "texture": "#frame"}, "up": {"uv": [0, 0, 8, 2], "texture": "#frame"}}
+    }
+  ],
+  "display": {
+    "fixed": {"rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [1, 1, 1]}
+  }
+}
