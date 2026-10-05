@@ -22,6 +22,19 @@ collect tomes, weapons and relics, open chests, trade with Testificates, defeat 
 ./gradlew build          # jar lands in build/libs/
 ```
 
+## Check a fresh clone in one command
+
+```
+export JAVA_HOME=/path/to/jdk-25
+bash tools/fresh_clone_check.sh
+```
+
+It builds, runs the pure-maths checks, sets up and starts the test server (fetching the Fabric launcher itself), then runs
+`relic_test` and `chest_test`. Each of the 8 steps ends `PASS`, `FAIL` or `NOT RUN`; the exit code is 0 only if all 8 are `PASS`.
+Suite verdicts are read from the output (result line, PASS count, no FAIL), never from an exit code, because the live suites
+exit 0 even when they did nothing. Raw output goes to a folder under `/tmp` (set `FCC_LOG` to choose). `FCC_SKIP_BUILD=1`
+reuses the existing jar and reports the build as `NOT RUN`. Port 25565 must be free. Tested headless, look unverified.
+
 ## Run the tests
 
 ```
