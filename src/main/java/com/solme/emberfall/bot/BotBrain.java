@@ -4,6 +4,10 @@ import com.solme.emberfall.EmberfallMod;
 import com.solme.emberfall.item.Loadout;
 import com.solme.emberfall.network.ChooseTomePayload;
 import com.solme.emberfall.network.ChooseWeaponPayload;
+import com.solme.emberfall.network.BuyMerchantItemPayload;
+import com.solme.emberfall.network.BuyShopItemPayload;
+import com.solme.emberfall.network.OpenMerchantPayload;
+import com.solme.emberfall.network.OpenShopPayload;
 import com.solme.emberfall.network.OpenTomeChoicePayload;
 import com.solme.emberfall.network.OpenWeaponChoicePayload;
 import com.solme.emberfall.tome.PlayerBuild;
@@ -37,6 +41,12 @@ public final class BotBrain {
 
     private static final Map<UUID, Pending> TOME = new ConcurrentHashMap<>();
     private static final Map<UUID, Pending> WEAPON = new ConcurrentHashMap<>();
+    private static final Map<UUID, Pending> SHOP = new ConcurrentHashMap<>();
+    private static final Map<UUID, Pending> MERCHANT = new ConcurrentHashMap<>();
+
+    /** Silver a shop-going bot keeps back; gold a merchant-going bot keeps back for a reroll or a chest. */
+    static final long SHOP_RESERVE = 0;
+    static final long MERCHANT_RESERVE = 20;
 
     private BotBrain() {}
 
@@ -50,16 +60,22 @@ public final class BotBrain {
             TOME.put(bot.getUUID(), new Pending(tome, now + THINK_TICKS));
         } else if (custom.payload() instanceof OpenWeaponChoicePayload weapon) {
             WEAPON.put(bot.getUUID(), new Pending(weapon, now + THINK_TICKS));
+        } else if (custom.payload() instanceof OpenShopPayload shop) {
+            SHOP.put(bot.getUUID(), new Pending(shop, now + THINK_TICKS));
+        } else if (custom.payload() instanceof OpenMerchantPayload merchant && merchant.open()) {
+            MERCHANT.put(bot.getUUID(), new Pending(merchant, now + THINK_TICKS));
         }
     }
 
     public static void forget(UUID id) {
         TOME.remove(id);
         WEAPON.remove(id);
+        SHOP.remove(id);
+        MERCHANT.remove(id);
     }
 
     public static void tickAll(net.minecraft.server.MinecraftServer server) {
-        if (TOME.isEmpty() && WEAPON.isEmpty()) {
+        if (TOME.isEmpty() && WEAPON.isEmpty() && SHOP.isEmpty() && MERCHANT.isEmpty()) {
             return;
         }
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
@@ -80,6 +96,50 @@ public final class BotBrain {
         if (w != null && now >= w.answerAtTick()) {
             WEAPON.remove(bot.getUUID());
             answerWeapon(bot, (OpenWeaponChoicePayload) w.payload());
+        }
+        Pending sh = SHOP.get(bot.getUUID());
+        if (sh != null && now >= sh.answerAtTick()) {
+            SHOP.remove(bot.getUUID());
+            answerShop(bot, (OpenShopPayload) sh.payload());
+        }
+        Pending m = MERCHANT.get(bot.getUUID());
+        if (m != null && now >= m.answerAtTick()) {
+            MERCHANT.remove(bot.getUUID());
+            answerMerchant(bot, (OpenMerchantPayload) m.payload());
+        }
+    }
+
+    /** Shop: buys the cheapest thing it can afford (weapon it does not own, or the next upgrade level), through the real manager. */
+    private static void answerShop(ServerPlayer bot, OpenShopPayload offer) {
+        List<BotChoices.Priced> lines = new ArrayList<>();
+        List<BuyShopItemPayload> buys = new ArrayList<>();
+        for (OpenShopPayload.WeaponEntry w : offer.weapons()) {
+            if (!w.owned()) {
+                lines.add(new BotChoices.Priced(w.id(), w.cost(), w.cost() <= offer.balance()));
+                buys.add(new BuyShopItemPayload("weapon", w.id()));
+            }
+        }
+        for (OpenShopPayload.UpgradeEntry u : offer.upgrades()) {
+            if (u.level() < u.maxLevel()) {
+                lines.add(new BotChoices.Priced(u.id(), u.nextCost(), u.nextCost() <= offer.balance()));
+                buys.add(new BuyShopItemPayload("upgrade", u.id()));
+            }
+        }
+        int index = BotChoices.pickPurchase(lines, offer.balance(), SHOP_RESERVE);
+        if (index >= 0) {
+            com.solme.emberfall.progression.ShopManager.onBuyReceived(bot, buys.get(index));
+        }
+    }
+
+    /** Merchant: buys the cheapest relic it can afford while keeping a gold reserve, through the real manager. */
+    private static void answerMerchant(ServerPlayer bot, OpenMerchantPayload offer) {
+        List<BotChoices.Priced> lines = new ArrayList<>();
+        for (OpenMerchantPayload.Item it : offer.items()) {
+            lines.add(new BotChoices.Priced(it.relicId(), it.price(), it.affordable()));
+        }
+        int index = BotChoices.pickPurchase(lines, offer.gold(), MERCHANT_RESERVE);
+        if (index >= 0) {
+            com.solme.emberfall.relic.MerchantManager.onBuyReceived(bot, new BuyMerchantItemPayload(index));
         }
     }
 
