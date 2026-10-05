@@ -83,6 +83,33 @@ const short = s => JSON.stringify(s.length > 110 ? s.slice(0, 110) + '...' : s);
   check('non-op: bare /expedition is reachable (not Unknown)', start.length > 0 && !UNKNOWN.test(start), short(start));
   check('non-op: bare /expedition points to the hub instead of starting a run', /Ember Hearth|departure plate/i.test(start), short(start));
 
+  // ---- 2b. Tab completion (measured on #11 follow-up; raw lists kept in the PR). Two different things, deliberately kept apart:
+  //   CHILDREN of a gated root are hidden from the non-op (`requires` works on children): asserted, each with an operator control.
+  //   ROOT NAMES are NOT hidden by this server: the non-op's list for "/" is identical to the operator's (93 = 93) and includes
+  //   every vanilla op-only root too (ban, op, stop, gamemode, ...). So this is server-wide behaviour, not an Emberfall leak.
+  //   That is DOCUMENTED below with the vanilla comparison as its control, never asserted as a promise. A real client may
+  //   filter the list itself; this test uses a mineflayer client, so what a human sees is unverified.
+  const tab = async (bot, text) => {
+    try { const r = await bot.tabComplete(text, false, false); return (r || []).map(x => typeof x === 'string' ? x : (x.match ?? x.text ?? JSON.stringify(x))); }
+    catch (e) { return ['ERR ' + e.message]; }
+  };
+  const bad = l => l.some(x => /^ERR/.test(x));
+  for (const [root, expectedOpChildren] of [['/emberfall ', 65], ['/character ', 2]]) {
+    const g = await tab(guest, root), o = await tab(op, root);
+    check('tab: operator control, ' + root.trim() + ' offers children (' + expectedOpChildren + ' expected)', !bad(o) && o.length === expectedOpChildren, 'op ' + o.length);
+    check('tab: the non-op is offered NO children of ' + root.trim(), !bad(g) && g.length === 0, 'non-op ' + g.length + ' vs op ' + o.length);
+  }
+  const gRoots = await tab(guest, '/'), oRoots = await tab(op, '/');
+  const vanillaOpOnly = ['ban', 'op', 'deop', 'stop', 'gamemode', 'give', 'kill', 'tp', 'summon', 'setblock', 'fill', 'execute', 'whitelist', 'kick', 'save-all', 'reload', 'data'];
+  check('tab control: the root lists were read (operator sees the 4 mod roots)', !bad(oRoots) && ['emberfall', 'character', 'shop', 'expedition'].every(r => oRoots.includes(r)), 'op ' + oRoots.length);
+  const modRootsSeen = ['emberfall', 'character', 'shop', 'expedition'].filter(r => gRoots.includes(r));
+  const vanillaSeen = vanillaOpOnly.filter(r => gRoots.includes(r));
+  console.log('DOC tab roots offered to the non-op: ' + JSON.stringify(modRootsSeen) + '; vanilla op-only roots offered too: ' + vanillaSeen.length + '/' + vanillaOpOnly.length + '; lists identical: ' + (JSON.stringify([...gRoots].sort()) === JSON.stringify([...oRoots].sort())));
+  // The honest assertion: the mod is no different from vanilla. If this ever fails, the server started hiding roots (fine, update the note) or the mod exposes something vanilla does not.
+  check('tab: the mod roots are treated exactly like vanilla op-only roots (both listed, or both hidden)', modRootsSeen.length === 0 ? vanillaSeen.length === 0 : (modRootsSeen.length === 4 && vanillaSeen.length === vanillaOpOnly.length), 'mod ' + modRootsSeen.length + '/4, vanilla ' + vanillaSeen.length + '/' + vanillaOpOnly.length);
+  const expTab = await tab(guest, '/expedition ');
+  check('tab: the non-op is offered /expedition leave (public on purpose)', expTab.includes('leave'), JSON.stringify(expTab));
+
   // ---- 3. Nothing the non-op typed changed who is an operator, their mode or their wallet.
   await sleep(500);
   let opsAfter = [];
