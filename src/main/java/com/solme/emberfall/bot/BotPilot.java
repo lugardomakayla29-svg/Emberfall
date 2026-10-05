@@ -2,6 +2,8 @@ package com.solme.emberfall.bot;
 
 import com.solme.emberfall.combat.AutoAttackSystem;
 import com.solme.emberfall.item.Loadout;
+import com.solme.emberfall.pickup.PickupSystem;
+import com.solme.emberfall.relic.MerchantManager;
 import com.solme.emberfall.world.ArenaInstance;
 import com.solme.emberfall.world.RunManager;
 import net.minecraft.core.BlockPos;
@@ -33,9 +35,18 @@ public final class BotPilot {
     static final double SIGHT = 40.0;
     /** Pathfinder search range, in blocks. */
     static final int PATH_RANGE = 48;
+    /** Search range when walking to a merchant: he can stand anywhere on the map (about 100 blocks across) and stays only 60 s. */
+    static final int MERCHANT_PATH_RANGE = 128;
     /** Blocks per tick per point of movement-speed attribute, measured: a human walks a median 0.1994 at 0.1. */
     static final double SPEED_PER_ATTRIBUTE = 2.0;
     static final double OFF_ROUTE_TOLERANCE = 2.5;
+    /** Blocks from the merchant the bot stops at (inside the game's own reach of {@link MerchantManager#REACH}). */
+    static final double MERCHANT_STAND = 3.0;
+    /** Gold a bot keeps back after a purchase, and the gold at which it goes to look at a stall it has not seen. */
+    static final long MERCHANT_RESERVE = 20;
+    static final long MERCHANT_LOOK_GOLD = 60;
+    /** Ticks before the bot will open the same merchant's screen again. */
+    static final long MERCHANT_RETRY = 100;
 
     private static final class State {
         List<BotWalk.Point> route = List.of();
@@ -45,6 +56,7 @@ public final class BotPilot {
         double goalZ = Double.NaN;
         double startX;
         double startZ;
+        long lastBrowse = -1_000_000L; // not Long.MIN_VALUE: now - MIN_VALUE overflows and is never >= the retry gap
     }
 
     private static final Map<UUID, State> STATES = new ConcurrentHashMap<>();
@@ -91,7 +103,18 @@ public final class BotPilot {
             foes.add(new BotPlan.Foe(m.getX(), m.getZ(), neighbours));
         }
         int pick = BotPlan.pickFoe(bot.getX(), bot.getZ(), foes, SIGHT);
-        BotPlan.Goal goal = pick >= 0
+        // a standing merchant the bot can pay for beats fighting: walk over, and open the real screen once in reach
+        com.solme.emberfall.entity.Testificate merchant = MerchantManager.standingMerchant(RunManager.slotOf(bot));
+        boolean visit = merchant != null
+                && BotPlan.shouldVisitMerchant(true, PickupSystem.gold(bot), -1, MERCHANT_RESERVE, MERCHANT_LOOK_GOLD);
+        if (visit && bot.distanceToSqr(merchant) <= MerchantManager.REACH * MerchantManager.REACH * 0.81
+                && now - st.lastBrowse >= MERCHANT_RETRY) {
+            st.lastBrowse = now;
+            MerchantManager.onInteract(bot, merchant);
+        }
+        BotPlan.Goal goal = visit
+                ? BotPlan.goalFor(bot.getX(), bot.getZ(), new BotPlan.Foe(merchant.getX(), merchant.getZ(), 0), MERCHANT_STAND)
+                : pick >= 0
                 ? BotPlan.goalFor(bot.getX(), bot.getZ(), foes.get(pick), BotPlan.standOff(reach))
                 : BotPlan.wander(bot.getX(), bot.getZ(), arena.origin().getX() + 0.5, arena.origin().getZ() + 0.5, 6.0);
 
@@ -106,7 +129,7 @@ public final class BotPilot {
             st.plannedAt = now;
             st.index = 0;
             BlockPos target = BlockPos.containing(goal.x(), bot.getY(), goal.z());
-            st.route = BotScout.route(level, bot.getX(), bot.getY(), bot.getZ(), target, PATH_RANGE);
+            st.route = BotScout.route(level, bot.getX(), bot.getY(), bot.getZ(), target, visit ? MERCHANT_PATH_RANGE : PATH_RANGE);
         }
 
         // 3. one step along it

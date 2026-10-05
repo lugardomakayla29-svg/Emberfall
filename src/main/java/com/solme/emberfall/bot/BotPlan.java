@@ -69,4 +69,20 @@ public final class BotPlan {
     public static boolean needsReplan(long ticksSincePlan, long every, double goalMovedBlocks, double slack) {
         return ticksSincePlan >= every || goalMovedBlocks > slack;
     }
+
+    /**
+     * Whether a bot should stop fighting and walk to a standing merchant: only when it could actually pay for the cheapest
+     * thing on offer and still keep its reserve. A broke bot ignores the merchant, so it never queues at a stall for nothing.
+     * {@code cheapestPrice} below zero means the stall has not been seen yet, so the bot goes once to look when it has at least
+     * {@code lookGold} gold.
+     */
+    public static boolean shouldVisitMerchant(boolean merchantStanding, long gold, long cheapestPrice, long reserve, long lookGold) {
+        if (!merchantStanding) {
+            return false;
+        }
+        if (cheapestPrice < 0) {
+            return gold >= lookGold;
+        }
+        return gold - reserve >= cheapestPrice;
+    }
 }
