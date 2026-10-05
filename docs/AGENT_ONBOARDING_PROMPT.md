@@ -10,8 +10,8 @@ and the collaborator `Bossman-99`) and one other AI agent (Koda, the owner's age
 and Koda. You cannot message each other. Anything not in a commit, issue, PR comment or `STATUS.md` does not exist for the other side.**
 
 ## 0. First five minutes
-1. Clone the repo. Until the owner merges PR #1, the code lives on the branch **`import/full-mod`** (`main` holds only LICENSE and
-   README). Check which is current: `git ls-remote --heads origin`.
+1. Clone the repo. PR #1 is merged (2026-10-05), so the code is on **`main`**. Branch new work from `main`. Older notes that say
+   `import/full-mod` are history. Check which is current: `git ls-remote --heads origin`.
 2. Read in this order: `AGENTS.md` (binding rules), `WORKFLOW.md` (the loop), `STATUS.md` (what works), `docs/main.md`
    (design overview), then the open issues (`gh issue list`) and open PRs.
 3. Build: `./gradlew build` (needs JDK 25 to build; the mod itself targets Java 21). Then tell your human what you found. Do not start coding before you have read the above.

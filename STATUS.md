@@ -11,7 +11,7 @@
 ## In progress
 - EmberTester live walk test: the summoned foe/scout vanish in the test; cause not found yet (`tools/testbot/bot_walk_test.js`)
 
-- Party scaling: PLAN only, in review (PR #19, `docs/PLAN_party_scaling.md`, issue #13). No code. Two-bot measurements are done (join: PR #25; pickups: PR #28). Order now: a five-bot measurement (the owner's test size), then the pure `PartyScaling` class + `PartyScalingCheck`, then party forming at the gate. `MAX_PARTY = 10` as one constant; every test and measurement uses 5 players; `HOSTILE_CAP` growth stops at its 5-player value until measured.
+- Party scaling: PLAN only, merged (PR #19, `docs/PLAN_party_scaling.md`, issue #13). No code yet. Two-bot measurements are done (join: PR #25; pickups: PR #28). Order now: a five-bot measurement (the owner's test size), then the pure `PartyScaling` class + `PartyScalingCheck`, then party forming at the gate. `MAX_PARTY = 10` as one constant; every test and measurement uses 5 players; `HOSTILE_CAP` growth stops at its 5-player value until measured.
 
 ## Known limitations (decided, not bugs)
 - In a party, the two boss Silver bonuses (+50 Guardian, +150 Devourer) go to every member of the run, including one who did no damage. Accepted for v1 (Koda, PR #19); a per-player damage tally would need a boss `hurt` hook and its own approved plan.
