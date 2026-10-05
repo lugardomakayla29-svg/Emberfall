@@ -239,7 +239,7 @@ or script that broke. *This also verifies Koda's unverified portability work.* F
 **V1. Issue #7 Creative tab overhaul + non-op `/emberfall` test.**
 Files: `item/`, `ModCreativeTab`, `lang`, new `tools/testbot/nonop_test.js`. A pre-existing creative tab has eggs for 19 mobs,
 boss summoners and more; audit it against `entity/ModEntities.java`, list every missing mob/boss/test item, add them, and
-write the non-op test: a client NOT in `ops.json` must get `Unknown or incomplete command` for `/emberfall`, an op must succeed.
+write the non-op test: a client NOT in `ops.json` must get `Unknown or incomplete command` for `/emberfall`, `/character` and `/shop` (all gated at LEVEL_GAMEMASTERS), an op must succeed. **`/expedition` is public on purpose** (a child's requirement is AND-ed with its parent's, so gating the root would trap players inside a run): never gate it. Outcome of V1 (see #11 and PR #15): the audit found no missing eggs, so no tab change was needed and the test is the whole deliverable.
 Acceptance: `nonop_test` prints 2+ PASS with a control; every registered mob has an egg or a documented reason it cannot.
 Risks: `lang/en_us.json` is a hotspot (append only); do not use `PlainPlayer` (it is op 4).
 
