@@ -27,7 +27,7 @@ function connect(name) {
   const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: name, version: '1.21.11', auth: 'offline' });
   bot.lines = [];
   bot.on('message', m => bot.lines.push(m.toString()));
-  bot.on('error', e => console.log(name + ' connection error: ' + e.message));
+  bot.on('error', e => { console.log('FAIL ' + name + ' connection error: ' + e.message); fails++; process.exit(finish(true)); });
   bot.on('kicked', r => console.log(name + ' kicked: ' + JSON.stringify(r).slice(0, 160)));
   return bot;
 }
@@ -40,8 +40,20 @@ async function ask(bot, line, wait = 900) {
 }
 const UNKNOWN = /Unknown or incomplete command/;
 
+// EXPECTED_CHECKS is the number measured on a live server (30). A run that executes fewer checks did not finish, and a run
+// that executes none (no server) must never read as a pass: the verdict needs fails === 0 AND ran >= EXPECTED_CHECKS.
+const EXPECTED_CHECKS = 30;
 let fails = 0;
-const check = (label, ok, extra = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + label + (extra ? '  ' + extra : '')); if (!ok) fails++; };
+let ran = 0;
+const check = (label, ok, extra = '') => { ran++; console.log((ok ? 'PASS ' : 'FAIL ') + label + (extra ? '  ' + extra : '')); if (!ok) fails++; };
+// Print the verdict and exit with a code that agrees with it. Used at every exit so none of them can disagree.
+function finish(extraFail) {
+  const bad = fails + (extraFail ? 1 : 0);
+  const short_ = ran < EXPECTED_CHECKS;
+  if (bad === 0 && !short_) { console.log('RESULT: ALL PASS (' + ran + ' checks)'); return 0; }
+  console.log('RESULT: ' + (bad || 1) + ' FAILED' + (short_ ? ' (only ' + ran + ' of ' + EXPECTED_CHECKS + ' checks ran)' : ''));
+  return 1;
+}
 const short = s => JSON.stringify(s.length > 110 ? s.slice(0, 110) + '...' : s);
 
 (async () => {
@@ -51,11 +63,13 @@ const short = s => JSON.stringify(s.length > 110 ? s.slice(0, 110) + '...' : s);
   const level = n => (ops.find(o => o.name === n) || {}).level || 0;
   check('precondition: ' + OP + ' is an operator in ops.json', level(OP) >= 2, 'level ' + level(OP));
   check('precondition: ' + NON_OP + ' is NOT an operator in ops.json', level(NON_OP) === 0, 'level ' + level(NON_OP));
-  if (fails > 0) { console.log('RESULT: ' + fails + ' FAILED (fix ops.json first: run tools/setup.sh on a clean run/server)'); process.exit(0); }
+  if (fails > 0) { console.log('RESULT: ' + fails + ' FAILED (fix ops.json first: run tools/setup.sh on a clean run/server)'); process.exit(1); }
 
   const guest = connect(NON_OP);
   const op = connect(OP);
+  const spawnTimer = setTimeout(() => { console.log('FAIL the bots did not spawn within 60 s'); fails++; process.exit(finish(true)); }, 60000);
   await Promise.all([new Promise(r => guest.once('spawn', r)), new Promise(r => op.once('spawn', r))]);
+  clearTimeout(spawnTimer);
   await sleep(1500);
 
   // ---- 1. The non-op is refused everywhere the mod gates by operator level.
@@ -134,7 +148,7 @@ const short = s => JSON.stringify(s.length > 110 ? s.slice(0, 110) + '...' : s);
   check('operator control: /shop is not refused', !UNKNOWN.test(shop), short(shop));
   check('operator control: the operator stays an operator', JSON.parse(fs.readFileSync(path.join(HOME, 'run', 'server', 'ops.json'), 'utf8')).some(o => o.name === OP && o.level >= 2));
 
-  console.log(fails === 0 ? 'RESULT: ALL PASS' : 'RESULT: ' + fails + ' FAILED');
+  const code = finish(false);
   guest.quit(); op.quit();
-  setTimeout(() => process.exit(0), 400);
-})().catch(e => { console.log('FAIL suite crashed: ' + (e && e.stack || e)); console.log('RESULT: crashed'); process.exit(0); });
+  setTimeout(() => process.exit(code), 400);
+})().catch(e => { console.log('FAIL suite crashed: ' + (e && e.stack || e)); console.log('RESULT: crashed'); process.exit(1); });
