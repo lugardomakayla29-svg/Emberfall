@@ -19,8 +19,8 @@ and Koda. You cannot message each other. Anything not in a commit, issue, PR com
 ## 1. What the game is
 Players pick a character, enter the **Expedition Gate**, and survive waves on a generated map. Weapons (8, levels 1-10, each with an
 auto-firing Ultimate), tomes (stackable stat upgrades), **relics** (24, four rarities, luck stat, unlocks persist across runs),
-**chests** (paid price rises per opening; free chests from elites, bosses and shrines), **Testificate merchants** (every 3 min,
-first at 2:00), bosses (Ember Guardian, Devourer), and an endgame swarm with an optional escape portal and a silver multiplier.
+**chests** (paid price rises per opening; free chests from elites, bosses and shrines), **Testificate merchants** (first at 2:00, then
+3 min after the previous one leaves; each stays up to 1 min), bosses (Ember Guardian, Devourer), and an endgame swarm with an optional escape portal and a silver multiplier.
 Design notes: `docs/` (boss concepts, map plan, playtest report, Megabonk-inspired research; inspiration only, not a copy).
 
 ## 2. Status, honestly
@@ -43,7 +43,8 @@ Never write "looks good". Say "tested headless, look unverified".
 - **Anti-tamper on every custom PDC-tagged item.**
 - **Custom mobs mirror player behaviour and stay off the tab list.** Player-head textures from minecraft-heads.com or similar.
 - **Do not use sub-agents** for research or design; do it directly.
-- A test that prints no verdict proves nothing. Every suite prints `PASS`/`FAIL` lines. Do not loosen an assertion unless measured
+- A test that prints no verdict proves nothing. A suite you write or touch must print `PASS`/`FAIL` lines and a total. Not every
+  existing suite does yet (56 of 200 are measurements, 17 have no total; issue #17), and exit codes prove nothing. Do not loosen an assertion unless measured
   numbers show the test was wrong, and say so in the PR.
 - No rushing; check twice. Report what is **unverified** in every PR.
 

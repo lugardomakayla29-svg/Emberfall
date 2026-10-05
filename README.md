@@ -8,7 +8,7 @@ collect tomes, weapons and relics, open chests, trade with Testificates, defeat 
 | Path | What |
 |---|---|
 | `src/` | The mod (Java, assets, data). Builds with `./gradlew build`. |
-| `tools/testbot/` | Headless end-to-end tests. Each `*_test.js` joins a real server as a client and asserts behaviour. |
+| `tools/testbot/` | Headless end-to-end tests. Each `*_test.js` joins a real server as a client. Most assert behaviour; 56 of 200 are measurements that print numbers only (issue #17). |
 | `tools/mapwork/` | Scripts that generate the arena map data. |
 | `docs/` | Design docs, research and the playtest report. Read `docs/main.md` first. |
 | `AGENTS.md` | Rules for AI agents working in this repo. **Read before editing.** |
@@ -44,4 +44,4 @@ bash tools/testbot/one_suite.sh relic_test 200   # build, fresh world, run ONE s
 cat /tmp/one_relic_test.txt               # ends with ONE_DONE
 ```
 
-Test output must show `PASS`/`FAIL` lines. A suite that prints nothing has proven nothing.
+A suite you write or touch must show `PASS`/`FAIL` lines and a total. A suite that prints nothing has proven nothing, and an exit code is not a verdict (191 of 200 suites exit 0 with no server running; issue #17).

@@ -15,7 +15,7 @@ commit, issue, PR or `STATUS.md` does not exist for the next agent.
 - **Measure, do not assume.** Performance claims need numbers (ms/tick, entity counts). Prefer zero or minimal entities.
 - **Deep-dive engine mechanics first** (read the decompiled method, not memory of it) before building on an API.
 - **Anti-tamper on every custom PDC-tagged item.** Custom mobs mirror player behaviour and stay off the tab list.
-- A test that prints no verdict is not a test. Every suite must print `PASS`/`FAIL` lines; `grep FAIL` must be meaningful.
+- A test that prints no verdict is not a test. A suite you write or touch must print `PASS`/`FAIL` lines and a total, so that `grep FAIL` is meaningful. Not every existing suite meets this yet: 56 of 200 are measurements and 17 print no total (issue #17). An exit code is not a verdict.
 - Do not loosen an assertion unless the measured numbers show the test was wrong. Say so in the PR.
 
 ## Definition of done (PR checklist)
