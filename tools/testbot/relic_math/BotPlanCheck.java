@@ -33,6 +33,11 @@ public class BotPlanCheck {
         check("replan when the goal moved past the slack", BotPlan.needsReplan(2, 20, 3.1, 3), "");
         check("no replan while fresh and the goal is steady", !BotPlan.needsReplan(2, 20, 3.0, 3), "");
         // merchant visit rule: walk over only when it could pay for the cheapest thing and keep its reserve
+        check("shrine unused, not busy, healthy: visit", BotPlan.shouldVisitShrine(true, false, 1.0, 0.6), "");
+        check("shrine already used this run: never visit", !BotPlan.shouldVisitShrine(false, false, 1.0, 0.6), "");
+        check("a shrine fight is already running: do not start another", !BotPlan.shouldVisitShrine(true, true, 1.0, 0.6), "");
+        check("exactly at the health floor: visit", BotPlan.shouldVisitShrine(true, false, 0.6, 0.6), "");
+        check("just under the health floor: do not visit", !BotPlan.shouldVisitShrine(true, false, 0.59, 0.6), "");
         check("no merchant standing: never visit", !BotPlan.shouldVisitMerchant(false, 9999, 10, 20, 30), "");
         check("can pay cheapest + reserve exactly: visit", BotPlan.shouldVisitMerchant(true, 70, 50, 20, 30), "");
         check("one gold short of cheapest + reserve: do not visit", !BotPlan.shouldVisitMerchant(true, 69, 50, 20, 30), "");

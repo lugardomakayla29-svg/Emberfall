@@ -53,6 +53,8 @@ import java.util.UUID;
  * window while every other click in the expedition dimension is still refused (and nothing is ever broken).
  */
 public final class MapShrines {
+    private static final boolean TEST_MODE = Boolean.getBoolean("emberfall.testMode");
+
     public static final String CHALLENGE = "challenge";
     public static final String CURSE = "curse";
     public static final String GREED = "greed";
@@ -152,6 +154,42 @@ public final class MapShrines {
         MapBuilder map = MapManager.builtFor(slot);
         BlockPos anchor = map == null ? null : map.shrineAnchors.get(type);
         return anchor != null && player.position().distanceTo(Vec3.atCenterOf(anchor)) <= REACH + 4.0;
+    }
+
+    /**
+     * The anchor of this run's Challenge Shrine when it can still be used (not used yet, no trial running), or null. Read-only:
+     * the EmberTester bot uses it to decide whether to walk over. It changes nothing.
+     */
+    public static BlockPos openChallengeAnchor(int slot) {
+        if (isUsed(slot, CHALLENGE) || FIGHTS.containsKey(slot)) {
+            return null;
+        }
+        MapBuilder map = MapManager.builtFor(slot);
+        return map == null ? null : map.shrineAnchors.get(CHALLENGE);
+    }
+
+    /**
+     * What a bot does at the shrine, through the SAME two steps as a real click: open (range checked) then choose (range, use and
+     * option checked again by {@link #onChoice}). The option is re-read from {@link #describe} so a bot can never pick a disabled
+     * one. Returns the option it chose, or -1 if the shrine refused or nothing was enabled.
+     */
+    public static int botChallenge(ServerPlayer player) {
+        Integer slot = RunManager.slotOf(player);
+        if (slot == null || !inReach(player, slot, CHALLENGE)) {
+            return -1;
+        }
+        OpenShrinePayload shown = describe(slot, CHALLENGE);
+        List<Boolean> enabled = new ArrayList<>();
+        for (OpenShrinePayload.Option o : shown.options()) {
+            enabled.add(o.enabled());
+        }
+        int at = com.solme.emberfall.bot.BotChoices.pickEnabled(enabled);
+        if (at < 0) {
+            return -1;
+        }
+        int option = shown.options().get(at).index();
+        onChoice(player, new ChooseShrinePayload(CHALLENGE, option));
+        return isUsed(slot, CHALLENGE) ? option : -1;
     }
 
     private static boolean isUsed(int slot, String type) {
@@ -340,6 +378,9 @@ public final class MapShrines {
 
     private static void startChallenge(ServerLevel level, int slot, ServerPlayer player, int size, BlockPos anchor) {
         Challenge fight = new Challenge(player.getUUID(), size, anchor);
+        if (TEST_MODE) {
+            com.solme.emberfall.EmberfallMod.LOGGER.info("SHRINE_TEST challenge start player={} size={} foes={}", player.getGameProfile().name(), size, CHALLENGE_MOBS[size]);
+        }
         RandomSource random = level.getRandom();
         for (int i = 0; i < CHALLENGE_MOBS[size]; i++) {
             double a = random.nextDouble() * Math.PI * 2;
