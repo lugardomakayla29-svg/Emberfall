@@ -273,7 +273,7 @@ after that you may run two in parallel if their file lists do not overlap.
 ## PART 7. YOUR FIRST SESSION, STEP BY STEP
 1. `git clone` the repo, `git checkout import/full-mod` (until #1 is merged).
 2. Read in order: this file, `AGENTS.md`, `WORKFLOW.md`, `STATUS.md`, `docs/main.md`, `docs/playtest-report-1.md`, open issues.
-3. Install JDK 21+, Node 20+, run `./gradlew build` (no `-q`). Record the result.
+3. Install JDK 25 (to build), Node 20+, run `./gradlew build` (no `-q`). Record the result.
 4. Run the pure checks (the loop in `docs/ci/build.yml.txt`, 21 should pass, 3 are skipped on purpose).
 5. Follow `README.md` to set up `run/server`, then run `relic_test` with `one_suite.sh`.
 6. Post your V0 report as a comment on PR #1 using the hand-off template.
