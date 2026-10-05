@@ -4,7 +4,7 @@
 //
 //   R2  does a join into a RUNNING run reset the joiner (and touch the first player)?        (observations M1..M3)
 //   R7  when one of two players leaves by the real path, does the other keep the run?         (observations M4..M6)
-//   R4  who is credited for a kill next to one player? (gold is per player, see PickupSystem)  (observations M7..M8)
+//   (R4, who collects a pickup, is NOT in this file: it is measured in party_pickup_measure.js. This header once promised observations M7..M8 that were never written.)
 //
 // Output lines start with "OBS" (what was seen) or "CTRL" (a control that must hold for the observations to mean anything).
 // A CTRL line that says FAIL means the measurement is void; it is not a verdict on the mod.
