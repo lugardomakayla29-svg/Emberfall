@@ -26,7 +26,7 @@ All constants are quoted from the source; interpretations are marked.
 **Spawning (`WaveDirector`)**
 - `HOSTILE_CAP = 40` alive at once (line 101), enforced at lines 490 and 567; packs are sized to "the room left under the cap" (line 660).
 - Threat ramps `+1 / 60 s`, capped at 20 (lines 104-105). Spawn interval is linear: `round(100 - t * 85)` ticks with `t = threat / 20` (lines 470-471). So **5.0 s between spawn events at threat 0, 0.75 s at threat 20** (12 to 80 events/min).
-- Mob/elite health is one number, `statMultiplier = 1 + threat / 20` (1.0 to 2.0), passed to each `X.spawn(level, pos, statMultiplier)` (lines 509, 410). Elites add `TIER2_ELITE_STAT_BONUS = 0.5` after tier 2.
+- **Correction (read at `main`, step 3 design):** `statMultiplier = 1 + threat / 20` (1.0 to 2.0) is passed only to the **elite** spawns, `X.spawn(level, pos, statMultiplier)` (lines 509 and 410). The ordinary horde in `trySpawnOne` (lines 566 to 700) takes **no** multiplier: each mob is built with `new HordeZombie(...)` and friends and scaled only by `becomeVeteran()`. So "multiply `PartyScaling` into `statMultiplier`" would scale elites and leave the bulk of the horde alone. Section 4 is read with that in mind; the real call sites are in section 12. Elites add `TIER2_ELITE_STAT_BONUS = 0.5` after tier 2.
 - Boss at `BOSS_SPAWN_AT_TICK = 12000` (10 min). Second boss (Devourer) after the first dies.
 
 **Boss health.** `EmberGuardian` base `MAX_HEALTH 600` (line 264); `applyCurse(mods.bossStatMultiplier())` already multiplies it (x1.0 then 1.2 to 1.5, `RunModifiers`). That is an existing hook; party HP should go through the same door.
@@ -168,3 +168,52 @@ Assertions (pure, any choice): `n=1` returns exactly the current values (`1.0` e
 ## 11. Not verified
 
 Sections 1 to 8 are from reading source at `460ead2`; R2, R4 and R7 (partly) were later **observed** with two bots (PR #25, PR #28), everything else was not run. The formulas in section 4 are proposals with guessed coefficients. No multiplayer path has been tested because none exists. The look of any screen is unverified.
+
+## 12. Step 3 design (DESIGN ONLY, no code until Koda gives the go)
+
+Written from reading the head of `main` when this was written (`497cc23`, which moves; re-read before coding). Nothing here has been run. **Step 3 as code is not approved** (Koda, #13). This section is for review.
+
+### 12.1 Where a party number has to be applied (every site, counted from the source)
+
+| # | What | Where | Today | Party hook |
+|---|---|---|---|---|
+| 1 | **Party size `n`** | `RunManager` (new `partySize(slot)`) | does not exist | count of `playerSlots` values equal to `slot`; **read once** when the run starts and stored on the director (option b: fixed for the run) |
+| 2 | Hostile cap | `WaveDirector:101` `HOSTILE_CAP = 40`, read at `:490`, `:567`, `:660` | constant | replace the three reads with one `hostileCap()` that returns `PartyScaling.hostileCap(n)` |
+| 3 | Spawn interval | `WaveDirector:468` `currentSpawnIntervalTicks()` | `round(100 - t*85)` | wrap the return: `PartyScaling.spawnIntervalTicks(solo, MIN_SPAWN_INTERVAL_TICKS, n)`; the director's **own** constant is passed, never a copy |
+| 4 | Elite interval | `WaveDirector:474` `currentEliteSpawnIntervalTicks()` | separate formula | **decision needed** (12.4 Q2): scale or leave |
+| 5 | Ordinary horde health | `trySpawnOne` `:566-700`, **9 types** built with `new` (zombie, skeleton, spider, witch, bomber, charger, shieldbearer, spitter, imp) **plus Tiki**, which spawns itself | no multiplier | for the 9: after the `becomeVeteran()` decision and **before** `addFreshEntity`, scale `MAX_HEALTH` base by `PartyScaling.mobHealthMultiplier(n)` and `setHealth` (the same two calls `becomeVeteran()` already makes; **checked: all 9 classes have `becomeVeteran()` and use `MAX_HEALTH` and `setHealth`**). **Tiki does not fit:** `TikiMagma.spawn(level, pos, boolean veteran)` takes a boolean and, per its own header, the vanilla `Slime#setSize` "unconditionally overwrites `MAX_HEALTH`" so this class must re-apply its own health after it, and it calls `addFreshEntity` itself, so the two calls cannot simply be made before it. It needs its own handling (12.4 Q6) |
+| 6 | Elite health | `:509` (regular) and `:410` (Final Swarm) | `X.spawn(level,pos,statMultiplier)` | multiply `statMultiplier` by `mobHealthMultiplier(n)` at the call; the swarm site `:410` is **decision needed** (12.4 Q3) |
+| 7 | Boss health | `GuardianBossFight:51-53`, `DevourerBossFight:52-54` | `brain.applyCurse(mods.bossStatMultiplier())` | `applyCurse(mods.bossStatMultiplier() * PartyScaling.bossHealthMultiplier(n))` |
+| 8 | Mobs other systems spawn (Bonecaller minions, Umbral summons, Broodlings, Pink Slime, `MobSpawner`) | various `entity/*` | own rules | **not covered in v1**; listed so nobody assumes otherwise |
+
+### 12.2 Which file calls `PartyScaling`, and the order of PRs
+`WaveDirector` and the two boss fight classes are hotspots; `RunManager` is shared. To keep each PR small and reviewable:
+- **3a** `RunManager.partySize(slot)` + `membersOf(slot)` only. No behaviour change, nothing reads it. Test: a live run with 1 and 2 bots prints the right count.
+- **3b** `WaveDirector` rows 2, 3 and the **count read** (n stored at start). With n = 1 every number is today's.
+- **3c** `WaveDirector` rows 5 and 6 (health). The riskiest, because it edits the 9-type spawn block.
+- **3d** the two boss classes (row 7). Two one-line edits.
+- Gate / countdown joining (`GateManager`, `RunCommand.tryStartParty`) is plan step 3 Part A and is **not** in 3a to 3d: until it exists a party is formed only by the op `/emberfall join`, which is how every measurement so far was done.
+
+### 12.3 How solo stays byte-identical, and how it is proved
+- **By construction:** with n = 1, `mobHealthMultiplier = 1.0`, `bossHealthMultiplier = 1.0`, `hostileCap = 40`, `spawnIntervalTicks` returns its input. Multiplying a double by exactly `1.0` returns the same double, so health values do not change.
+- **A guard so nothing changes at all for solo:** apply the health scale only when `n > 1` (`if (n > 1) { ... }`), so for solo **no extra attribute call is made**. That is stronger than "multiply by 1.0" and is what I would ask Koda to review.
+- **Proof, failing-first, before any edit:**
+  1. On `main`, record for one bot over a fixed 60 s: `totalSpawned`, `MAX_HEALTH` of the first 10 horde mobs and of one elite (`/data get entity`), and the hostile count at the cap.
+  2. After each PR, the same run for n = 1 must print the **same fields**. Spawn timing is random, so the compared quantities are `MAX_HEALTH` per mob type (deterministic) and the cap value, **not** `totalSpawned`.
+  3. The pure `PartyScalingCheck` already pins the n = 1 outputs.
+  4. The existing suites (`regress*`) must be unchanged; Koda runs the bot regression.
+- **What this does not prove:** that solo *feel* is unchanged (timing is random), or anything at n > 1 beyond the numbers.
+
+### 12.4 Questions for Koda (I will not guess these)
+1. **Row 5 is the large edit.** Is scaling health at the 9 `new X(...)` sites acceptable, or do you want a single helper (`WaveDirector.applyPartyHealth(Mob)`) so it is one call per site? I prefer the helper.
+2. Should the **elite spawn interval** (row 4) also speed up with party size? The plan only scaled the ordinary interval.
+3. The **Final Swarm** (row 6, `:410`) uses its own fixed `2.0 + 0.5 + progress` multiplier. Scale it by party size too, or leave the swarm as designed?
+4. **Read the director's constants, do not copy them** (your note on #38): the plan is that `PartyScaling.hostileCap` stays pure with its own `SOLO_HOSTILE_CAP = 40`, and a one-line assertion in the live test compares it to the director's `HOSTILE_CAP`. Is that enough, or should `PartyScaling` take the solo cap as an argument like the interval floor?
+6. **Tiki** (row 5) cannot be scaled by the two-call pattern: its `spawn` overwrites `MAX_HEALTH` and adds the entity itself. Options: (a) leave Tiki unscaled in v1 and record it as a known limitation; (b) add a `PartyScaling` argument to `TikiMagma.spawn` (an entity-class edit). I would take (a) first. Your call.
+5. The `if (size == 1)` early return in `spawnIntervalTicks` is redundant (your mutation stayed green). I will drop it in a follow-up commit on #38 unless you prefer a check for a solo interval of 0.
+
+### 12.5 What I will announce on #13 before editing a hotspot
+The exact files and line ranges for that PR (3b: `WaveDirector` lines 101, 468-472, 490, 567, 660; 3c: lines 566-700 and 509; 3d: `GuardianBossFight:51-53`, `DevourerBossFight:52-54`), one PR at a time, and no other file.
+
+### 12.6 Not verified in this section
+Read, not run. Checked by grep, not run: all 9 horde classes have `becomeVeteran()` and touch `MAX_HEALTH` and `setHealth`; I read the bodies of `HordeZombie` only, so "they scale it the same way" is from the grep counts for the other eight. Not checked: what `applyCurse` does when called twice; whether the order "party scale, then veteran scale" or the reverse matters for rounding; the 'other systems' in row 8 (minions, summons, Broodlings, Pink Slime, `MobSpawner`) beyond their names. The "9 types" count is from `trySpawnOne` only.
