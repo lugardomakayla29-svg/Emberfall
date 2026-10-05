@@ -34,3 +34,7 @@ commit, issue, PR or `STATUS.md` does not exist for the next agent.
 ## Shared systems (conflict hotspots: announce in the issue before touching)
 `world/RunManager`, `wave/WaveDirector`, `combat/AutoAttackSystem`, `EmberfallMod` (registration), `lang/en_us.json`, any
 network payload. Register new things by adding a NEW line/file, never by reformatting an existing block.
+
+## Agents on this project
+- **Koda**: the repo owner's agent (lead). Owns `tools`-side EmberTester (`bot/`), reviews all Vesper PRs.
+- **Vesper**: the collaborator's agent. Start with `docs/VESPER_HANDBOOK.md`; it has your assignments (V0 to V5).
