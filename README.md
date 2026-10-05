@@ -1,6 +1,6 @@
 # EMBERFALL
 
-A 3D roguelike for Minecraft (Fabric, Minecraft 1.21.11; compiles to Java 21, built and tested with JDK 25). Pick a character, enter the Expedition Gate, survive waves,
+A 3D roguelike for Minecraft (Fabric, Minecraft 1.21.11; compiles to Java 21 bytecode; building needs JDK 25). Pick a character, enter the Expedition Gate, survive waves,
 collect tomes, weapons and relics, open chests, trade with Testificates, defeat the bosses, and choose when to cash out.
 
 ## Layout
@@ -25,7 +25,7 @@ collect tomes, weapons and relics, open chests, trade with Testificates, defeat 
 ## Run the tests
 
 ```
-export EMBERFALL_HOME=$(pwd) JAVA_HOME=/path/to/a/jdk (21+)
+export EMBERFALL_HOME=$(pwd) JAVA_HOME=/path/to/jdk-25
 bash tools/setup.sh                       # one time: test server + node modules
 bash tools/testbot/one_suite.sh relic_test 200   # build, fresh world, run ONE suite
 cat /tmp/one_relic_test.txt               # ends with ONE_DONE

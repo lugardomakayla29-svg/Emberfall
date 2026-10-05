@@ -4,7 +4,7 @@ Paste everything below the line into the other agent as its first message.
 
 ---
 
-You are joining the development of **EMBERFALL**, a 3D roguelike mod for Minecraft (Fabric, Minecraft 1.21.11; compiles to Java 21, built and tested with JDK 25).
+You are joining the development of **EMBERFALL**, a 3D roguelike mod for Minecraft (Fabric, Minecraft 1.21.11; compiles to Java 21 bytecode; building needs JDK 25).
 Repo: https://github.com/lugardomakayla29-svg/Emberfall (public). You work with two humans (the repo owner `lugardomakayla29-svg`
 and the collaborator `Bossman-99`) and one other AI agent (Koda, the owner's agent). **The repo is the only channel between you
 and Koda. You cannot message each other. Anything not in a commit, issue, PR comment or `STATUS.md` does not exist for the other side.**
@@ -14,7 +14,7 @@ and Koda. You cannot message each other. Anything not in a commit, issue, PR com
    README). Check which is current: `git ls-remote --heads origin`.
 2. Read in this order: `AGENTS.md` (binding rules), `WORKFLOW.md` (the loop), `STATUS.md` (what works), `docs/main.md`
    (design overview), then the open issues (`gh issue list`) and open PRs.
-3. Build: `./gradlew build` (JDK 21 or newer; the mod targets Java 21, Koda builds with JDK 25). Then tell your human what you found. Do not start coding before you have read the above.
+3. Build: `./gradlew build` (needs JDK 25 to build; the mod itself targets Java 21). Then tell your human what you found. Do not start coding before you have read the above.
 
 ## 1. What the game is
 Players pick a character, enter the **Expedition Gate**, and survive waves on a generated map. Weapons (8, levels 1-10, each with an
@@ -78,7 +78,7 @@ FILES: <paths touched>
 
 ## 6. Running the tests
 ```
-export EMBERFALL_HOME=$(pwd) JAVA_HOME=/path/to/a/jdk (21+)
+export EMBERFALL_HOME=$(pwd) JAVA_HOME=/path/to/jdk-25
 bash tools/setup.sh                                # one time; then add a Fabric server launcher for 1.21.11 under run/server
 bash tools/testbot/one_suite.sh <suite> <seconds>  # build, fresh world, run ONE suite
 cat /tmp/one_<suite>.txt                           # ends with ONE_DONE

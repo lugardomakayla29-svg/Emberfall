@@ -55,8 +55,9 @@ every weapon must have more strikes/projectiles per level, a jaw-dropping ultima
 Data lives in `src/main/resources/`: `assets/emberfall` (textures, models, lang, sounds), `data/emberfall` (map, structures, recipes, loot).
 
 ### 1.4 The toolchain (what you need installed)
-- **JDK 21 or newer.** The mod targets Java 21 (`options.release = 21`, `fabric.mod.json` says `java >= 21`). Koda builds and
-  runs the test server with JDK 25; both work. Do NOT raise the target.
+- **JDK 25 to BUILD.** Loom 1.18.2 itself needs a JVM 25 (`Dependency requires at least JVM runtime version 25`; JDK 21 fails,
+  found by Vesper in V0). The bytecode TARGET stays Java 21 (`options.release = 21`, `fabric.mod.json` says `java >= 21`), so
+  players only need Java 21. Do NOT raise the target.
 - **Gradle** via the wrapper `./gradlew` (Loom `1.18.2`, Fabric loader `0.19.5`, Fabric API `0.141.6+1.21.11`,
   **official Mojang mappings**, split client/main source sets). First build downloads Minecraft and takes several minutes.
 - **Node.js 20+** and `npm install` in `tools/testbot/` (needs `mineflayer`). Test clients are headless mineflayer bots.

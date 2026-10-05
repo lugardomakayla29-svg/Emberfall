@@ -12,5 +12,6 @@ out/
 tools/testbot/out*/
 # never commit
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 .env
 *.pem
