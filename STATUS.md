@@ -15,7 +15,7 @@
 
 ## Known limitations (decided, not bugs)
 - In a party, the two boss Silver bonuses (+50 Guardian, +150 Devourer) go to every member of the run, including one who did no damage. Accepted for v1 (Koda, PR #19); a per-player damage tally would need a boss `hurt` hook and its own approved plan.
-- Joining a player who already holds relics into a running run wipes their relics but keeps their gold (measured with two bots, PR #25). Today only the missing join command prevents it, so the party plan enforces "no late join" in `tryStartFrom` and tests it.
+- Joining a player who already holds relics into a running run wipes their relics but keeps their gold (measured with two bots, PR #25). `/emberfall join` is an op-only debug command (the whole `/emberfall` tree needs permission level 2, read from source, not run as a non-op), and the gate path (`RunCommand.tryStartFrom`) always reserves a fresh map slot and starts a new instance, so it never joins an existing run (read from source, not run). The party plan must still enforce "no late join" in `tryStartFrom` and tests it.
 
 ## Not started
 - Endgame swarm + optional escape portal + silver multiplier
