@@ -88,6 +88,16 @@ public final class MerchantManager {
         }
     }
 
+    /**
+     * The merchant that is standing in this run and open for business, or null. Read-only: used by the EmberTester bot to
+     * decide whether to walk over. A merchant that is leaving, or already removed, is not offered.
+     */
+    public static Testificate standingMerchant(int slot) {
+        RunState r = RUNS.get(slot);
+        Visit v = r == null ? null : r.visit;
+        return v != null && v.phase == Phase.STANDING && v.entity != null && !v.entity.isRemoved() ? v.entity : null;
+    }
+
     /** Debug/test: visits started, items bought, and the phase of the current one. */
     public static String describe(int slot) {
         RunState r = RUNS.get(slot);

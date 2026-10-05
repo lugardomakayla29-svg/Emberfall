@@ -32,6 +32,14 @@ public class BotPlanCheck {
         check("replan when the interval is up", BotPlan.needsReplan(20, 20, 0, 3), "");
         check("replan when the goal moved past the slack", BotPlan.needsReplan(2, 20, 3.1, 3), "");
         check("no replan while fresh and the goal is steady", !BotPlan.needsReplan(2, 20, 3.0, 3), "");
+        // merchant visit rule: walk over only when it could pay for the cheapest thing and keep its reserve
+        check("no merchant standing: never visit", !BotPlan.shouldVisitMerchant(false, 9999, 10, 20, 30), "");
+        check("can pay cheapest + reserve exactly: visit", BotPlan.shouldVisitMerchant(true, 70, 50, 20, 30), "");
+        check("one gold short of cheapest + reserve: do not visit", !BotPlan.shouldVisitMerchant(true, 69, 50, 20, 30), "");
+        check("broke bot ignores a standing merchant", !BotPlan.shouldVisitMerchant(true, 0, 50, 20, 30), "");
+        check("stall unseen and enough gold to be worth a look: visit", BotPlan.shouldVisitMerchant(true, 30, -1, 20, 30), "");
+        check("stall unseen and below the look threshold: do not visit", !BotPlan.shouldVisitMerchant(true, 29, -1, 20, 30), "");
+        check("zero reserve: paying exactly the price is enough", BotPlan.shouldVisitMerchant(true, 50, 50, 0, 30), "");
         System.out.println(fails == 0 ? "ALL PASS" : "FAILED " + fails);
     }
 }
