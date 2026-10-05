@@ -1,0 +1,30 @@
+// Wither Crown raises the run's threat by +4 (live), the director refreshes it once a second, and taking it off removes it.
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const lines = []; bot.on('message', m => lines.push(m.toString()));
+let fails = 0; const check = (l, ok, e = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + l + (e ? '  ' + e : '')); if (!ok) fails++; };
+bot.once('spawn', async () => {
+  await sleep(6000);
+  const c = async (x, w = 600) => { bot.chat(x); await sleep(w); };
+  const ask = async (x, w = 700) => { const n = lines.length; bot.chat(x); await sleep(w); return lines.slice(n).join(' | '); };
+  const th = async () => { const t = await ask('/emberfall relic threat EmberTester', 800); const m = t.match(/total=([\d.]+) relic=([\d.]+)/); return m ? { total: +m[1], relic: +m[2] } : null; };
+  await c('/gamemode survival'); await c('/character select vanguard', 500);
+  await c('/expedition leave', 900); await c('/expedition', 4000); for (let i = 0; i < 30; i++) { await sleep(1500); if (/expedition/.test(await ask('/data get entity @s Dimension', 400))) break; } await sleep(2500);
+  await c('/effect give @s minecraft:resistance 999 4 true', 200);
+  const a = await th(); console.log('     no crown', JSON.stringify(a));
+  await c('/emberfall relic give EmberTester wither_crown 1', 500); await sleep(1800);
+  const b = await th(); console.log('     crown   ', JSON.stringify(b));
+  await c('/emberfall relic give EmberTester wither_crown 1', 500); await sleep(1500);
+  const b2 = await th(); console.log('     2nd try ', JSON.stringify(b2));
+  await c('/emberfall relic take EmberTester wither_crown', 400); await sleep(1800);
+  const d = await th(); console.log('     removed ', JSON.stringify(d));
+  check('director readable', a && b && d);
+  check('no crown: relic threat 0', a && a.relic === 0, JSON.stringify(a));
+  check('crown adds exactly +4 relic threat', b && Math.abs(b.relic - 4) < 1e-6, JSON.stringify(b));
+  check('crown raises total threat by about 4 over the no-crown reading', b && a && b.total - a.total > 3.8 && b.total - a.total < 4.3, b && a ? (b.total - a.total).toFixed(2) : '');
+  check('Wither Crown max is 1 stack (second give adds nothing)', b2 && Math.abs(b2.relic - 4) < 1e-6, JSON.stringify(b2));
+  check('removed: relic threat back to 0', d && d.relic === 0, JSON.stringify(d));
+  console.log(fails ? `RESULT: ${fails} FAILED` : 'RESULT: ALL PASSED');
+  await c('/expedition leave', 800); bot.quit(); setTimeout(() => process.exit(fails ? 1 : 0), 500);
+});

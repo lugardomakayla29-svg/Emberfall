@@ -1,0 +1,24 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+bot.on('error', e => console.log('ERROR', e));
+const pk = []; let on = false;
+bot._client.on('packet', (d, m) => { if (on && m.name === 'world_particles' && d.particle && d.particle.type === 'dust') pk.push({ t: Date.now(), x: d.x, y: d.y, z: d.z, c: d.particle.data.color & 0xffffff, a: d.alwaysShow && d.longDistance }); });
+bot.once('spawn', async () => {
+  await sleep(6000);
+  const c = async (x, w = 800) => { bot.chat(x); await sleep(w); };
+  await c('/gamemode survival', 700);
+  await c('/effect give @s minecraft:resistance 900 4 true', 400);
+  await c('/effect give @s minecraft:regeneration 900 4 true', 400);
+  await c('/tp @s 43 72 40.5', 2500);
+  await c('/kill @e[type=!player,distance=..80]', 800);
+  await c('/summon emberfall:umbral_magus 40.5 72 40.5 {Tags:["um"]}', 1000);
+  await c('/attribute @e[tag=um,limit=1] minecraft:movement_speed base set 0', 600);
+  const pinner = setInterval(() => bot.chat('/tp @s 43 72 40.5'), 1100);
+  on = true; await sleep(70000); on = false; clearInterval(pinner);
+  await c('/save-all flush', 5000);
+  await c('/kill @e[tag=um]', 500);
+  require('fs').writeFileSync('/tmp/burst_pk.json', JSON.stringify({ pk }));
+  console.log('packets', pk.length);
+  bot.quit(); process.exit(0);
+});

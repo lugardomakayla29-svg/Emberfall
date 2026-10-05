@@ -1,0 +1,27 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const chat = []; bot.on('message', m => chat.push(m.toString()));
+bot.on('error', e => console.log('ERROR', e));
+const pk = []; let on = false;
+bot._client.on('packet', (d, m) => { if (on && m.name === 'world_particles' && d.particle && d.particle.type === 'dust') pk.push({ t: Date.now(), d }); });
+const read = async (cmd, re) => { chat.length = 0; bot.chat(cmd); await sleep(450); const m = chat.join(' ').match(re); return m ? +m[1] : null; };
+bot.once('spawn', async () => {
+  await sleep(6000);
+  const c = async (x, w = 800) => { bot.chat(x); await sleep(w); };
+  await c('/gamemode survival', 700);
+  await c('/effect give @s minecraft:resistance 900 4 true', 400);
+  await c('/effect give @s minecraft:regeneration 900 4 true', 400);
+  await c('/tp @s 46 72 40.5', 2500);
+  await c('/kill @e[type=!player,distance=..80]', 800);
+  await c('/summon emberfall:umbral_magus 40.5 72 40.5 {Tags:["um"]}', 1000);
+  await c('/attribute @e[tag=um,limit=1] minecraft:movement_speed base set 0', 600);
+  const mx = await read('/data get entity @e[tag=um,limit=1] Pos[0]', /: ([\d.\-]+)d/);
+  const mz = await read('/data get entity @e[tag=um,limit=1] Pos[2]', /: ([\d.\-]+)d/);
+  console.log('magus at', mx, mz);
+  on = true; await sleep(80000); on = false;
+  await c('/kill @e[tag=um]', 500);
+  console.log('total dust packets:', pk.length);
+  require('fs').writeFileSync('/tmp/magus_pk.json', JSON.stringify({ mx, mz, pk: pk.map(p => ({ t: p.t, x: p.d.x, y: p.d.y, z: p.d.z, c: p.d.particle.data.color })) }));
+  bot.quit(); process.exit(0);
+});

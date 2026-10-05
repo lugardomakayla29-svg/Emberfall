@@ -1,0 +1,21 @@
+const mineflayer = require('mineflayer');
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+bot.on('error', e => console.log('ERROR', e));
+bot.on('message', m => console.log('MSG:', m.toString().slice(0,160)));
+bot.on('kicked', r => console.log('KICKED', JSON.stringify(r).slice(0,200)));
+bot.on('end', r => console.log('END', r));
+const c = async (x, w=600) => { bot.chat(x); await sleep(w); };
+const mob = process.argv[2] || 'broodmother_stalker';
+bot.once('spawn', async () => {
+  await sleep(6000);
+  await c('/gamemode creative'); await c('/tp @s 0 200 0', 2500);
+  await c('/fill -6 199 -6 6 199 6 minecraft:stone', 800);
+  await c('/tp @s 0 200 0', 800);
+  await c('/kill @e[type=!player,distance=..30]', 500);
+  await c(process.argv[3] ? `/emberfall spawnelite ${process.argv[3]}` : `/summon emberfall:${mob} 0 200 0`, 2500);
+  await c(`/attribute @e[type=emberfall:${mob},limit=1] minecraft:movement_speed base set 0`, 1500);
+  await c('/emberfall rigreport', 800);
+  await c('/emberfall rigreport', 800);
+  bot.quit(); process.exit(0);
+});

@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "emberfall",
+	"version": "${version}",
+	"name": "Emberfall",
+	"description": "A Megabonk-inspired 3D action roguelike built on Minecraft: Java Edition.",
+	"authors": [
+		"solme"
+	],
+	"contact": {},
+	"license": "ARR",
+	"icon": "assets/emberfall/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.solme.emberfall.EmberfallMod"
+		],
+		"client": [
+			"com.solme.emberfall.client.EmberfallModClient"
+		]
+	},
+	"mixins": [
+		"emberfall.mixins.json",
+		{
+			"config": "emberfall.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": ">=1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

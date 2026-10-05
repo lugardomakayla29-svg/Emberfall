@@ -1,0 +1,34 @@
+{
+  "music.nyny_08": {
+    "sounds": [
+      {
+        "name": "emberfall:music/nyny_08",
+        "stream": true
+      }
+    ]
+  },
+  "music.pump_it_up_hyperdron": {
+    "sounds": [
+      {
+        "name": "emberfall:music/pump_it_up_hyperdron",
+        "stream": true
+      }
+    ]
+  },
+  "music.multi_minecart_drifting": {
+    "sounds": [
+      {
+        "name": "emberfall:music/multi_minecart_drifting",
+        "stream": true
+      }
+    ]
+  },
+  "music.final_cubic_generator": {
+    "sounds": [
+      {
+        "name": "emberfall:music/final_cubic_generator",
+        "stream": true
+      }
+    ]
+  }
+}
