@@ -1,0 +1,201 @@
+suite,static_class,lines,dead_server_exit,dead_server_FAIL_line,dead_server_PASS_line,can_false_pass
+ability_test.js,measurement (no verdict to give),58,0,False,False,n/a
+attack_gate_test.js,measurement (no verdict to give),25,0,False,False,n/a
+attack_test.js,"NO TOTAL, PASS/FAIL per line only",35,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+beacon_flame_test.js,"verdict line, exit 0 always",57,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+beacon_pull_test.js,measurement (no verdict to give),30,0,False,False,n/a
+beacon_test.js,"verdict line, exit 0 always",88,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+beam_test.js,measurement (no verdict to give),43,0,False,False,n/a
+blood_cost_test.js,measurement (no verdict to give),30,0,False,False,n/a
+blood_test.js,"NO TOTAL, PASS/FAIL per line only",53,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+bomber_damage_test.js,measurement (no verdict to give),40,0,False,False,n/a
+bomber_test.js,"verdict line, exit 0 always",54,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+bomber_wave_test.js,"verdict line, exit 0 always",51,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+bossdrop_test.js,"verdict line, exit 0 always",26,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+bot_brain_test.js,"verdict line, exit 0 always",33,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+bot_cost_test.js,measurement (no verdict to give),26,0,False,False,n/a
+bot_join_test.js,"verdict line, exit 0 always",40,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+bot_merchant_test.js,"verdict line, exit 0 always",51,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+bot_shop_test.js,"verdict line, exit 0 always",44,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+bot_walk_test.js,verdict + exit code,54,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+boundary_test.js,"NO TOTAL, PASS/FAIL per line only",70,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+bow_test.js,"verdict line, exit 0 always",84,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+broadsword_test.js,verdict + exit code,81,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+brood_test.js,"verdict line, exit 0 always",63,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+burst_test.js,measurement (no verdict to give),25,0,False,False,n/a
+calm_test.js,measurement (no verdict to give),42,0,False,False,n/a
+cap_test.js,measurement (no verdict to give),22,0,False,False,n/a
+cauldron_test.js,"verdict line, exit 0 always",70,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+chain_test.js,"verdict line, exit 0 always",85,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+charger_test.js,"verdict line, exit 0 always",82,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+chest_test.js,"verdict line, exit 0 always",119,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+cinder_dodge_test.js,measurement (no verdict to give),50,0,False,False,n/a
+cinder_still_test.js,measurement (no verdict to give),66,0,False,False,n/a
+cinder_test.js,measurement (no verdict to give),28,0,False,False,n/a
+cinder_walk_test.js,measurement (no verdict to give),84,0,False,False,n/a
+circle_test.js,verdict + exit code,59,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+coil_damage_test.js,"verdict line, exit 0 always",46,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+coil_test.js,"verdict line, exit 0 always",54,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+cone_test.js,verdict + exit code,63,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+cost_test.js,measurement (no verdict to give),23,0,False,False,n/a
+cover_test.js,"verdict line, exit 0 always",52,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+craft_test.js,measurement (no verdict to give),57,0,False,False,n/a
+crash_restore_test.js,measurement (no verdict to give),27,0,False,False,n/a
+dagger_test.js,"verdict line, exit 0 always",97,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+death_drop_test.js,"verdict line, exit 0 always",38,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+death_mob_test.js,"NO TOTAL, PASS/FAIL per line only",38,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+death_screen_test.js,"verdict line, exit 0 always",48,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+devourer_curse_test.js,"verdict line, exit 0 always",48,1,False,False,exit nonzero on a stopped server
+devourer_leap_test.js,verdict + exit code,54,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+diff_test.js,measurement (no verdict to give),30,0,False,False,n/a
+egg_test.js,"verdict line, exit 0 always",46,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+elite3_test.js,measurement (no verdict to give),74,124,False,False,exit nonzero on a stopped server
+elite_ranged_kill_test.js,"verdict line, exit 0 always",43,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+elite_scale_test.js,"verdict line, exit 0 always",43,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+elite_stats_test.js,measurement (no verdict to give),24,0,False,False,n/a
+elite_ttk_test.js,measurement (no verdict to give),32,0,False,False,n/a
+explosion_test.js,verdict + exit code,48,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+fire_test.js,verdict + exit code,33,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+freechest_test.js,"verdict line, exit 0 always",79,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+gate_noterrain_test.js,"verdict line, exit 0 always",49,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+gate_test.js,"verdict line, exit 0 always",58,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+gate_weapon_test.js,"verdict line, exit 0 always",43,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+gold_kill_test.js,measurement (no verdict to give),36,0,False,False,n/a
+gold_reroll_test.js,"NO TOTAL, PASS/FAIL per line only",117,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+guarantee_leak_test.js,measurement (no verdict to give),29,0,False,False,n/a
+guarantee_use_test.js,measurement (no verdict to give),22,0,False,False,n/a
+guardian_test.js,"verdict line, exit 0 always",40,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+halberd_test.js,"verdict line, exit 0 always",106,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+hand_test.js,measurement (no verdict to give),33,0,False,False,n/a
+hearth_test.js,measurement (no verdict to give),56,0,False,False,n/a
+hotbar_test.js,"verdict line, exit 0 always",75,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+house_door_test.js,"verdict line, exit 0 always",47,1,False,False,exit nonzero on a stopped server
+hub_click_test.js,verdict + exit code,38,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+hud_level_test.js,"verdict line, exit 0 always",76,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+hud_test.js,"NO TOTAL, PASS/FAIL per line only",43,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+imp_pack_test.js,"verdict line, exit 0 always",33,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+imp_test.js,"verdict line, exit 0 always",43,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+inplace_test.js,measurement (no verdict to give),33,0,False,False,n/a
+kill_cmd_test.js,measurement (no verdict to give),22,0,False,False,n/a
+kiter_distance_test.js,measurement (no verdict to give),33,0,False,False,n/a
+laser_test.js,measurement (no verdict to give),34,0,False,False,n/a
+late_xp_test.js,"verdict line, exit 0 always",43,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+ledge_test.js,"verdict line, exit 0 always",36,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+legion_test.js,measurement (no verdict to give),45,0,False,False,n/a
+loadout_test.js,measurement (no verdict to give),71,0,False,False,n/a
+magus_summon_hurt_test.js,"verdict line, exit 0 always",55,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+magus_test.js,measurement (no verdict to give),28,0,False,False,n/a
+map_boundary_test.js,"verdict line, exit 0 always",36,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+map_build_test.js,verdict + exit code,84,1,False,False,exit nonzero on a stopped server
+map_run_test.js,"verdict line, exit 0 always",51,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+merchant_test.js,"verdict line, exit 0 always",78,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+milestone_test.js,"NO TOTAL, PASS/FAIL per line only",37,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+mini_wave_test.js,"verdict line, exit 0 always",57,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+move_test.js,"verdict line, exit 0 always",42,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+music_dc_test.js,"NO TOTAL, PASS/FAIL per line only",21,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+music_exit_test.js,"NO TOTAL, PASS/FAIL per line only",27,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+music_test.js,"NO TOTAL, PASS/FAIL per line only",46,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+names_test.js,"verdict line, exit 0 always",34,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+nonop_test.js,"verdict line, exit 0 always",141,0,True,True,has FAIL line but exit 0
+perm_test.js,verdict + exit code,25,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+phantom_test.js,measurement (no verdict to give),46,0,False,False,n/a
+pickup_test.js,measurement (no verdict to give),67,0,False,False,n/a
+pink_grow_test.js,"verdict line, exit 0 always",66,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+pink_moves_test.js,"verdict line, exit 0 always",60,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+pink_particle_test.js,measurement (no verdict to give),33,0,False,False,n/a
+pink_spit_test.js,"verdict line, exit 0 always",60,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+place_grass_test.js,measurement (no verdict to give),30,0,False,False,n/a
+place_test.js,measurement (no verdict to give),31,0,False,False,n/a
+plate_loop_test.js,measurement (no verdict to give),39,0,False,False,n/a
+plate_test.js,verdict + exit code,45,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+protect_test.js,verdict + exit code,58,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+purge_test.js,"verdict line, exit 0 always",51,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+quake_test.js,"verdict line, exit 0 always",51,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_bonk_test.js,verdict + exit code,41,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_cowl_test.js,verdict + exit code,43,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_defence_test.js,verdict + exit code,66,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_econ_test.js,measurement (no verdict to give),44,0,False,False,n/a
+relic_hourglass_test.js,verdict + exit code,57,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_hud_test.js,"NO TOTAL, PASS/FAIL per line only",64,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_melee_test.js,verdict + exit code,60,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_mirror_test.js,verdict + exit code,54,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_offence_test.js,verdict + exit code,45,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_onhit_test.js,verdict + exit code,72,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_persist_test.js,verdict + exit code,21,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_quiver_sickle_test.js,verdict + exit code,36,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_quiver_test.js,verdict + exit code,50,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_regen_test.js,verdict + exit code,53,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_reward_test.js,verdict + exit code,59,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_test.js,verdict + exit code,89,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+relic_threat_test.js,verdict + exit code,31,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+reward_test.js,"verdict line, exit 0 always",46,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+ring_guard_test.js,measurement (no verdict to give),45,0,False,False,n/a
+ring_high_test.js,measurement (no verdict to give),45,0,False,False,n/a
+ring_particles_test.js,"verdict line, exit 0 always",41,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+ring_phase3_test.js,measurement (no verdict to give),48,0,False,False,n/a
+ring_test.js,measurement (no verdict to give),44,0,False,False,n/a
+ring_tower_test.js,measurement (no verdict to give),30,0,False,False,n/a
+rite_test.js,measurement (no verdict to give),57,0,False,False,n/a
+run_test.js,measurement (no verdict to give),32,124,False,False,exit nonzero on a stopped server
+runhud_test.js,"NO TOTAL, PASS/FAIL per line only",73,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+saddle_test.js,"verdict line, exit 0 always",20,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+shield_test.js,"verdict line, exit 0 always",49,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+shield_turn_test.js,"verdict line, exit 0 always",57,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+shield_wave_test.js,"verdict line, exit 0 always",53,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+shield_weapon_test.js,"verdict line, exit 0 always",52,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+shop_max_test.js,"NO TOTAL, PASS/FAIL per line only",14,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+shop_msg_test.js,"NO TOTAL, PASS/FAIL per line only",45,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+shrine_payout_test.js,"verdict line, exit 0 always",36,1,False,False,exit nonzero on a stopped server
+shrine_test.js,"verdict line, exit 0 always",106,1,False,False,exit nonzero on a stopped server
+shrinedrop_test.js,"verdict line, exit 0 always",36,1,False,False,exit nonzero on a stopped server
+sick_test.js,measurement (no verdict to give),44,0,False,False,n/a
+sickle_inner_test.js,measurement (no verdict to give),28,0,False,False,n/a
+sickle_test.js,"verdict line, exit 0 always",93,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+skeleton_backstep_test.js,"verdict line, exit 0 always",54,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+slots_test.js,"NO TOTAL, PASS/FAIL per line only",74,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+snd_test.js,measurement (no verdict to give),40,0,False,False,n/a
+spider_dodge_test.js,"verdict line, exit 0 always",55,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+spitter_test.js,"verdict line, exit 0 always",96,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+spitter_wave_test.js,"verdict line, exit 0 always",44,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+splash_test.js,"verdict line, exit 0 always",84,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+square_test.js,verdict + exit code,64,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+staff_test.js,"verdict line, exit 0 always",84,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+star_lethal_test.js,"NO TOTAL, PASS/FAIL per line only",33,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+starbit_test.js,"verdict line, exit 0 always",38,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+summon_damage_test.js,"verdict line, exit 0 always",81,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+summon_friendly_test.js,"verdict line, exit 0 always",63,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+swarm_test.js,"verdict line, exit 0 always",67,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+sweeper_test.js,"verdict line, exit 0 always",51,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+swing_fx_test.js,measurement (no verdict to give),34,0,False,False,n/a
+tab_test.js,"verdict line, exit 0 always",38,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+table_craft_test.js,verdict + exit code,53,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+table_test.js,"verdict line, exit 0 always",63,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+telegraph_test.js,verdict + exit code,64,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tentacle_attack_test.js,"verdict line, exit 0 always",54,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tentacle_floor_test.js,"verdict line, exit 0 always",42,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tentacle_test.js,"verdict line, exit 0 always",53,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tiki_chase_test.js,measurement (no verdict to give),57,0,False,False,n/a
+tiki_cube_test.js,"verdict line, exit 0 always",29,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tiki_facing_test.js,"verdict line, exit 0 always",42,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tiki_landing_test.js,"verdict line, exit 0 always",42,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tiki_levitate_test.js,"verdict line, exit 0 always",47,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tiki_rebuild_test.js,"verdict line, exit 0 always",54,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tiki_roof_test.js,"verdict line, exit 0 always",49,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tiki_stack_test.js,measurement (no verdict to give),22,0,False,False,n/a
+tiki_voice_elite_test.js,"verdict line, exit 0 always",63,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tiki_voice_test.js,"verdict line, exit 0 always",55,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tiki_voice_vet_test.js,"verdict line, exit 0 always",55,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+tome_fix_test.js,"verdict line, exit 0 always",53,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+ultimate_msg_test.js,"verdict line, exit 0 always",43,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+unlock_chest_test.js,"verdict line, exit 0 always",35,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+unlock_hooks_test.js,"verdict line, exit 0 always",59,1,False,False,exit nonzero on a stopped server
+villager_test.js,measurement (no verdict to give),42,0,False,False,n/a
+weapon_growth_test.js,"verdict line, exit 0 always",93,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+weapon_offer_test.js,"NO TOTAL, PASS/FAIL per line only",74,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+witch_sway_test.js,"verdict line, exit 0 always",64,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+witch_test.js,"verdict line, exit 0 always",69,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+worm_chain_test.js,"verdict line, exit 0 always",66,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+worm_cost_test.js,measurement (no verdict to give),41,0,False,False,n/a
+worm_ground_test.js,"verdict line, exit 0 always",43,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
+zombie_lunge_land_test.js,measurement (no verdict to give),37,0,False,False,n/a
+zombie_lunge_test.js,"verdict line, exit 0 always",57,0,False,False,"YES (exit 0, no FAIL) on a stopped server"
