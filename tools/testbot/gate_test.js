@@ -2,7 +2,7 @@
 const mineflayer = require('mineflayer');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const X = -29, Y = 75, Z = -2;   // hearth; gate cell is (X, Y, Z-1); frame cell y = Y
-const mk = name => new Promise(res => { const b = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: name, version: '1.21.11', auth: 'offline' }); b.chat_ = []; b.on('message', m => b.chat_.push(m.toString())); b.once('spawn', () => res(b)); });
+const mk = name => new Promise(res => { const b = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: name, version: '1.21.11', auth: 'offline' }); b.chat_ = []; b.allChat_ = []; b.on('message', m => { const t = m.toString(); b.chat_.push(t); b.allChat_.push(t); }); b.once('spawn', () => res(b)); });
 let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + n + ' ' + note); if (!ok) fails++; };
 (async () => {
   const op = await mk('EmberTester'); await sleep(5000);
@@ -24,7 +24,9 @@ let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' :
   console.log('CLICK1', (await say(op, '/emberfall hubclick hubact_gate', 700)).slice(0, 90));
   const c = await say(op, '/execute as @s run say ping', 300);
   for (let i = 0; i < 60; i++) { await sleep(2000); if ((await dim()) === 'expedition') break; }
-  check('T2 a click, then a hold, puts the player in an expedition', (await dim()) === 'expedition', '');
+  const t2ok = (await dim()) === 'expedition';
+  check('T2 a click, then a hold, puts the player in an expedition', t2ok, '');
+  if (!t2ok) console.log('T2 DIAG server messages since start:', JSON.stringify(op.allChat_.filter(x => !/Teleported|entity data|Set own|Gave|Changed/i.test(x)).slice(-12)));
   await sleep(2500);
   console.log('MARK leaving');
   await say(op, '/expedition leave', 1500);
