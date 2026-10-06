@@ -33,9 +33,10 @@ public final class PartyScaling {
     /** Placeholder: extra live hostiles per additional player. */
     static final int HOSTILE_CAP_PER_EXTRA = 10;
     /**
-     * The cap stops growing at this party size. The server cost of even 40 hostiles with several players has not been
-     * measured, so growing the cap up to 10 players (130 entities) is not allowed until the MSPT measurement exists
-     * (plan section 4). The value at this size, 80, is itself a placeholder.
+     * The cap stops growing at this party size. Measured (PR #43, headless, ONE bot, one sample per cap): 40 hostiles 8.8 ms,
+     * 60 hostiles 20.7 ms, 80 hostiles 13.7 ms of a 50 ms tick, so 80 fits with one player. Not measured: 80 hostiles with five
+     * players (per-player work) and any client render cost. Growing past 80 toward 130 entities stays off until it is. The value
+     * at this size, 80, is still a placeholder.
      */
     static final int HOSTILE_CAP_GROWS_UNTIL = 5;
 
