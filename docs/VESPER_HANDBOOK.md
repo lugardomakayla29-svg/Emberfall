@@ -91,7 +91,7 @@ test proves logic, never appearance. Never write "looks good". Write "tested hea
   run 37377803126, reported on #16), and `main` passed on its own push. `./gradlew build` therefore works from a clean checkout.
 - Live suites use portable paths and were re-run from the new layout for the suites touched since (see STATUS.md). A full re-run of
   all 200+ suites from a clean clone has NOT been done.
-- Known obsolete/red: `boundary_test` (old box arena). Several suites print no verdict (attack, attack_gate, beam,
+- `boundary_test` (old box arena) is listed in `regress3.sh`; its status was **not re-verified** (an earlier note called it obsolete/red; this audit did not run it). Several suites print no verdict (attack, attack_gate, beam,
   ring_phase3, ring_tower): they were stripped of debug lines and not re-proven.
 - Not verified by anyone: anything on a real graphical client (HUD, ultimates, look). Issue #12 needs the owner.
 
@@ -156,6 +156,11 @@ Claim something works without showing the test output. Overwrite the other agent
    `grep -c Exception run/server_run.log` is 0.
 3. **Regression bundles** (`tools/testbot/regress*.sh`, `reg_*.sh`): run many suites. `regress4.sh` is the big one (61 runs).
    Before any PR touching shared systems, run the bundle that covers them.
+   **The bundles do not judge a suite the same way** (read from the scripts, 13 files: 8 `regress*.sh` and 5 `reg_*.sh`; not run):
+   only `regress3.sh` (16 suites) and `regress4.sh` (61) count `ECONNREFUSED`, `FAILED` and `Error:` as a failure and report a suite with no
+   verdict line as `no verdict line`; `regress4.sh` also flags `NO CHECKS RAN` when a suite printed no PASS. The others (`regress.sh`,
+   `regress2.sh`, `regress_cinder.sh`, `regress_guardian.sh`, `regress_kraken.sh`, `regress_pink.sh`, `reg_*.sh`) only grep for PASS/FAIL lines, so a stopped
+   server shows as an empty run, not a failure. **None of the bundles reads a suite's exit code**, which is the false-pass defect in issue #17.
 
 ### 4.2 The method that keeps us honest
 - Write the probe before the fix. Measure the engine, write the number in the PR.
@@ -245,7 +250,7 @@ or script that broke. *This also verifies Koda's unverified portability work.* F
 `vesper/portable-paths`). Acceptance: `relic_test` prints `RESULT: ALL PASSED` (it had 27 assertions when Koda last ran it) and `chest_test` has no FAIL lines (19 PASS when Koda last ran it). If a count differs, report the exact difference instead of adjusting the test.
 
 **V1. Issue #7 Creative tab overhaul + non-op `/emberfall` test.**
-Files: `item/`, `ModCreativeTab`, `lang`, new `tools/testbot/nonop_test.js`. A pre-existing creative tab has eggs for 19 mobs,
+Files: `item/`, `ModCreativeTab`, `lang`, new `tools/testbot/nonop_test.js`. As of V1 (when this was written; the tab has changed since) the pre-existing creative tab had eggs for 19 mobs,
 boss summoners and more; audit it against `entity/ModEntities.java`, list every missing mob/boss/test item, add them, and
 write the non-op test: a client NOT in `ops.json` must get `Unknown or incomplete command` for `/emberfall`, `/character` and `/shop` (all gated at LEVEL_GAMEMASTERS), an op must succeed. **`/expedition` is public on purpose** (a child's requirement is AND-ed with its parent's, so gating the root would trap players inside a run): never gate it. Outcome of V1 (see #11 and PR #15): the audit found no missing eggs, so no tab change was needed and the test is the whole deliverable.
 Acceptance: `nonop_test` prints 2+ PASS with a control; every registered mob has an egg or a documented reason it cannot.
