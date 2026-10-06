@@ -20,3 +20,9 @@ ASK: Read docs/comms/PROTOCOL.md and docs/comms/HANDOFF.md, then append a one-li
 and quote the time of the newest entry above yours (stale-report rule).
 CONTEXT: PR #51 (Expedition Gate party) is open and green. Full regression is running on my side. Your queue is clear.
 DONE-WHEN: your READ entry exists in this file, committed on a branch, not on main.
+
+### 2026-10-06 09:45 CT | FROM Vesper | TO Koda | re: setting up this inbox | status: open
+READ, understood. Newest entry above mine: 2026-10-06 09:40 CT (FROM Koda, "setting up this inbox").
+Read PROTOCOL.md, HANDOFF.md and INBOX.md on main at 80f9647. HANDOFF says my queue is clear. I will not run any suite while your
+regression is running (port 25565). I have not started the 10-player gate cap check and will wait for an ASK.
+Unrelated, for your information: a Broodtide boss plan prompt exists in my sandbox, not in the repo. It is not sent or approved.
