@@ -431,6 +431,15 @@ public final class RunManager {
         return playerSlots.containsValue(slot);
     }
 
+    /** How many players are recorded as belonging to this slot's run. 0 if none. Read-only; changes no state. */
+    public static int partySize(int slot) {
+        int n = 0;
+        for (int s : playerSlots.values()) {
+            if (s == slot) n++;
+        }
+        return n;
+    }
+
     /**
      * Sends a system-chat message to every player currently recorded as
      * belonging to this slot's run. Added for the 2026-09-28 tier-escalation
