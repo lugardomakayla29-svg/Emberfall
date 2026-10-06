@@ -9,43 +9,91 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * The Expedition Gate ritual. A deliberate right click on the gate starts a short countdown (moving away cancels it); when it
- * ends, the run starts and the player's return point is set BESIDE the gate, never on it. After any run ends the gate refuses
+ * The Expedition Gate ritual. A deliberate right click on the gate starts a short countdown (moving away cancels it). Anyone who
+ * clicks while that countdown runs JOINS the same departure (up to {@link GateRules#MAX_PARTY}); when the first click's clock ends,
+ * ONE run starts for everyone still holding still, and each member's return point is the spot where they stood, never the gate. After any run ends the gate refuses
  * for a few seconds, so a stray click can never restart a run at once. Nothing here is triggered by walking: that was the
  * old departure plate's flaw (a returning player landed on it and it started a new run).
  */
 public final class GateManager {
     private GateManager() {}
 
-    private record Pending(BlockPos gate, double x, double z, long startedTick) {}
+    /** One member's wait: where they stood when they clicked (their cancel anchor and their return spot). */
+    private record Member(UUID id, double x, double y, double z) {}
 
-    private static final Map<UUID, Pending> PENDING = new HashMap<>();
+    /** One shared departure at one gate. {@code startedTick} is the FIRST click; the group leaves when its clock ends. */
+    private static final class Departure {
+        final BlockPos gate;
+        final long startedTick;
+        final List<Member> members = new ArrayList<>();
+
+        Departure(BlockPos gate, long startedTick) {
+            this.gate = gate;
+            this.startedTick = startedTick;
+        }
+
+        boolean has(UUID id) {
+            for (Member m : members) {
+                if (m.id().equals(id)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    /** The countdown running at each gate position. */
+    private static final Map<BlockPos, Departure> DEPARTURES = new HashMap<>();
     /** Server tick at which each player's last run ended. */
     private static final Map<UUID, Long> ENDED = new HashMap<>();
 
     /** Stamped when a player's run ends, from {@code RunEndHandler}. */
     public static void runEnded(ServerPlayer player, long nowTick) {
         ENDED.put(player.getUUID(), nowTick);
-        PENDING.remove(player.getUUID());
+        drop(player.getUUID());
     }
 
     public static void forget(UUID id) {
-        PENDING.remove(id);
+        drop(id);
         ENDED.remove(id);
     }
 
-    public static boolean counting(UUID id) {
-        return PENDING.containsKey(id);
+    /** Removes a player from whatever departure holds them; an emptied departure disappears. */
+    private static void drop(UUID id) {
+        for (java.util.Iterator<Departure> it = DEPARTURES.values().iterator(); it.hasNext(); ) {
+            Departure d = it.next();
+            d.members.removeIf(m -> m.id().equals(id));
+            if (d.members.isEmpty()) {
+                it.remove();
+            }
+        }
     }
 
-    /** A click on the gate at {@code gate}. Returns a player-facing refusal, or null when the countdown began. */
+    public static boolean counting(UUID id) {
+        for (Departure d : DEPARTURES.values()) {
+            if (d.has(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** How many players are waiting at {@code gate} (0 when no countdown runs there). For tests and the join message. */
+    public static int waiting(BlockPos gate) {
+        Departure d = DEPARTURES.get(gate);
+        return d == null ? 0 : d.members.size();
+    }
+
+    /** A click on the gate at {@code gate}. Returns a player-facing refusal, or null when the player is now counting down. */
     public static String click(ServerPlayer player, BlockPos gate, long nowTick) {
-        if (PENDING.containsKey(player.getUUID())) {
+        if (counting(player.getUUID())) {
             return "The gate is already opening. Hold still.";
         }
         Long ended = ENDED.get(player.getUUID());
@@ -55,50 +103,80 @@ public final class GateManager {
         if (player.distanceToSqr(gate.getX() + 0.5, gate.getY(), gate.getZ() + 0.5) > GateRules.REACH * GateRules.REACH) {
             return "Step closer to the gate.";
         }
-        PENDING.put(player.getUUID(), new Pending(gate, player.getX(), player.getZ(), nowTick));
-        player.sendSystemMessage(Component.literal("§6The gate stirs... hold still."), true);
+        Member me = new Member(player.getUUID(), player.getX(), player.getY(), player.getZ());
+        Departure d = DEPARTURES.get(gate);
+        if (d == null) {
+            d = new Departure(gate, nowTick);
+            d.members.add(me);
+            DEPARTURES.put(gate, d);
+            player.sendSystemMessage(Component.literal("\u00A76The gate stirs... hold still. Others may join you."), true);
+            return null;
+        }
+        if (!GateRules.canJoin(d.members.size(), nowTick - d.startedTick)) {
+            return d.members.size() >= GateRules.MAX_PARTY
+                    ? "This party is full (" + GateRules.MAX_PARTY + ")."
+                    : "The gate is about to open. Wait for the next departure.";
+        }
+        d.members.add(me);
+        player.sendSystemMessage(Component.literal("\u00A76You join the departure (" + d.members.size() + " at the gate). Hold still."), true);
         return null;
     }
 
-    /** Every tick: advance each countdown, cancel on movement, start the run when it ends. */
+    /** Every tick: cancel members who moved, then start each departure whose first clock has ended. */
     public static void tickAll(MinecraftServer server) {
-        if (PENDING.isEmpty()) {
+        if (DEPARTURES.isEmpty()) {
             return;
         }
         long now = server.getTickCount();
-        for (Map.Entry<UUID, Pending> e : new java.util.ArrayList<>(PENDING.entrySet())) {
-            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
-            Pending pend = e.getValue();
-            if (p == null || !p.isAlive()) {
-                PENDING.remove(e.getKey());
+        for (Departure d : new ArrayList<>(DEPARTURES.values())) {
+            long elapsed = now - d.startedTick;
+            List<RunCommand.PartyMember> going = new ArrayList<>();
+            for (Member m : new ArrayList<>(d.members)) {
+                ServerPlayer p = server.getPlayerList().getPlayer(m.id());
+                if (p == null || !p.isAlive()) {
+                    d.members.remove(m);
+                    continue;
+                }
+                if (GateRules.moved(p.getX() - m.x(), p.getZ() - m.z())) {
+                    d.members.remove(m);
+                    p.sendSystemMessage(Component.literal("\u00A77You stepped away. The gate falls still."), true);
+                    continue;
+                }
+                if (GateRules.groupDeparts(elapsed)) {
+                    going.add(returnFor(p, m, d.gate, going.size()));
+                } else if (elapsed % 20 == 0) {
+                    p.sendSystemMessage(Component.literal("\u00A76Departing in \u00A7e" + GateRules.secondsLeft(elapsed)
+                            + (d.members.size() > 1 ? " \u00A77(" + d.members.size() + " at the gate)" : "")), true);
+                    // A slow darkening as the gate opens: Darkness is vanilla, costs no entity, and ends by itself.
+                    p.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 50, 0, false, false));
+                }
+            }
+            if (d.members.isEmpty()) {
+                DEPARTURES.remove(d.gate);
                 continue;
             }
-            if (GateRules.moved(p.getX() - pend.x(), p.getZ() - pend.z())) {
-                PENDING.remove(e.getKey());
-                p.sendSystemMessage(Component.literal("§7You stepped away. The gate falls still."), true);
-                continue;
-            }
-            long elapsed = now - pend.startedTick();
-            if (GateRules.countdownDone(elapsed)) {
-                PENDING.remove(e.getKey());
-                start(p, pend.gate());
-                continue;
-            }
-            if (elapsed % 20 == 0) {
-                p.sendSystemMessage(Component.literal("§6Departing in §e" + GateRules.secondsLeft(elapsed)), true);
-                // A slow darkening as the gate opens: Darkness is vanilla, costs no entity, and ends by itself.
-                p.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 50, 0, false, false));
+            if (GateRules.groupDeparts(elapsed)) {
+                DEPARTURES.remove(d.gate);
+                String error = RunCommand.tryStartParty(going);
+                if (error != null) {
+                    for (RunCommand.PartyMember m : going) {
+                        m.player().sendSystemMessage(Component.literal("\u00A7c" + error));
+                    }
+                }
             }
         }
     }
 
-    private static void start(ServerPlayer p, BlockPos gate) {
-        HubLayout.Spot spot = GateRules.returnSpot(Math.floorMod(p.getUUID().hashCode(), 2));
-        // The return spot is relative to the gate cell at (0,-1): shift by the difference from the gate's own offset.
-        BlockPos back = gate.offset(spot.dx() - HubLayout.departureSpot().dx(), 0, spot.dz() - HubLayout.departureSpot().dz());
-        String error = RunCommand.tryStartFrom(p, back.getX() + 0.5, back.getY(), back.getZ() + 0.5);
-        if (error != null) {
-            p.sendSystemMessage(Component.literal("§c" + error));
+    /**
+     * Where this member returns. Their own standing spot when it is clear of the gate; otherwise one of the two beside-gate
+     * spots (alternating by their place in the party), so a member who clicked from the gate cell is never sent back onto it.
+     */
+    private static RunCommand.PartyMember returnFor(ServerPlayer p, Member m, BlockPos gate, int index) {
+        if (GateRules.ownSpotIsSafe(m.x() - (gate.getX() + 0.5), m.z() - (gate.getZ() + 0.5))) {
+            return new RunCommand.PartyMember(p, m.x(), m.y(), m.z());
         }
+        HubLayout.Spot spot = GateRules.returnSpot(index);
+        BlockPos back = gate.offset(spot.dx() - HubLayout.departureSpot().dx(), 0, spot.dz() - HubLayout.departureSpot().dz());
+        return new RunCommand.PartyMember(p, back.getX() + 0.5, back.getY(), back.getZ() + 0.5);
     }
 }
