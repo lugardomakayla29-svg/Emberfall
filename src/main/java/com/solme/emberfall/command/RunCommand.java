@@ -140,6 +140,101 @@ public final class RunCommand {
         return null;
     }
 
+    /** One member of a gate party and the spot they return to (where they stood when they joined the countdown). */
+    public record PartyMember(ServerPlayer player, double backX, double backY, double backZ) {}
+
+    /**
+     * Starts ONE expedition for a whole gate party: the map slot is reserved and built once, then every member that is still
+     * eligible joins the same run, so {@code RunManager.partySize} is the number of people who actually departed. Each member
+     * keeps their own return spot. Members who stopped being eligible while the map built (quit, already in a run, died) are
+     * dropped without failing the others. Returns null on success, else a sentence for the first (leader) member.
+     */
+    public static String tryStartParty(java.util.List<PartyMember> members) {
+        if (members.isEmpty()) {
+            return "Nobody is at the gate.";
+        }
+        if (members.size() == 1) {
+            PartyMember m = members.get(0);
+            return tryStartFrom(m.player(), m.backX(), m.backY(), m.backZ());
+        }
+        java.util.List<PartyMember> ok = new java.util.ArrayList<>();
+        String firstProblem = null;
+        for (PartyMember m : members) {
+            String why = eligibility(m.player());
+            if (why == null) {
+                ok.add(m);
+            } else if (firstProblem == null) {
+                firstProblem = why;
+            }
+        }
+        if (ok.isEmpty()) {
+            return firstProblem;
+        }
+        ServerPlayer leader = ok.get(0).player();
+        MinecraftServer server = ((ServerLevel) leader.level()).getServer();
+        ServerLevel expedition = server.getLevel(Dimensions.EXPEDITION);
+        if (expedition == null) {
+            return "The expedition world is not available.";
+        }
+        int slot = RunManager.reserveMapSlot();
+        if (!MapManager.isBuilt(slot)) {
+            for (PartyMember m : ok) {
+                m.player().sendSystemMessage(Component.literal("\u00A76Preparing the expedition grounds... this takes about half a minute the first time."));
+            }
+        }
+        java.util.List<UUID> ids = new java.util.ArrayList<>();
+        for (PartyMember m : ok) {
+            ids.add(m.player().getUUID());
+            BUILDING.add(m.player().getUUID());
+        }
+        java.util.Map<UUID, PartyMember> byId = new java.util.HashMap<>();
+        for (PartyMember m : ok) {
+            byId.put(m.player().getUUID(), m);
+        }
+        MapManager.ensureBuilt(expedition, slot, RunManager.originForSlot(slot), built -> {
+            ids.forEach(BUILDING::remove);
+            java.util.List<ServerPlayer> joining = new java.util.ArrayList<>();
+            for (UUID id : ids) {
+                ServerPlayer p = server.getPlayerList().getPlayer(id);
+                if (p != null && p.isAlive() && RunManager.slotOf(p) == null) {
+                    joining.add(p);
+                }
+            }
+            if (joining.isEmpty()) {
+                RunManager.releaseMapSlot(slot);
+                return;
+            }
+            ArenaInstance instance = RunManager.startOnMap(expedition, slot);
+            for (ServerPlayer p : joining) {
+                PartyMember m = byId.get(p.getUUID());
+                ReturnPoints.rememberAt(p, m.backX(), m.backY(), m.backZ());
+                RunManager.joinPlayer(expedition, instance, p);
+            }
+            WaveDirector.start(instance);
+        });
+        return null;
+    }
+
+    /** The reasons a player cannot depart, shared by the single and party paths. Null = eligible. */
+    private static String eligibility(ServerPlayer player) {
+        if (RunManager.slotOf(player) != null) {
+            return "You're already on an expedition. Use /expedition leave first.";
+        }
+        if (!(player.level() instanceof ServerLevel from)) {
+            return "You can't start an expedition from here.";
+        }
+        if (from.dimension() == Dimensions.EXPEDITION) {
+            return "Expeditions start in a normal world. Use /expedition leave first.";
+        }
+        if (player.isSpectator() || player.isPassenger() || player.isInWater() || player.isInLava()) {
+            return "Stand on dry ground (not riding, swimming or spectating) to start an expedition.";
+        }
+        if (BUILDING.contains(player.getUUID())) {
+            return "Your expedition map is still being prepared. One moment.";
+        }
+        return null;
+    }
+
     private static int leave(CommandContext<CommandSourceStack> ctx) {
         CommandSourceStack source = ctx.getSource();
         ServerPlayer player = source.getPlayer();

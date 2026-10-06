@@ -51,4 +51,36 @@ public final class GateRules {
         HubLayout.Spot[] s = returnSpots();
         return s[Math.floorMod(playerIndex, s.length)];
     }
+
+    /** Largest party one gate departure can carry; matches {@code PartyScaling.MAX_PARTY}. */
+    public static final int MAX_PARTY = 10;
+
+    /**
+     * Whether a player may join the departure already counting down. {@code members} is how many are already in it,
+     * {@code sinceFirstTicks} how long ago the first one clicked. Joining is allowed only while the clock is still running, so
+     * nobody is pulled into a run that is about to start, and only below the party cap.
+     */
+    public static boolean canJoin(int members, long sinceFirstTicks) {
+        return members >= 1 && members < MAX_PARTY && sinceFirstTicks >= 0 && !countdownDone(sinceFirstTicks);
+    }
+
+    /**
+     * A member who joined late must still hold still for a fair moment, but the departure does not wait for them: it leaves when
+     * the FIRST click's countdown ends. This is the whole group's start rule: true once the first click's clock is done.
+     */
+    public static boolean groupDeparts(long sinceFirstTicks) {
+        return countdownDone(sinceFirstTicks);
+    }
+
+    /** A member who stood closer than this (blocks) to the gate returns beside it instead, never onto it. */
+    public static final double RETURN_CLEARANCE = 1.2;
+
+    /**
+     * True when {@code (dx, dz)} (offset of where a member stood from the gate's centre) is far enough from the gate to be a safe
+     * personal return spot. Closer than {@link #RETURN_CLEARANCE} and the member is sent to the standard beside-gate spots instead,
+     * so nobody ever lands on the gate, which is what looped runs on the old plate.
+     */
+    public static boolean ownSpotIsSafe(double dx, double dz) {
+        return dx * dx + dz * dz >= RETURN_CLEARANCE * RETURN_CLEARANCE;
+    }
 }
