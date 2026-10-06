@@ -777,7 +777,8 @@ public final class EmberfallCommands {
                         + " threat=" + String.format("%.2f", director.threatLevel())
                         + " totalSpawned=" + director.totalSpawned()
                         + " totalVeteransSpawned=" + director.totalVeteransSpawned()
-                        + " totalElitesSpawned=" + director.totalElitesSpawned()), true);
+                        + " totalElitesSpawned=" + director.totalElitesSpawned()
+                        + " partySize=" + RunManager.partySize(slot)), true);
         return 1;
     }
 
