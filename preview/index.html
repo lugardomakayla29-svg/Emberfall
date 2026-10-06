@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emberfall — Dev Server Status</title>
+<style>
+  :root { --bg:#1a1a2e; --card:#16213e; --accent:#e94560; --ok:#4ecca3; --text:#eaeaea; --dim:#8892b0; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+  .card { background:var(--card); border-radius:16px; padding:2.5rem 3rem; max-width:560px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,.4); text-align:center; }
+  .logo { font-size:2.2rem; font-weight:800; letter-spacing:-.5px; margin-bottom:.3rem; }
+  .logo span { color:var(--accent); }
+  .ver { color:var(--dim); font-size:.9rem; margin-bottom:1.8rem; }
+  .status { display:inline-flex; align-items:center; gap:.5rem; font-size:1.1rem; font-weight:600; padding:.6rem 1.4rem; border-radius:999px; margin-bottom:1.5rem; }
+  .status.ok { background:rgba(78,204,163,.12); color:var(--ok); }
+  .status.err { background:rgba(233,69,96,.12); color:var(--accent); }
+  .dot { width:10px; height:10px; border-radius:50%; }
+  .ok .dot { background:var(--ok); animation:pulse 2s infinite; }
+  .err .dot { background:var(--accent); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .info { text-align:left; margin-top:1.2rem; border-top:1px solid rgba(255,255,255,.08); padding-top:1.2rem; }
+  .info p { color:var(--dim); font-size:.85rem; line-height:1.6; }
+  .info b { color:var(--text); }
+  .meta { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-top:1rem; }
+  .meta div { background:rgba(255,255,255,.04); border-radius:8px; padding:.6rem .8rem; font-size:.8rem; color:var(--dim); }
+  .meta div b { display:block; color:var(--text); font-size:.85rem; margin-bottom:.1rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Ember<span>fall</span></div>
+  <div class="ver">Fabric Mod · v0.1.2 · MC 1.21.11</div>
+  <div class="status ok"><span class="dot"></span> Emberfall dev preview</div>
+  <div class="meta">
+    <div><b>Build</b>run by the server container</div>
+    <div><b>Server</b>port 25565 (see container health)</div>
+    <div><b>Java</b>JDK 25</div>
+    <div><b>Loader</b>Fabric 0.19.5</div>
+  </div>
+  <div class="info">
+    <p><b>Minecraft dev server</b> is started by the server container after a successful build. This page is static and does not check anything: the real status is the container health check, which passes only when the server log contains "Done".</p>
+    <p style="margin-top:.6rem">Connect from a Minecraft 1.21.11 client with Fabric Loader to <b>localhost:25565</b> (or the sandbox host). The Emberfall mod registers its blocks, entities, commands, and HUD on world load.</p>
+  </div>
+</div>
+</body>
+</html>

@@ -42,3 +42,14 @@ network payload. Register new things by adding a NEW line/file, never by reforma
 ## Agent communication
 Day-to-day talk goes in `docs/comms/INBOX.md` (append-only). Current state is `docs/comms/HANDOFF.md`. Rules are in
 `docs/comms/PROTOCOL.md`. Do not use GitHub comment threads for status or acknowledgements.
+
+## Base44 dev environment
+This is a Fabric Minecraft mod, not a web app — there is no web server. The Base44 preview (`docker-compose.base44.yml`)
+runs two services:
+- **server** (`eclipse-temurin:25-jdk`): builds with `./gradlew build` then starts the Minecraft dev server via
+  `./gradlew runServer` (port 25565 inside the container). JDK **25** is required — the CI uses Java 25, even though
+  `build.gradle` targets `sourceCompatibility = 21`. The `run/` dir needs `eula=true` in `eula.txt` (handled by
+  `preview/start-server.sh`).
+- **web** (`nginx:alpine`): serves the static status page from `preview/index.html` on host port 3000.
+No external secrets are needed. Verify with: `docker compose -f docker-compose.base44.yml up -d`, then curl `localhost:3000`.
+The build and server start with 0 exceptions on `main` at commit `80f9647171`.

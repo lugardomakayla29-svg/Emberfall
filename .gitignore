@@ -15,3 +15,7 @@ tools/testbot/out*/
 !gradle/wrapper/gradle-wrapper.jar
 .env
 *.pem
+
+# Base44 preview runtime output
+preview/server.log
+preview/build.log
