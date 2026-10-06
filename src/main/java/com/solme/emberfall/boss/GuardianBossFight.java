@@ -52,6 +52,7 @@ public final class GuardianBossFight {
         if (mods != null) {
             brain.applyCurse(mods.bossStatMultiplier()); // Boss Curse shrine: before the boss enters the world
         }
+        brain.setPartyDamageFactor(com.solme.emberfall.wave.PartyHealth.applyBoss(brain, com.solme.emberfall.world.RunManager.partySize(instance.slot())));
         level.addFreshEntity(brain);
         brain.spawnRig(level);
 

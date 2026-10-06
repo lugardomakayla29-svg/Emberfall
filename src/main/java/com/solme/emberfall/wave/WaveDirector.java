@@ -101,6 +101,14 @@ public final class WaveDirector {
     // Default 40 = shipped behaviour. The system property exists only so a TEST server can measure tick time at 60 or 80 (issue #13,
     // party step 0); nothing in the game or its config sets it.
     private static final int HOSTILE_CAP = Integer.getInteger("emberfall.hostileCap", 40);
+    /**
+     * Party size for THIS run, frozen once at the first spawn decision (tick {@link #BASE_SPAWN_INTERVAL_TICKS}) so a party that
+     * formed during the gate countdown is fully counted, and never read again (issue #13, step 3b). 0 means "not frozen yet".
+     * For one player every scaled value below equals the old constant, so a solo run is unchanged.
+     */
+    private int partySize = 0;
+    /** The party is counted at this tick (15 s) and never again. Spawns before it use the solo values. */
+    static final long PARTY_FREEZE_AT_TICK = 300;
     private static final int BASE_SPAWN_INTERVAL_TICKS = 100; // 5s at threat 0
     private static final int MIN_SPAWN_INTERVAL_TICKS = 15;   // 0.75s floor at max threat
     private static final double THREAT_RAMP_PER_TICK = 1.0 / 1200.0; // threat +1 every 60s
@@ -472,7 +480,31 @@ public final class WaveDirector {
     private int currentSpawnIntervalTicks() {
         double t = threatLevel / THREAT_CAP; // 0..1
         int span = BASE_SPAWN_INTERVAL_TICKS - MIN_SPAWN_INTERVAL_TICKS;
-        return (int) Math.round(BASE_SPAWN_INTERVAL_TICKS - t * span);
+        int solo = (int) Math.round(BASE_SPAWN_INTERVAL_TICKS - t * span);
+        return com.solme.emberfall.world.PartyScaling.spawnIntervalTicks(solo, MIN_SPAWN_INTERVAL_TICKS, frozenPartySize());
+    }
+
+    /** The party size for this run: counted once, on first use, then kept. Never below 1. */
+    private int frozenPartySize() {
+        // Not before the grace window ends: a party that is still arriving (gate countdown, or /emberfall join in a test) must be
+        // fully counted. Until then the answer is "one player" and nothing is frozen, so the first spawns are the solo values.
+        if (partySize == 0 && elapsedTicks < PARTY_FREEZE_AT_TICK) {
+            return 1;
+        }
+        if (partySize == 0) {
+            partySize = Math.max(1, RunManager.partySize(instance.slot()));
+            EmberfallMod.LOGGER.info("PARTYFROZEN slot={} size={}", instance.slot(), partySize);
+        }
+        return partySize;
+    }
+
+    /**
+     * Most hostiles alive at once for this run. The solo value is the old HOSTILE_CAP (including the test-only system property), so
+     * a solo run is unchanged; a party adds {@code PartyScaling}'s extra on top of it.
+     */
+    private int hostileCap() {
+        int n = frozenPartySize();
+        return HOSTILE_CAP + (com.solme.emberfall.world.PartyScaling.hostileCap(n) - com.solme.emberfall.world.PartyScaling.hostileCap(1));
     }
 
     private int currentEliteSpawnIntervalTicks() {
@@ -491,7 +523,7 @@ public final class WaveDirector {
      * #TIER2_ELITE_STAT_BONUS} once this run has escalated to tier 2.
      */
     private void trySpawnElite(ServerLevel level) {
-        if (currentHostileCount(level) >= HOSTILE_CAP) {
+        if (currentHostileCount(level) >= hostileCap()) {
             return; // at cap - skip this elite spawn tick, per 2.4
         }
         spawnEliteAt(level);
@@ -568,7 +600,7 @@ public final class WaveDirector {
     private static final double CUT_IMP = CUT_SPITTER + IMP_SPAWN_WEIGHT;
 
     private void trySpawnOne(ServerLevel level) {
-        if (currentHostileCount(level) >= HOSTILE_CAP) {
+        if (currentHostileCount(level) >= hostileCap()) {
             return; // at cap - skip this spawn tick, per 2.4
         }
 
@@ -591,6 +623,7 @@ public final class WaveDirector {
                 skeleton.becomeVeteran();
                 totalVeteransSpawned++;
             }
+            com.solme.emberfall.wave.PartyHealth.applyMob(skeleton, frozenPartySize());
             level.addFreshEntity(skeleton);
         } else if (roll < CUT_SPIDER) {
             HordeSpider spider = new HordeSpider(ModEntities.HORDE_SPIDER, level);
@@ -600,6 +633,7 @@ public final class WaveDirector {
                 spider.becomeVeteran();
                 totalVeteransSpawned++;
             }
+            com.solme.emberfall.wave.PartyHealth.applyMob(spider, frozenPartySize());
             level.addFreshEntity(spider);
         } else if (roll < CUT_WITCH) {
             com.solme.emberfall.entity.HordeWitch witch = new com.solme.emberfall.entity.HordeWitch(ModEntities.HORDE_WITCH, level);
@@ -609,6 +643,7 @@ public final class WaveDirector {
                 witch.becomeVeteran();
                 totalVeteransSpawned++;
             }
+            com.solme.emberfall.wave.PartyHealth.applyMob(witch, frozenPartySize());
             level.addFreshEntity(witch);
         } else if (roll < CUT_TIKI) {
             // TikiMagma.spawn already calls level.addFreshEntity itself (it also has to build/mount
@@ -628,6 +663,7 @@ public final class WaveDirector {
                 bomber.becomeVeteran();
                 totalVeteransSpawned++;
             }
+            com.solme.emberfall.wave.PartyHealth.applyMob(bomber, frozenPartySize());
             level.addFreshEntity(bomber);
         } else if (roll < CUT_CHARGER) {
             com.solme.emberfall.entity.HordeCharger charger = new com.solme.emberfall.entity.HordeCharger(ModEntities.HORDE_CHARGER, level);
@@ -638,6 +674,7 @@ public final class WaveDirector {
                 charger.becomeVeteran();
                 totalVeteransSpawned++;
             }
+            com.solme.emberfall.wave.PartyHealth.applyMob(charger, frozenPartySize());
             level.addFreshEntity(charger);
         } else if (roll < CUT_SHIELDBEARER) {
             com.solme.emberfall.entity.HordeShieldbearer shield = new com.solme.emberfall.entity.HordeShieldbearer(ModEntities.HORDE_SHIELDBEARER, level);
@@ -648,6 +685,7 @@ public final class WaveDirector {
                 shield.becomeVeteran();
                 totalVeteransSpawned++;
             }
+            com.solme.emberfall.wave.PartyHealth.applyMob(shield, frozenPartySize());
             level.addFreshEntity(shield);
         } else if (roll < CUT_SPITTER) {
             com.solme.emberfall.entity.HordeSpitter spitter = new com.solme.emberfall.entity.HordeSpitter(ModEntities.HORDE_SPITTER, level);
@@ -658,10 +696,11 @@ public final class WaveDirector {
                 spitter.becomeVeteran();
                 totalVeteransSpawned++;
             }
+            com.solme.emberfall.wave.PartyHealth.applyMob(spitter, frozenPartySize());
             level.addFreshEntity(spitter);
         } else if (roll < CUT_IMP) {
             // A pack is ONE spawn event, sized to the room left under HOSTILE_CAP so it can never overshoot the cap.
-            int pack = com.solme.emberfall.entity.HordeImp.packSize(level.getRandom(), HOSTILE_CAP, currentHostileCount(level));
+            int pack = com.solme.emberfall.entity.HordeImp.packSize(level.getRandom(), hostileCap(), currentHostileCount(level));
             for (int i = 0; i < pack; i++) {
                 com.solme.emberfall.entity.HordeImp imp = new com.solme.emberfall.entity.HordeImp(ModEntities.HORDE_IMP, level);
                 imp.setPos(pos.getX() + 0.5 + (level.getRandom().nextDouble() - 0.5) * 2.0, pos.getY() + 1.5 + level.getRandom().nextDouble(),
@@ -670,7 +709,8 @@ public final class WaveDirector {
                 if (rollVeteran) {
                     imp.becomeVeteran();
                 }
-                level.addFreshEntity(imp);
+                com.solme.emberfall.wave.PartyHealth.applyMob(imp, frozenPartySize());
+            level.addFreshEntity(imp);
             }
             if (rollVeteran && pack > 0) {
                 totalVeteransSpawned++;
@@ -683,6 +723,7 @@ public final class WaveDirector {
                 zombie.becomeVeteran();
                 totalVeteransSpawned++;
             }
+            com.solme.emberfall.wave.PartyHealth.applyMob(zombie, frozenPartySize());
             level.addFreshEntity(zombie);
         }
         totalSpawned++;

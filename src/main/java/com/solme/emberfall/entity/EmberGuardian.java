@@ -115,6 +115,13 @@ public class EmberGuardian extends Silverfish {
     static final int FAN_WINDUP_TICKS = 18;      // 0.9 s, above the 0.5 s floor
     /** Boss Curse: every attack damage is multiplied by this. 1.0 with no curse. Set once at spawn by {@link #applyCurse}. */
     private float damageScale = 1.0F;
+    /** Party scaling: the share of each hit that lands, below 1.0 only when the pool is bigger than the max_health attribute can hold. */
+    private float partyDamageFactor = 1.0F;
+
+    /** Called once by the boss fight right after creation; stores the factor {@code PartyHealth.applyBoss} returned. */
+    public void setPartyDamageFactor(float factor) {
+        this.partyDamageFactor = Math.max(0.0001F, Math.min(1.0F, factor));
+    }
 
     /**
      * Applies the run's Boss Curse: health and attack damage both scale by {@code statMultiplier}. Called once, right after
@@ -454,6 +461,10 @@ public class EmberGuardian extends Silverfish {
         // (kill, /kill, out of world) is let through so a boss can always be removed.
         if (rigSpawned && isGated() && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
+        }
+        // Party pool beyond the attribute ceiling: scale the hit, but never a void/kill hit, so a boss can always be removed.
+        if (partyDamageFactor < 1.0F && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            amount *= partyDamageFactor;
         }
         return super.hurtServer(level, source, amount);
     }

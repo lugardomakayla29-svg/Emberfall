@@ -53,6 +53,7 @@ public final class DevourerBossFight {
         if (mods != null) {
             brain.applyCurse(mods.bossStatMultiplier(), mods.bossSpawnMultiplier()); // Boss Curse shrine
         }
+        brain.setPartyDamageFactor(com.solme.emberfall.wave.PartyHealth.applyBoss(brain, com.solme.emberfall.world.RunManager.partySize(instance.slot())));
         level.addFreshEntity(brain);
         brain.spawnRig(level);
 

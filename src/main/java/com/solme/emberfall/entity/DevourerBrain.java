@@ -116,6 +116,13 @@ public class DevourerBrain extends Silverfish {
     private static final double DASH_HIT_RADIUS = 1.4;
     /** Boss Curse: attack damage multiplier and add-spawn multiplier. Both 1.0 with no curse. Set once by {@link #applyCurse}. */
     private float damageScale = 1.0F;
+    /** Party scaling: the share of each hit that lands, below 1.0 only when the pool is bigger than the max_health attribute can hold. */
+    private float partyDamageFactor = 1.0F;
+
+    /** Called once by the boss fight right after creation; stores the factor {@code PartyHealth.applyBoss} returned. */
+    public void setPartyDamageFactor(float factor) {
+        this.partyDamageFactor = Math.max(0.0001F, Math.min(1.0F, factor));
+    }
     private double spawnScale = 1.0;
 
     /** Applies the run's Boss Curse. Called once right after creation, before the boss is added to the world. */
@@ -282,6 +289,10 @@ public class DevourerBrain extends Silverfish {
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() == this) {
             return false;
+        }
+        // Party pool beyond the attribute ceiling: scale the hit, but never a void/kill hit, so a boss can always be removed.
+        if (partyDamageFactor < 1.0F && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            amount *= partyDamageFactor;
         }
         return super.hurtServer(level, source, amount);
     }
