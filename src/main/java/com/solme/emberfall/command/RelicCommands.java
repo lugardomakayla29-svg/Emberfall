@@ -235,6 +235,20 @@ public final class RelicCommands {
                                             MerchantManager.onInteract(p, list.get(0));
                                             return say(ctx.getSource(), "RELIC merchantclick ok");
                                         })))
+                                // Debug (op only): the same call a Greed Shrine makes, so a test can push the director to its spawn floor
+                                // in seconds instead of waiting for the natural ramp. Used by the hostile-cap measurement.
+                                .then(Commands.literal("threatadd")
+                                        .then(Commands.argument("player", EntityArgument.player())
+                                                .then(Commands.argument("amount", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(0.0, 40.0)).executes(ctx -> {
+                                                    ServerPlayer p = EntityArgument.getPlayer(ctx, "player");
+                                                    Integer slot = com.solme.emberfall.world.RunManager.slotOf(p);
+                                                    com.solme.emberfall.wave.WaveDirector d = slot == null ? null : com.solme.emberfall.wave.WaveDirector.get(slot);
+                                                    if (d == null) {
+                                                        return say(ctx.getSource(), "RELIC threatadd none");
+                                                    }
+                                                    d.addBonusThreat(com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(ctx, "amount"));
+                                                    return say(ctx.getSource(), String.format("RELIC threatadd ok total=%.3f", d.threatLevel()));
+                                                }))))
                                 .then(Commands.literal("summoner")
                                         .then(Commands.argument("player", EntityArgument.player())
                                                 .then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word()).executes(ctx -> {
