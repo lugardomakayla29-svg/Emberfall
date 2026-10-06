@@ -1,9 +1,24 @@
 // RELIC FOUNDATION live test. Phase A: give/caps/attributes/price/Ledger/detach. Writes unlock progress for phase B.
 const mineflayer = require('mineflayer');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const mk = name => new Promise(res => { const b = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: name, version: '1.21.11', auth: 'offline' }); b.chat_ = []; b.on('message', m => { const t = m.toString(); if (t.trim()) b.chat_.push(t); }); b.once('spawn', () => res(b)); });
-let fails = 0;
-const check = (label, ok, extra = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + label + (extra ? '  ' + extra : '')); if (!ok) fails++; };
+const mk = name => new Promise(res => { const b = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: name, version: '1.21.11', auth: 'offline' }); b.chat_ = []; b.on('message', m => { const t = m.toString(); if (t.trim()) b.chat_.push(t); }); b.once('spawn', () => res(b));
+  // A refused connection or a kick (for example a leftover bot with the same name) never fires 'spawn': end the run, never print nothing.
+  b.on('error', e => { console.log('FAIL connection error: ' + e.message); fails++; process.exit(finish()); });
+  b.on('kicked', r => { console.log('FAIL kicked: ' + JSON.stringify(r).slice(0, 160)); fails++; process.exit(finish()); });
+});
+// EXPECTED_CHECKS is what a complete run makes (measured live on a fresh world: 27). A run with fewer did not finish, and a run
+// with none (no server, or kicked) must never read as a pass: the verdict needs fails === 0 AND ran >= EXPECTED_CHECKS.
+// NOTE: this suite writes unlock progress, so it needs a FRESH world; a second run on the same world fails 4 checks (measured).
+const EXPECTED_CHECKS = 27;
+let fails = 0; let ran = 0;
+const check = (label, ok, extra = '') => { ran++; console.log((ok ? 'PASS ' : 'FAIL ') + label + (extra ? '  ' + extra : '')); if (!ok) fails++; };
+// Print the verdict and return the exit code that agrees with it. Every exit goes through here so none can disagree.
+function finish() {
+  const short_ = ran < EXPECTED_CHECKS;
+  if (fails === 0 && !short_) { console.log('RESULT: ALL PASSED (' + ran + ' checks)'); return 0; }
+  console.log('RESULT: ' + (fails || 1) + ' FAILED' + (short_ ? ' (only ' + ran + ' of ' + EXPECTED_CHECKS + ' checks ran)' : ''));
+  return 1;
+}
 (async () => {
   const op = await mk('EmberTester'); await sleep(5000);
   const say = async (cmd, w = 900) => { op.chat_.length = 0; op.chat(cmd); await sleep(w); return op.chat_.join(' | '); };
@@ -83,6 +98,6 @@ const check = (label, ok, extra = '') => { console.log((ok ? 'PASS ' : 'FAIL ') 
   u = await say('/emberfall relic unlocks EmberTester add nonsense 5');
   check('unknown unlock id is ignored', /unlocked-now \[\]/.test(u), u.slice(0, 80));
   await say('/emberfall relic unlocks EmberTester add clear_3_challenges 2');
-  console.log(fails ? `RESULT: ${fails} FAILED` : 'RESULT: ALL PASSED');
-  op.quit(); process.exit(fails ? 1 : 0);
-})();
+  const code = finish();
+  op.quit(); setTimeout(() => process.exit(code), 500);
+})().catch(e => { console.log('FAIL suite crashed: ' + (e && e.stack || e)); console.log('RESULT: crashed'); process.exit(1); });
