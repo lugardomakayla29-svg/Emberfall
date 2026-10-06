@@ -159,7 +159,7 @@ Claim something works without showing the test output. Overwrite the other agent
    **The bundles do not judge a suite the same way** (read from the scripts, 13 files: 8 `regress*.sh` and 5 `reg_*.sh`; not run):
    only `regress3.sh` (16 suites) and `regress4.sh` (61) count `ECONNREFUSED`, `FAILED` and `Error:` as a failure and report a suite with no
    verdict line as `no verdict line`; `regress4.sh` also flags `NO CHECKS RAN` when a suite printed no PASS. The others (`regress.sh`,
-   `regress2.sh`, `regress_guardian.sh`, `regress_kraken.sh`, `regress_pink.sh`, `reg_*.sh`) only grep for PASS/FAIL lines, so a stopped
+   `regress2.sh`, `regress_cinder.sh`, `regress_guardian.sh`, `regress_kraken.sh`, `regress_pink.sh`, `reg_*.sh`) only grep for PASS/FAIL lines, so a stopped
    server shows as an empty run, not a failure. **None of the bundles reads a suite's exit code**, which is the false-pass defect in issue #17.
 
 ### 4.2 The method that keeps us honest
