@@ -64,6 +64,10 @@ public final class EmberBot {
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         EmbeddedChannel channel = new EmbeddedChannel(new Swallow(), connection);
         server.getPlayerList().placeNewPlayer(connection, bot, CommonListenerCookie.createInitial(profile, false));
+        // A real client ends its login by sending ServerboundPlayerLoadedPacket; until then ServerPlayer.isInvulnerableTo is true for ANY
+        // damage (read in bytecode: it ends in !connection.hasClientLoaded()). A bot has no client, so without this it could never take a
+        // hit, /kill and /damage did nothing, and a bot run could never end by death. Sent through the game's own handler, bots only.
+        bot.connection.handleAcceptPlayerLoad(new net.minecraft.network.protocol.game.ServerboundPlayerLoadedPacket());
         EmberfallMod.LOGGER.info("EmberBot {} joined at {} {} {}", name, x, y, z);
         return bot;
     }

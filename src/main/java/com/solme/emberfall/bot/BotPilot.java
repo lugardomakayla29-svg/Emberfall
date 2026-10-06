@@ -83,6 +83,16 @@ public final class BotPilot {
         }
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             if (BotRoster.isBot(p.getUUID()) && p.isAlive() && !p.isSpectator()) {
+                // A bot has no client, so two acknowledgements a real client sends never arrive, and each one leaves the server
+                // treating the player as invulnerable (ServerPlayer.isInvulnerableTo): ServerboundPlayerLoadedPacket (hasClientLoaded,
+                // sent at spawn and after any respawn) and ServerboundAcceptTeleportationPacket, whose only effect on the player is
+                // hasChangedDimension(). ServerPlayer.teleport() to another level sets isChangingDimension; nothing else clears it.
+                if (!p.connection.hasClientLoaded()) {
+                    p.connection.handleAcceptPlayerLoad(new net.minecraft.network.protocol.game.ServerboundPlayerLoadedPacket());
+                }
+                if (p.isChangingDimension()) {
+                    p.hasChangedDimension();
+                }
                 Integer slot = RunManager.slotOf(p);
                 if (slot != null && p.level() instanceof ServerLevel level) {
                     ArenaInstance arena = RunManager.getActive(slot);
