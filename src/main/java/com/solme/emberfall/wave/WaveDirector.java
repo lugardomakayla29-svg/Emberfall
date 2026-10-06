@@ -166,6 +166,8 @@ public final class WaveDirector {
         WaveDirector director = new WaveDirector(instance);
         active.put(instance.slot(), director);
         EmberfallMod.LOGGER.info("Wave Director started for slot {}", instance.slot());
+        // Plan step 3a (issue #13): the party size at run start. Nothing reads it yet; 3b must read it once, here, and keep it.
+        EmberfallMod.LOGGER.info("PARTYSIZE slot={} size={}", instance.slot(), com.solme.emberfall.world.RunManager.partySize(instance.slot()));
         return director;
     }
 
