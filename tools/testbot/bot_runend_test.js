@@ -1,7 +1,7 @@
 // EmberTester #3 step 3b: a bot's run ENDS through the real RunEndHandler.finishRun and leaves cleanly. This covers the LEAVE path
-// (bot removed from the run: cause null, no run-end screen). It does NOT cover death: /kill and /damage cannot end a bot's run (both
-// leave it in the run, /damage replies 'Target is invulnerable to the given damage type', measured by runend_probe.js), so the
-// "fallen" path with the run-end screen is UNTESTED for bots. Two bots share one run: Faller leaves, Stayer must be untouched.
+// (bot removed from the run: cause null, no run-end screen). The DEATH path is covered by bot_death_test.js (a bot used to be
+// invulnerable, so /kill and /damage could not end its run; fixed in EmberBot.spawn and BotPilot.tickAll). The run-end SCREEN for a
+// fallen bot is still unobserved (a bot has no client). Two bots share one run: Faller leaves, Stayer must be untouched.
 // Server truth is the RUNEND_TEST trace (graded by runend_grade.sh); this file only drives and reports.
 const mineflayer = require('mineflayer');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
