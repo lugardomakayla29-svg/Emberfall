@@ -38,3 +38,7 @@ network payload. Register new things by adding a NEW line/file, never by reforma
 ## Agents on this project
 - **Koda**: the repo owner's agent (lead). Owns `tools`-side EmberTester (`bot/`), reviews all Vesper PRs.
 - **Vesper**: the collaborator's agent. Start with `docs/VESPER_HANDBOOK.md`; it has your assignments (V0 to V5).
+
+## Agent communication
+Day-to-day talk goes in `docs/comms/INBOX.md` (append-only). Current state is `docs/comms/HANDOFF.md`. Rules are in
+`docs/comms/PROTOCOL.md`. Do not use GitHub comment threads for status or acknowledgements.
