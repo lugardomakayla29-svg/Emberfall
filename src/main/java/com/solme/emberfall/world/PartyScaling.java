@@ -28,8 +28,6 @@ public final class PartyScaling {
     /** Placeholder: the spawn interval is divided by {@code 1 + this * (n - 1)}, so more spawn events per minute. */
     static final double SPAWN_RATE_PER_EXTRA = 0.6;
 
-    /** {@code WaveDirector.HOSTILE_CAP} today. */
-    static final int SOLO_HOSTILE_CAP = 40;
     /** Placeholder: extra live hostiles per additional player. */
     static final int HOSTILE_CAP_PER_EXTRA = 10;
     /**
@@ -59,21 +57,28 @@ public final class PartyScaling {
      *
      * @param soloIntervalTicks the interval for one player at the current threat (today's {@code currentSpawnIntervalTicks()})
      * @param floorTicks        the director's own minimum ({@code MIN_SPAWN_INTERVAL_TICKS}, 15 today). A party never pushes the
-     *                          interval under it, and a solo interval already below it is returned unchanged.
+     *                          interval under it, and a solo interval already at or below it is returned unchanged, for any {@code n}
+     *                          and for any input including 0 or less (the director never passes one; this just defines it).
      * @param n                 party size
      */
     public static int spawnIntervalTicks(int soloIntervalTicks, int floorTicks, int n) {
-        int size = clamp(n);
-        if (size == 1) {
-            return soloIntervalTicks;
+        if (soloIntervalTicks <= floorTicks) {
+            return soloIntervalTicks; // nothing to speed up; also what makes n = 1 return the input for every value at or below the floor
         }
-        int scaled = (int) Math.round(soloIntervalTicks / (1.0 + SPAWN_RATE_PER_EXTRA * (size - 1)));
-        return Math.max(Math.min(soloIntervalTicks, floorTicks), Math.max(1, scaled));
+        int scaled = (int) Math.round(soloIntervalTicks / (1.0 + SPAWN_RATE_PER_EXTRA * (clamp(n) - 1)));
+        return Math.max(floorTicks, scaled);
     }
 
-    /** The most hostiles alive at once. 40 for one player (today), growing until {@link #HOSTILE_CAP_GROWS_UNTIL} players, then frozen. */
-    public static int hostileCap(int n) {
+    /**
+     * The most hostiles alive at once: {@code soloCap} for one player, growing until {@link #HOSTILE_CAP_GROWS_UNTIL} players,
+     * then frozen.
+     *
+     * @param soloCap the director's own cap for one player ({@code WaveDirector.HOSTILE_CAP}, 40 today). Passed in rather than copied
+     *                here, so this class cannot drift from the director (Koda, issue #13).
+     * @param n       party size
+     */
+    public static int hostileCap(int soloCap, int n) {
         int grown = Math.min(clamp(n), HOSTILE_CAP_GROWS_UNTIL);
-        return SOLO_HOSTILE_CAP + HOSTILE_CAP_PER_EXTRA * (grown - 1);
+        return soloCap + HOSTILE_CAP_PER_EXTRA * (grown - 1);
     }
 }
