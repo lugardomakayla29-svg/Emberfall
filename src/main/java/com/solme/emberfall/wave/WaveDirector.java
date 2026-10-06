@@ -98,7 +98,9 @@ import java.util.Map;
  * a third tier or boss rotation is later pacing work, not this pass's scope.
  */
 public final class WaveDirector {
-    private static final int HOSTILE_CAP = 40;
+    // Default 40 = shipped behaviour. The system property exists only so a TEST server can measure tick time at 60 or 80 (issue #13,
+    // party step 0); nothing in the game or its config sets it.
+    private static final int HOSTILE_CAP = Integer.getInteger("emberfall.hostileCap", 40);
     private static final int BASE_SPAWN_INTERVAL_TICKS = 100; // 5s at threat 0
     private static final int MIN_SPAWN_INTERVAL_TICKS = 15;   // 0.75s floor at max threat
     private static final double THREAT_RAMP_PER_TICK = 1.0 / 1200.0; // threat +1 every 60s
