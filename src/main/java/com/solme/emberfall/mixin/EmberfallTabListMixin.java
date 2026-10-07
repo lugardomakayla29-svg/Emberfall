@@ -2,9 +2,7 @@ package com.solme.emberfall.mixin;
 
 import com.solme.emberfall.bot.BotRoster;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,38 +35,19 @@ public abstract class EmberfallTabListMixin {
             return;
         }
         if (packet instanceof ClientboundPlayerInfoUpdatePacket update) {
+            // A client builds a remote player ONLY if it already holds a PlayerInfo for that id (it otherwise logs "Server attempted to add
+            // player prior to sending player info" and creates nothing). So a bot's entry must REACH humans; it is sent unlisted so the tab
+            // list (getListedOnlinePlayers) never shows it. The packet object is shared between recipients, so a rewritten COPY is sent.
             var entries = update.entries();
-            if (BotRoster.allBots(entries, ClientboundPlayerInfoUpdatePacket.Entry::profileId)) {
+            var rewritten = com.solme.emberfall.bot.BotTabEntries.rewrite(entries,
+                    e -> e.listed() && BotRoster.isBot(e.profileId()), // already-unlisted entries are done: this also stops the send() below re-entering forever
+                    e -> new ClientboundPlayerInfoUpdatePacket.Entry(e.profileId(), e.profile(), false, e.latency(), e.gameMode(),
+                            e.displayName(), e.showHat(), e.listOrder(), e.chatSession()));
+            if (rewritten != entries) {
                 ci.cancel();
-                return;
-            }
-            boolean hasBot = false;
-            for (var e : entries) {
-                if (BotRoster.isBot(e.profileId())) {
-                    hasBot = true;
-                    break;
-                }
-            }
-            if (hasBot && (Object) this instanceof ServerGamePacketListenerImpl game) {
-                List<ServerPlayer> humans = new ArrayList<>();
-                for (var e : BotRoster.humansOnly(entries, ClientboundPlayerInfoUpdatePacket.Entry::profileId)) {
-                    ServerPlayer p = game.player.level().getServer().getPlayerList().getPlayer(e.profileId());
-                    if (p != null) {
-                        humans.add(p);
-                    }
-                }
-                ci.cancel();
-                if (!humans.isEmpty()) {
-                    game.send(new ClientboundPlayerInfoUpdatePacket(update.actions(), humans));
-                }
-            }
-        } else if (packet instanceof ClientboundPlayerInfoRemovePacket remove) {
-            List<java.util.UUID> keep = BotRoster.humanIds(remove.profileIds());
-            if (keep.size() != remove.profileIds().size()) {
-                ci.cancel();
-                if (!keep.isEmpty() && (Object) this instanceof ServerGamePacketListenerImpl game) {
-                    game.send(new ClientboundPlayerInfoRemovePacket(keep));
-                }
+                ClientboundPlayerInfoUpdatePacket copy = new ClientboundPlayerInfoUpdatePacket(update.actions(), java.util.List.of());
+                ((InfoUpdateEntriesAccessor) (Object) copy).emberfall$setEntries(rewritten);
+                ((ServerCommonPacketListenerImpl) (Object) this).send(copy);
             }
         }
     }

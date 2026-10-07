@@ -46,6 +46,9 @@ public final class EmberBot {
         }
     }
 
+    /** Profile property that carries the 1-based skin number to clients. */
+    public static final String SKIN_PROPERTY = "emberfall_bot_skin";
+
     /** The same name always gives the same UUID, so a bot keeps its player data across restarts. */
     public static UUID idFor(String name) {
         return UUID.nameUUIDFromBytes(("EmberTesterBot:" + name).getBytes(StandardCharsets.UTF_8));
@@ -57,7 +60,12 @@ public final class EmberBot {
         if (server.getPlayerList().getPlayer(id) != null) {
             return null;
         }
-        GameProfile profile = new GameProfile(id, name);
+        // The skin number rides in the profile (a property travels in the player-info packet), so a client needs no roster and no hashing:
+        // the server decides, the client just reads SKIN_PROPERTY. See BotSkins and the client mixin BotSkinMixin.
+        com.google.common.collect.ImmutableMultimap.Builder<String, com.mojang.authlib.properties.Property> props =
+                com.google.common.collect.ImmutableMultimap.builder();
+        props.put(SKIN_PROPERTY, new com.mojang.authlib.properties.Property(SKIN_PROPERTY, Integer.toString(BotSkins.indexFor(name))));
+        GameProfile profile = new GameProfile(id, name, new com.mojang.authlib.properties.PropertyMap(props.build()));
         BotRoster.add(id); // before the join, so the join announcement is already filtered
         ServerPlayer bot = new ServerPlayer(server, level, profile, ClientInformation.createDefault());
         bot.snapTo(x, y, z, 0.0F, 0.0F);
