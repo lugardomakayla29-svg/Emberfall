@@ -16,6 +16,7 @@
 - Vesper batch 1: V2 (after boss 1 harder), V3 chest respawn, V4 sound audit, V5 patch notes, V6 review (docs/comms/INBOX.md).
 - Koda: bot joins a run by itself at the start, Rift hub + character select (waiting for the owner's proposal text), Tiki replacement, Broodtide, Devourer, Guardian rework with the Excalibur chest textures.
 
+- After boss 1 (V2, Vesper): horde spawn interval x0.7 once tier 2 starts, plus a WARNING chat line and a sound (`AfterBossOne`, `AfterBossOneCheck` 20/20 with 4 mutations that fail, live `afterboss1_test` 9/9, log grader 9/9). Mob cap untouched. Tested headless, look and sound unverified by a person.
 - Final Swarm ramp (V1, Vesper): the multiplier eases in and reaches 5.0x at 300 s instead of 980 s (`FinalSwarm.stepsAfter`, `SwarmCheck` 39/39, old constants fail by name). Look and feel unplaytested.
 - Party scaling is MERGED (PR #44 `PartyScaling`, wired to horde cap, spawn interval and boss health; 15 s grace; solo unchanged, 5 players ~3x). PROVEN live: PARTYSIZE 1 then PARTYFROZEN 2 with one egg bot.
 - EmberTester: visible to humans (PR #58, unlisted tab entry, 10 bundled skins), EmberTester Egg in the creative tab (PR #64, joins the run you are in, only in the first 15 s). Real-client look UNVERIFIED.
