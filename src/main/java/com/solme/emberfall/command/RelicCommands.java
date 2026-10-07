@@ -255,6 +255,7 @@ public final class RelicCommands {
                                                     ServerPlayer p = EntityArgument.getPlayer(ctx, "player");
                                                     String kind = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind");
                                                     net.minecraft.world.item.Item item = switch (kind) {
+                                                        case "egg" -> com.solme.emberfall.item.ModItems.EMBER_TESTER_EGG;
                                                         case "guardian" -> com.solme.emberfall.item.ModItems.GUARDIAN_SUMMONER;
                                                         case "devourer" -> com.solme.emberfall.item.ModItems.DEVOURER_SUMMONER;
                                                         default -> com.solme.emberfall.item.ModItems.MERCHANT_SUMMONER;

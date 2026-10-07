@@ -47,6 +47,7 @@ public final class ModCreativeTab {
                     output.accept(ModItems.GUARDIAN_SUMMONER);
                     output.accept(ModItems.DEVOURER_SUMMONER);
                     output.accept(ModItems.MERCHANT_SUMMONER);
+                    output.accept(ModItems.EMBER_TESTER_EGG);
                 })
                 .build();
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, KEY, tab);

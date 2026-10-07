@@ -109,6 +109,16 @@ public final class WaveDirector {
     private int partySize = 0;
     /** The party is counted at this tick (15 s) and never again. Spawns before it use the solo values. */
     static final long PARTY_FREEZE_AT_TICK = 300;
+
+    /** Ticks since this run started. Read-only. */
+    public long elapsedTicksNow() {
+        return elapsedTicks;
+    }
+
+    /** The tick at which the party is counted for good. Read-only. */
+    public static long partyFreezeAtTick() {
+        return PARTY_FREEZE_AT_TICK;
+    }
     private static final int BASE_SPAWN_INTERVAL_TICKS = 100; // 5s at threat 0
     private static final int MIN_SPAWN_INTERVAL_TICKS = 15;   // 0.75s floor at max threat
     private static final double THREAT_RAMP_PER_TICK = 1.0 / 1200.0; // threat +1 every 60s
