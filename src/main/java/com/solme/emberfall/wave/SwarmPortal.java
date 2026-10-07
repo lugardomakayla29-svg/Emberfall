@@ -41,6 +41,12 @@ public final class SwarmPortal {
 
     public static void open(int slot, BlockPos at) {
         SITES.put(slot, new Site(at));
+        ArenaInstance arena = RunManager.getActive(slot);
+        if (arena != null) {
+            // The start of the Final Swarm. Heard by everyone near the portal (the spot where the last guardian fell).
+            com.solme.emberfall.pickup.Cue.play(arena.level(), "swarm_begins", SoundEvents.ENDER_DRAGON_GROWL, SoundSource.HOSTILE,
+                    net.minecraft.world.phys.Vec3.atCenterOf(at), 3.0F, 0.6F);
+        }
     }
 
     public static boolean isOpen(int slot) {
