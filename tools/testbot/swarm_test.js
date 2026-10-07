@@ -34,9 +34,16 @@ bot.once('spawn', async () => {
   check('S2c the HUD packet says 0.1x with the portal open, packet fully consumed', hud.length > 0 && hud[hud.length - 1].tenths === 1 && hud[hud.length - 1].portal && hud[hud.length - 1].used === hud[hud.length - 1].len, JSON.stringify(hud[hud.length - 1] || null));
   check('S2d the party was told', lines.join(' | ').includes('whole map wakes up'), '');
   // crowd: wait for it to fill (3 per second), solo target 6 at 0.1x
-  await ask('/tp @s 0 65 0', 800); await sleep(5000);
-  s = await st();
-  check('S3 the crowd reaches the solo target of 6 at 0.1x and does not pass it', s.mobs >= 5 && s.mobs <= 7, 'mobs ' + s.mobs);
+  // Poll instead of a fixed 5 s wait: the crowd fills at about 3 a second but the first spawns can start late (S3 read 4 in 2 of 4 runs).
+  // Read about once a second and stop as soon as the crowd is at least 5, up to 15 s. The 5 to 7 bounds below are unchanged, so a crowd
+  // that never fills, or one that passes 7, still fails. A reading that did not parse (chat noise) counts as 'not yet', never a crash.
+  await ask('/tp @s 0 65 0', 800);
+  let waitedMs = 0; s = await st();
+  while ((!s || s.mobs < 5) && waitedMs < 15000) { await sleep(1000); waitedMs += 1000; s = await st(); }
+  // The server spawns at most 3 a second and never above the target, so the crowd can only climb TO the target. Read once more after
+  // two more spawn seconds, so 'does not pass it' is judged on a settled crowd and not on the first reading that reached 5.
+  if (s && s.mobs >= 5) { await sleep(2000); s = await st(); }
+  check('S3 the crowd reaches the solo target of 6 at 0.1x and does not pass it', !!s && s.mobs >= 5 && s.mobs <= 7, 'mobs ' + (s ? s.mobs : 'NO READING') + ' after ' + (waitedMs / 1000) + ' s of polling');
   const tagged = (await ask('/execute if entity @e[tag=emberfall_swarm]', 600));
   check('S3b swarm mobs carry the swarm tag and NOT the elite tag (no free chests from them)', /passed|Count/.test(tagged) && (await ask('/execute if entity @e[tag=emberfall_swarm,tag=emberfall_elite]', 600)).includes('failed'), tagged.slice(0, 60));
   // step advance
