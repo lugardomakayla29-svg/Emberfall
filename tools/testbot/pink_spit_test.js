@@ -1,6 +1,6 @@
 // Pink slime SPIT at range: the player stands 16 blocks away and the slime is pinned with NoAI, so the leap and the
 // melee stall cannot interfere. S1 every spit follows its telegraph by exactly 14 ticks, S2 spit cadence is the 70 tick
-// cooldown, S3 spits hit the standing player and hurt, S4 the ball leaves a splat puddle, S5 a wall between them stops it.
+// cooldown, S3 spits hit the standing player and hurt, S4 the ball leaves a splat puddle, S5 a glass wall blocks line of sight so no NEW spit starts (see the S5 block).
 const fs = require('fs');
 const mineflayer = require('mineflayer');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -45,13 +45,38 @@ bot.once('spawn', async () => {
   R('S2 the cooldown holds: no two spits closer than 70 ticks, and most are exactly 70', cad.length >= 4 && cad.every(c => c >= 70) && cad.filter(c => c === 70).length >= cad.length / 2, cad.join(','));
   R('S3 spits hit the standing player', hits >= Math.floor(spits.length * 0.8) && hits >= 4, `${hits} of ${spits.length}`);
   R('S4 every ball leaves a splat puddle event', splats >= hits, `${splats} splat events`);
-  // S5: a 3-high stone wall between them stops the ball (it must land on the wall side, not hit)
+  // S5: a 3-high GLASS wall blocks line of sight, so a slime walking toward it starts NO new spit. Reworked after V14 (docs/audit/S5_flake.md).
+  // WHAT THE PROBE SHOWED (tools/testbot/ref/s5_glass_probe.js, same fixture, two runs): no wall = 4 telegraphs / 4 spits in 15 s; with the glass up the
+  // slime walks toward it with NO telegraph for ~18 s, then LEAPS (leap telegraph ~14 blocks out), clears the wall, lands and spits again. So the wall
+  // is a test of the stretch BEFORE the first leap, and a window that runs past the leap measures the leap, not the wall. The old S5 ran after the
+  // pull-back loop ended, so it measured leaps and a ball fired BEFORE the wall (counted as "landed on the wall"). Now: S5a CONTROL (spits at range with
+  // no wall), S5b the stretch is long enough to mean something (>= 8 s from wall to first leap or end) and the slime was alive, S5c no telegraph, no
+  // spit, no hit in that stretch. 5 s because the control cadence is a 70 tick cooldown (3.5 s), so a slime with line of sight telegraphs at least once in 5 s.
+  const ctlSpits = spits.length;
+  R('S5a CONTROL: the same slime did spit at range with no wall', ctlSpits >= 4, `${ctlSpits} spits before the wall`);
   const mid = bx + 8;
+  const pull = setInterval(() => bot.chat('/execute as @e[tag=ps,limit=1] at @s if entity @p[distance=..15] run tp @s ~16 ~ ~'), 400);   // 15 not 9: LEAP_MAX is 14, so inside 15 it would leap over the wall
   await ask(`/fill ${Math.floor(mid)} ${Math.floor(by)} ${Math.floor(bz) - 3} ${Math.floor(mid)} ${Math.floor(by) + 2} ${Math.floor(bz) + 3} minecraft:glass`, 500);
-  const w0 = trace().length; await sleep(16000);
-  const W = trace().slice(w0); const wh = W.filter(l => l.includes('spit hit')).length, wl = W.filter(l => l.includes('spit landed')).length, ws = W.filter(l => / spit tick=/.test(l)).length;
-  console.log(`  behind a wall: ${ws} spits, ${wh} hits, ${wl} landed on the wall`);
-  R('S5 a 3-high glass wall stops the ball (it still aims, never hits, lands on the glass)', wh === 0 && wl >= 1, `${ws} spits, ${wh} hits, ${wl} landed`);
+  await sleep(3000);   // a ball fired just before the wall finishes its 14 tick telegraph + flight within ~2 s; let it land BEFORE the window
+  const w0 = trace().length, tw0 = Date.now();
+  let tLeap = null;
+  while (Date.now() - tw0 < 12000) {
+    if (trace().slice(w0).some(l => l.includes('leap telegraph'))) { tLeap = Date.now(); break; }
+    await sleep(250);
+  }
+  // S5b and S5c MUST measure the SAME stretch: from the wall to the first leap telegraph (or the 12 s end). The first version timed the loop for S5b
+  // but cut the log at the leap for S5c, so a mutant with NO wall (leap after 2 s) reported "12.0 s, 0 spits" (found by the red run).
+  const secs = ((tLeap || Date.now()) - tw0) / 1000;
+  const W = trace().slice(w0);
+  const cut = W.findIndex(l => l.includes('leap telegraph'));
+  const S = cut >= 0 ? W.slice(0, cut) : W;
+  const wTele = S.filter(l => l.includes('spit telegraph')).length, ws = S.filter(l => / spit tick=/.test(l)).length, wh = S.filter(l => l.includes('spit hit')).length;
+  const alive = /passed/i.test(await ask('/execute if entity @e[tag=ps]', 400));
+  if (process.env.S5_DEBUG) console.log('  S5 window lines (' + W.length + ', cut at ' + cut + '):\n    ' + W.filter(l => /spit|leap|slam|burst/.test(l)).map(l => l.replace(/^.*PINK_TEST /, '')).join('\n    '));
+  console.log(`  behind glass for ${secs.toFixed(1)} s before ${tLeap ? 'the first leap' : 'the window end (no leap)'}: ${wTele} telegraphs, ${ws} spits, ${wh} hits; slime alive ${alive}`);
+  R('S5b the stretch is long enough that a wall-less slime would have spat: >= 5 s (cooldown is 3.5 s) with the slime alive', secs >= 5 && alive, `${secs.toFixed(1)} s, alive ${alive}`);
+  R('S5c a 3-high glass wall stops the slime: no telegraph, no spit, no hit in that stretch', wTele === 0 && ws === 0 && wh === 0, `${wTele} telegraphs, ${ws} spits, ${wh} hits`);
+  clearInterval(pull);
   clearInterval(hold);
   await ask('/kill @e[type=!player,type=!minecraft:item_display,type=!minecraft:interaction]', 300); await ask('/expedition leave', 800);
   console.log(fails === 0 ? 'ALL PASS' : 'SOME FAIL ' + fails);
