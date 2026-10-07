@@ -11,6 +11,7 @@
 ## In progress
 - EmberTester live walk test: the summoned foe/scout vanish in the test; cause not found yet (`tools/testbot/bot_walk_test.js`)
 
+- Chest respawn (V3, Vesper): a looted PAID/GOLD chest has a 10% chance to come back, ONE per run (`ChestRespawnRule`, `ChestRespawnCheck` 16/16 with 5 mutations that fail; live `chestrespawn_test` 16/16 and log grader 6/6, and removing the cap fails 4 live checks and the grader). Free chests never respawn (they stay under `FreeChestRule`). The 10% is a placeholder pacing number. Tested headless, look and sound unverified by a person.
 - Party scaling: PLAN merged (PR #19, issue #13). **Step 2 `PartyScaling` (pure maths + `PartyScalingCheck`, 27 checks) is PR #38, approved by Koda, not merged.** Nothing calls it, so no live behaviour changed. **The coefficients (0.5, 0.75, 0.6, 10) are the plan's guesses, not tuned: mobs x5.5 and bosses x7.75 health at 10 players may be unplayable. The check proves structure and edges, not balance.** The check hard-codes `HOSTILE_CAP = 40` and the interval floor 15, so it will not notice if `WaveDirector` changes them. Step 3 DESIGN is `docs/PLAN_party_scaling.md` section 12 (design only, no code, no go yet). Measurements: join PR #25, pickups PR #28, five bots PR #39 (open).
 
 ## Known limitations (decided, not bugs)
