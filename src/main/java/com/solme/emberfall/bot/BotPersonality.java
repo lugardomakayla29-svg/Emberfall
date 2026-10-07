@@ -52,6 +52,10 @@ public final class BotPersonality {
 
     /** A personality of a chosen kind (the traits inside the kind's band still vary with {@code r}). */
     public static BotPersonality of(Kind k, Random r) {
+        // The first draw of a java.util.Random seeded with a small number barely moves with the seed (measured: Random(0..499) first
+        // nextDouble spans only 0.72..0.77), so it is thrown away; the later draws are well spread.
+        r.nextDouble();
+        r.nextDouble();
         return switch (k) {
             case RUSHER -> new BotPersonality(k, band(r, 0.80, 1.00), band(r, 0.00, 0.25), band(r, 0.10, 0.40), band(r, 0.20, 0.50), band(r, 0.70, 1.00), 4 + r.nextInt(5));
             case COWARD -> new BotPersonality(k, band(r, 0.00, 0.30), band(r, 0.75, 1.00), band(r, 0.50, 0.80), band(r, 0.20, 0.50), band(r, 0.50, 0.85), 5 + r.nextInt(6));
@@ -78,7 +82,8 @@ public final class BotPersonality {
      */
     public double standOff(double weaponStandOff) {
         double offset = (0.5 - boldness) * 6.0; // -3 (bold) .. +3 (timid) blocks
-        return Math.max(1.5, weaponStandOff + offset);
+        // never closer than 60% of what the weapon was built for, so a bold bot with a short weapon is not standing inside its foe
+        return Math.max(Math.max(1.5, weaponStandOff * 0.6), weaponStandOff + offset);
     }
 
     /** Health fraction (0..1) below which this bot turns and runs. A rusher barely flees; a coward flees early. */

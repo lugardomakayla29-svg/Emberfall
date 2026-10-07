@@ -36,6 +36,13 @@ public class BotMindCheck {
         check("a rusher stands closer to a foe than a coward (same weapon)", rushStand / n + 2.0 < cowStand / n, String.format("%.1f vs %.1f blocks", rushStand / n, cowStand / n));
         check("a guardian's ally leash stays within 4..18 blocks", guardLeash / n >= 4.0 && guardLeash / n <= 18.0, String.format("%.1f", guardLeash / n));
         check("no stand-off is ever below 1.5 blocks", stands(1.0) >= 1.5 && stands(0.0) >= 1.5, stands(1.0) + " " + stands(0.0));
+        // two rushers must not be clones: stand-off for a 9-block weapon varies across seeds 0..499, with small seeds too
+        double sLo = 1e9, sHi = -1e9;
+        for (int i = 0; i < 500; i++) { double v = BotPersonality.of(Kind.RUSHER, new Random(i)).standOff(9.0); sLo = Math.min(sLo, v); sHi = Math.max(sHi, v); }
+        check("rushers differ from each other: stand-off spread over 500 small seeds is at least 0.8 blocks", sHi - sLo >= 0.8, String.format("%.1f..%.1f", sLo, sHi));
+        double shortLo = 1e9;
+        for (Kind k : Kind.values()) for (int i = 0; i < 300; i++) shortLo = Math.min(shortLo, BotPersonality.of(k, new Random(i)).standOff(3.0));
+        check("a short weapon (3.0) is never stood at closer than 60% of its stand-off, for any kind", shortLo >= 1.8 - 1e-9, String.format("%.2f", shortLo));
         BotPersonality hurt = BotPersonality.of(Kind.COWARD, new Random(1));
         check("CONTROL: a coward at full health does not flee, at 10% it does", !hurt.shouldFlee(1.0) && hurt.shouldFlee(0.10), "flee below " + hurt.fleeBelow());
         BotPersonality rush = BotPersonality.of(Kind.RUSHER, new Random(1));
