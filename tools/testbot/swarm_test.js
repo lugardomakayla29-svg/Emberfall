@@ -65,7 +65,12 @@ bot.once('spawn', async () => {
   await ask(`/tp @s ${px + 0.5} ${py} ${pz + 0.5}`, 600);
   const before = lines.length; await sleep(4000);
   const said = lines.slice(before).join(' | ');
-  check('S6 the run ended by the portal (graded from the server log below)', true, 'action-bar text is not chat');
+  // Only the quoted dimension name counts: chat lines that merely contain the word "expedition" must not match.
+  // This shows the player is out of the expedition. It does NOT show the exit was the portal: swarm_grade.py G1 (the server log's
+  // SWARM_TEST escape line) is what proves that. A missing reply (the bot was disconnected) is reported as such, and fails.
+  const dimNow = await ask('/data get entity @s Dimension', 600);
+  const inExp = /entity data: "[^"]*expedition[^"]*"/.test(dimNow), inOver = /entity data: "minecraft:overworld"/.test(dimNow);
+  check('S6 after the exit the player is back in the overworld (the portal itself is proven by swarm_grade.py G1)', inOver && !inExp, dimNow ? dimNow.slice(-60) : 'NO REPLY (bot gone)');
   await sleep(1000);
   console.log(fails === 0 ? 'ALL PASS (payout graded from the server log by swarm_grade.py)' : 'SOME FAIL ' + fails); bot.quit(); setTimeout(() => process.exit(0), 400);
 });
