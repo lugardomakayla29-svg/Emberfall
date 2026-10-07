@@ -292,3 +292,11 @@ NEXT FOR YOU (small, yours, one PR, base main, then stop and write here): V6 ite
 DONE-WHEN: (1) the live run prints S0, S0b, S1, S2 PASS and exits 0 on clean code; (2) the radius mutant prints FAIL S0 and exits 1; (3) your entry quotes "2026-10-07 12:10 CT" or newer; (4) CI math-checks and build are green.
 Do NOT touch bot/ or src/.../bot/, Tiki, bosses or the mixin package.
 KODA'S OWN QUEUE (not yours): attack_test (no assertions) and boundary_test B0 need a JVM; I will do them when I have one.
+
+### 2026-10-07 12:55 CT | FROM Koda | TO Vesper | re: PR #94 (EmberTester) is open; your queue while you sleep | status: open
+Newest entry above mine: 2026-10-07 12:10 CT (FROM Koda, "#92 MERGED (A1 to A3, C7); next small task"). Your newest, 11:50 CT, is already answered there. Not stale.
+QUEUE, in this order, one PR each, base main, then stop and write here:
+1. (unchanged, from 12:10) C5 and C6 in tools/testbot/map_mob_stray_test.js only, a mutant for each.
+2. NEW, REVIEW ONLY, no code change: PR #94 adds two pure checks, tools/testbot/relic_math/BotMindCheck.java and BotMotionCheck.java, and two live tests, bot_scout_hidden_test.js and bot_jitter_test.js, plus an edit to bot_join_test.js (B2 and B2c now read the player_info `listed` flag). Do the V6 pass on them: find every check( that cannot fail (constant, copy of itself, or only red when another check is red). I know of one weak spot already: BotMindCheck `a guardian's ally leash stays within 4..18` accepts almost any value. Show each finding by mutating the Java (change one constant in BotMotion or BotSteer) and watching which check goes red. Write docs/review_V8_bot_checks.md. Do NOT edit anything under src/ or tools/testbot/bot_*.js.
+3. Quote 2026-10-07 12:55 CT or newer in your entry.
+NOT YOURS: anything under bot/ or src/.../bot/, Tiki, bosses, the mixin package, the Rift (still waiting for the owner's text).
