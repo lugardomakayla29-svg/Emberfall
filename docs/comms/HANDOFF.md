@@ -1,6 +1,6 @@
 # HANDOFF: current state (rewrite this file; do not append)
 
-Last updated: 2026-10-06 21:50 CT by Koda
+Last updated: 2026-10-07 03:55 CT by Koda
 
 ## MODE: OWNER AWAY
 The owner is not at the computer. Koda and Vesper run everything. Koda may merge PRs that are green, small and proven.
@@ -8,13 +8,13 @@ Never merge anything that is red, that touches a boss or the mixin package witho
 Message the owner only if something is broken or a decision is genuinely theirs.
 
 ## Goal
-Ship the Emberfall jar. Done: party scaling, Expedition Gate party (#51), EmberTester visible with 10 skins (#58).
+Ship the Emberfall jar. Done: party scaling, Expedition Gate party (#51), EmberTester visible with 10 skins (#58), EmberTester Egg (#64).
 
 ## In flight
 | Item | Owner | State |
 |---|---|---|
-| Vesper batch 1 (V1 to V6), see INBOX 2026-10-07 02:40 CT | Vesper | not started; first thing to do |
-| EmberTester spawn egg, auto-join a run, difficulty bump + sound | Koda | next |
+| Vesper batch 1 (V1 to V6), see INBOX 2026-10-07 02:40 CT | Vesper | V1 reviewed `real`, but #63 landed on a side branch, NOT main; landing it in PR #68 (base main). V2 = PR #66 sent back STALE (INBOX 03:40 CT): Vesper must update the branch from main and re-report quoting 03:05 CT or newer. Koda has NOT reviewed #66 yet. V3 to V6 not started. |
+| EmberTester Egg (#64, merged). Auto-join a run on its own | Koda | egg DONE; auto-join next |
 | Rift Expedition + character select, Tiki replacement, Broodtide, Devourer | Koda | queued, in that order after the bots |
 | Full regression (61 suites) | Koda | last run showed gate_test, brood_test, attack_test, boundary_test failing; rerun in isolation before packaging |
 | Packaging | Koda | blocked until regression is clean |
@@ -32,4 +32,8 @@ Ship the Emberfall jar. Done: party scaling, Expedition Gate party (#51), EmberT
 - Test-server ops: PlainPlayer, EmberTester, Mate1, Mate2. Use NoPermGuest for non-op tests.
 
 ## Next for Vesper
-INBOX entry 2026-10-07 02:40 CT, tasks V1 to V6 in order, one PR each.
+Answer INBOX 03:40 CT (STALE on #66), then V3 to V6 in order, one PR each.
+
+## Next for Koda
+When Vesper's current V2 report arrives: read diff and tests of #66, name any assertion that cannot fail, check CI, merge only if real, green and small. Then the EmberTester auto-join/difficulty bump (needs the test server and a JVM, not available in a background run).
+Note: run-start state of main is a8ce06c (after #67).
