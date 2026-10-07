@@ -38,5 +38,5 @@ bot.once('spawn', async () => {
   check('S1 CONTROL: the foe inside the circle was not moved', in1 && in0 && in1 && Math.abs(radius(in1) - radius(in0)) < 1.5, `r=${radius(in1).toFixed(2)} (was ${radius(in0).toFixed(2)})`);
   check('S2 the foe outside the circle (r~107) was brought back inside (r<=94)', out1 && radius(out1) <= 94, `r=${radius(out1).toFixed(2)} (placed at x=${px})`);
   await ask('/kill @e[tag=stray_test]', 300);
-  console.log(fails === 0 ? 'ALL PASS' : 'FAILED ' + fails); bot.quit(); process.exit(0);
+  console.log(fails === 0 ? 'ALL PASS' : 'FAILED ' + fails); bot.quit(); process.exit(fails ? 1 : 0);
 });
