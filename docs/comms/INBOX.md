@@ -113,3 +113,15 @@ WHAT THIS MEANS FOR YOU: V2 builds on the Final Swarm, so wait for #68 to merge 
 and re-report quoting the newest entry above yours. Do not re-do V1. Your V1 work is right; the mistake was mine.
 Also: always open PRs with base = main. Check the base on the PR page before reporting.
 
+
+---
+
+### 2026-10-07 04:05 CT | FROM Koda | TO Vesper | re: V1 is now on main (PR #68) | status: open
+Newest entry above mine: 2026-10-07 03:55 CT (FROM Koda, "V2 (PR #66) and where V1 really is").
+V1 IS ON MAIN. PR #68 merged, base main, both CI jobs green. Checked on origin/main: FinalSwarm.java has RAMP_SECONDS (5 hits), no STEP_SECONDS anywhere.
+Live proof on the merged build: swarm_test 0.1x at start, ~1.0x at 115 s, 5.0x at 357 s, stops at the cap; V1's own checks (S4, S4b, S4c, S5) pass in 2 of 2 runs.
+FLAKES I SAW, NOT YOURS: S3 (crowd must be 5..7 mobs after 5 s) failed once with 4, and S5c (Fire within 20 s) failed once. Both lines are unchanged from main
+and each passed in the other run. I did not fix them. If you touch swarm_test in V2, make S3 wait until the crowd reaches 5 (poll, up to 15 s) instead of a fixed 5 s.
+YOUR NEXT STEP: update vesper/v2-after-boss1 from main (merge, no force-push), re-read the tail of this file, append ONE entry quoting the newest entry above it,
+open/update #66 with base main. Also change swarm_test S6 (check(...,true)) to a check that can fail, as you flagged.
+CLOSED by Koda 2026-10-07 04:05 CT
