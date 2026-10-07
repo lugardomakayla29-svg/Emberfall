@@ -65,4 +65,92 @@ public final class RiftRules {
     public static boolean canOpen(int shardsHeld) {
         return shardsHeld >= SHARDS_PER_RIFT;
     }
+
+    // ---- Natural event (step 2). Every number below is a PROPOSAL: the design gives the idea, not the values. ----------------
+
+    /** Ticks between natural-Rift rolls for one player: once a minute. */
+    public static final int NATURAL_CHECK_TICKS = 20 * 60;
+    /** Each roll succeeds with chance 1 in this many, so a Rift tears open near a given player about once per 30 minutes of play. */
+    public static final int NATURAL_ODDS = 30;
+    /** After a Rift opens near a player, no natural roll counts for them for this long (20 minutes), so two never come back to back. */
+    public static final int NATURAL_COOLDOWN_TICKS = 20 * 60 * 20;
+    /** No two Rifts may be closer than this many blocks. */
+    public static final double MIN_RIFT_SPACING = 48.0;
+    /** A natural Rift opens at least this far from the player, so it is seen opening and not on top of them, and no farther than the render range, or the player would not see it open. */
+    public static final double NATURAL_MIN_DISTANCE = 16.0;
+    public static final double NATURAL_MAX_DISTANCE = 32.0;
+
+    /** True when a natural roll is due: {@code sinceLastRollTicks} has reached the interval. A negative value means no roll has happened yet. */
+    public static boolean naturalRollDue(long sinceLastRollTicks) {
+        return sinceLastRollTicks >= NATURAL_CHECK_TICKS;
+    }
+
+    /** True when a roll lands: {@code roll} is a uniform integer in [0, NATURAL_ODDS) and 0 is the winning face. */
+    public static boolean naturalRollWins(int roll) {
+        return roll == 0;
+    }
+
+    /** True while the player is still cooling off after a Rift opened near them. A negative value means none has opened. */
+    public static boolean inNaturalCooldown(long sinceLastRiftTicks) {
+        return sinceLastRiftTicks >= 0 && sinceLastRiftTicks < NATURAL_COOLDOWN_TICKS;
+    }
+
+    /** True when a spot is far enough from the nearest existing Rift. Pass Double.POSITIVE_INFINITY when there is none. */
+    public static boolean spacingOk(double distanceToNearestRift) {
+        return distanceToNearestRift >= MIN_RIFT_SPACING;
+    }
+
+    /** True when the chosen spot is a legal distance from the player the natural Rift is meant for. */
+    public static boolean naturalDistanceOk(double distanceToPlayer) {
+        return distanceToPlayer >= NATURAL_MIN_DISTANCE && distanceToPlayer <= NATURAL_MAX_DISTANCE;
+    }
+
+    /** Whether a Rift may open at a spot: not inside an active run's arena, spaced from other Rifts, and with open air to draw in. */
+    public static boolean placementOk(boolean insideActiveRun, double distanceToNearestRift, boolean hasOpenAir) {
+        return !insideActiveRun && spacingOk(distanceToNearestRift) && hasOpenAir;
+    }
+
+    /** The reason a spot is refused, or null if it is allowed. Same order as {@link #placementOk}, so the first wrong thing is named. */
+    public static String placementRefusal(boolean insideActiveRun, double distanceToNearestRift, boolean hasOpenAir) {
+        if (insideActiveRun) {
+            return "inside an active run";
+        }
+        if (!spacingOk(distanceToNearestRift)) {
+            return "too close to another Rift";
+        }
+        if (!hasOpenAir) {
+            return "no open air";
+        }
+        return null;
+    }
+
+    // ---- Particle budget (step 2). A Rift is drawn with particles only, so the cost is the particle count. -----------------
+
+    /** Players farther than this (blocks) from a Rift get no particles from it: vanilla only sends particles within 32 blocks anyway. */
+    public static final double RENDER_RANGE = 32.0;
+    /** The most particles one Rift may spawn in one tick, however many players are near. */
+    public static final int BUDGET_PER_TICK = 160;
+    /** The most particles an idle, open Rift spends per tick when a player is in range (it hums, it does not blaze). */
+    public static final int IDLE_PER_TICK = 40;
+
+    /** True when a player at this distance should be shown the Rift. Inclusive at the range. */
+    public static boolean inRenderRange(double distance) {
+        return distance >= 0 && distance <= RENDER_RANGE;
+    }
+
+    /**
+     * How many particles the Rift may spawn this tick: 0 when nobody is in range (an idle Rift in an empty world costs nothing), otherwise
+     * the wanted count clamped to the per-tick budget. It never exceeds {@link #BUDGET_PER_TICK}, whatever is asked, and never goes negative.
+     */
+    public static int particlesThisTick(int wanted, int playersInRange) {
+        if (playersInRange <= 0 || wanted <= 0) {
+            return 0;
+        }
+        return Math.min(wanted, BUDGET_PER_TICK);
+    }
+
+    /** The idle hum's share: {@link #IDLE_PER_TICK} when someone is in range, else 0, and always inside the budget. */
+    public static int idleParticles(int playersInRange) {
+        return particlesThisTick(IDLE_PER_TICK, playersInRange);
+    }
 }
