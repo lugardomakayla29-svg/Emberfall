@@ -1,0 +1,1 @@
+[12:00:01] [Server thread/INFO]: chat: <Kira> the ERROR message was funny

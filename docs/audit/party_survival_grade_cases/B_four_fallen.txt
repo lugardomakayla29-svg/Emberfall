@@ -1,0 +1,4 @@
+[12:00:01] [Server thread/INFO]: RUNEND_TEST player=SA cause=fallen screen=true slotAfter=-1 goldAfter=0 earned=0 total=0
+[12:00:02] [Server thread/INFO]: RUNEND_TEST player=SB cause=fallen screen=true slotAfter=-1 goldAfter=0 earned=0 total=0
+[12:00:03] [Server thread/INFO]: RUNEND_TEST player=SC cause=fallen screen=true slotAfter=-1 goldAfter=0 earned=0 total=0
+[12:00:04] [Server thread/INFO]: RUNEND_TEST player=SD cause=fallen screen=true slotAfter=-1 goldAfter=0 earned=0 total=0
