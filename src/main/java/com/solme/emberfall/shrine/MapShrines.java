@@ -437,6 +437,8 @@ public final class MapShrines {
                 if (player != null) {
                     player.sendSystemMessage(Component.literal("\u00A7aTrial cleared! Gold, XP and a Silver bonus are yours."));
                 }
+                com.solme.emberfall.pickup.Cue.play(level, "shrine_trial_cleared", net.minecraft.sounds.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
+                        net.minecraft.sounds.SoundSource.PLAYERS, Vec3.atCenterOf(fight.anchor), 1.4F, 1.0F);
                 burst(level, fight.anchor, 2);
                 // A cleared trial always leaves a free chest beside the shrine (unless the run is at the free-chest cap).
                 com.solme.emberfall.relic.ChestManager.dropFree(level, arena, fight.anchor.above(),

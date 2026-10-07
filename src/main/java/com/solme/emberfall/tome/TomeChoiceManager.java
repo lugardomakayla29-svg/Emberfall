@@ -215,6 +215,9 @@ public final class TomeChoiceManager {
 
         if (picked != null) {
             player.sendSystemMessage(Component.literal("§a+ " + picked.displayName() + " §7- " + picked.description()));
+            com.solme.emberfall.pickup.Cue.play((net.minecraft.server.level.ServerLevel) player.level(), "tome_picked",
+                    net.minecraft.sounds.SoundEvents.ENCHANTMENT_TABLE_USE, net.minecraft.sounds.SoundSource.PLAYERS,
+                    player.position(), 0.8F, 1.2F);
         } else {
             player.sendSystemMessage(Component.literal("§7Skipped this Tome offer."));
         }
