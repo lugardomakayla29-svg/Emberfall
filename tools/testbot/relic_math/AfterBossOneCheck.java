@@ -68,8 +68,12 @@ public class AfterBossOneCheck {
         // the words and the log tag
         check("the warning is a non-empty line that says WARNING and is one line (no newline)", AfterBossOne.WARNING.contains("WARNING") && !AfterBossOne.WARNING.contains("\n") && AfterBossOne.WARNING.length() > 20, AfterBossOne.WARNING.replaceAll("§.", ""));
         check("the warning tells the player both things that changed: more of them, and the strong ones more often", AfterBossOne.WARNING.contains("More of them") && AfterBossOne.WARNING.contains("strong ones"), "");
-        check("the log tag is AFTERBOSS1 (the live test greps for it)", AfterBossOne.LOG_TAG.equals("AFTERBOSS1"), "");
-        check("the factor is 0.7", AfterBossOne.INTERVAL_FACTOR == 0.7, "");
+        // The tag only matters because afterboss1_grade.py greps the server log for it. Read the grader and require ITS string to be the code's
+        // string, so renaming the tag in Java without the grader (or the reverse) goes red. Run from tools/testbot/relic_math, as CI does.
+        String grader; try { grader = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("../afterboss1_grade.py"))); } catch (Exception e) { grader = ""; }
+        check("the log tag the code writes is the one afterboss1_grade.py greps for", !grader.isEmpty() && grader.contains("'" + AfterBossOne.LOG_TAG + "' in l"), "tag=" + AfterBossOne.LOG_TAG + (grader.isEmpty() ? " (grader not found)" : ""));
+        // Behaviour, not the literal: the documented numbers (58 -> 41 ticks, 100 -> 70) must come out of the factor, so any drift that changes them goes red.
+        check("the factor turns the documented 58 ticks into 41 and 100 into 70", AfterBossOne.spawnIntervalTicks(58, MIN, 2) == 41 && AfterBossOne.spawnIntervalTicks(100, MIN, 2) == 70, AfterBossOne.spawnIntervalTicks(58, MIN, 2) + " and " + AfterBossOne.spawnIntervalTicks(100, MIN, 2));
         System.out.println(fails == 0 ? "ALL PASS" : "FAILED " + fails);
     }
 }

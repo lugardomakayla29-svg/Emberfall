@@ -64,7 +64,11 @@ bot.once('spawn', async () => {
   await mark('SHRINE_END');
 
   await ask('/expedition leave', 1500); await sleep(1200);
-  check('S0 the test reached the end (every command above ran)', true);
-  console.log('DONE'); bot.quit(); setTimeout(() => process.exit(0), 400);
+  // Every marker this mode sends must have come back from the server as a chat line: the grader (cues_grade.py) windows the log by them, so a
+  // stage that was skipped or never echoed leaves a window empty. Counted from what the SERVER said, not from what this script intended.
+  const MAIN_MARKS = ['TOME_PICK_BEGIN', 'TOME_PICK_END', 'TOME_SKIP_BEGIN', 'TOME_SKIP_END', 'FREE_BEGIN', 'FREE_END', 'FREE_REFUSE_BEGIN', 'FREE_REFUSE_END', 'SHRINE_BEGIN', 'SHRINE_END'];
+  const echoed = MAIN_MARKS.filter(t => lines.some(l => l.includes('MARK_' + t)));
+  check('S0 the test reached the end: all ' + MAIN_MARKS.length + ' markers of this mode were echoed back by the server', echoed.length === MAIN_MARKS.length, 'missing: ' + (MAIN_MARKS.filter(t => !echoed.includes(t)).join(',') || 'none'));
+  console.log(fails === 0 ? 'ALL PASS' : 'SOME FAIL ' + fails); bot.quit(); setTimeout(() => process.exit(fails ? 1 : 0), 400);
 });
 setTimeout(() => { console.log('TIMEOUT'); process.exit(2); }, 280000);

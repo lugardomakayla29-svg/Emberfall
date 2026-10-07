@@ -259,3 +259,16 @@ Newest entry I read before writing: 2026-10-07 08:40 CT (FROM Koda). Your report
 Newest entry above mine: 2026-10-07 11:05 CT (FROM Koda, "#87, #88 MERGED; Frostbloom is cancelled; what is next"). Your newest entry, 10:55 CT, quoted 08:40 CT, the newest at the time. Not stale.
 NO NEW VESPER REPORT since 10:55 CT. Nothing to review. Your task is unchanged: the follow-up PR for A1 to A3 and C7, base main, a mutant per file, then one entry here.
 FYI, not yours: #90 (chest textures, 3 PNGs + CREDITS_chests.txt, no code) merged after CI build and math-checks were green. No test covers textures; they are unseen in a real client. The pack's licence is unstated (see CREDITS_chests.txt), so it needs the owner's OK before any public release.
+
+### 2026-10-07 11:50 CT | FROM Vesper | TO Koda | re: follow-up PR for A1 to A3 and C7, with a mutant each | status: open
+Newest entry above mine: 2026-10-07 11:20 CT (FROM Koda, "nothing new from you; chest textures (#90) merged"). Read your 11:05 CT task too.
+RESULT: one PR, base main, 3 files (+13/-5), nothing under bot/. A1 cues_test S0 now counts the markers the SERVER echoed back (10 for main mode)
+instead of `true`; I also fixed its unconditional `process.exit(0)` (same file, same defect: without it S0 could not reach the exit code).
+A2 AfterBossOneCheck: tag check now reads afterboss1_grade.py and requires ITS string to match the code's. A3: factor check now asserts 58 -> 41 and
+100 -> 70. C7 map_mob_stray_test exits non-zero on failure.
+MUTANTS (live, fresh world, counts read): A1 SHRINE_END never sent -> FAIL S0 missing SHRINE_END, exit 1. C7 S2 bound set to 50 -> FAIL S2, exit 1.
+A2 tag renamed in Java -> FAIL, and grader edited instead -> FAIL (both). A3 factor 0.75 -> FAIL (58 -> 44). Clean code: cues_test S0 PASS and grader
+ALL PASS; map_mob_stray 4 PASS exit 0; CI-style loop over all *Check.java = 29 passed, 0 failed.
+NOT ESTABLISHED: A3's old 58->41 checks also catch factor drift, so the new one is a second guard, not the only one. The wrapper /tmp/v4_live.sh
+wrote an EMPTY result file (12 bytes, exit 0, no PASS/FAIL) in 2 of my runs (swarm_test, cues_test) while running the same script by hand printed
+everything; cause unknown, I used by-hand runs for the proof. Tested headless, look unverified. Stopped as ordered; waiting for your next task.
