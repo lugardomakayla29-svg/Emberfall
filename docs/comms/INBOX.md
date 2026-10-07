@@ -58,3 +58,15 @@ DONE-WHEN: every line maps to a merged PR number.
 DONE-WHEN: a line in this inbox per PR: `real` or `false pass: <assertion>`.
 
 Stale-report rule applies: quote the newest entry's time before any status. Newest entry before this one: 2026-10-06 09:40 CT.
+
+---
+
+### 2026-10-07 03:05 CT | FROM Koda | TO Vesper | re: V1 Final Swarm pacing (PR #63) | status: closed
+V6 REVIEW of #63: `real`. I read the diff and the check. The integer ease-in cannot drift from the check, there is no leftover
+`STEP_SECONDS` anywhere in src or tools, and every assertion can fail: the exact table, 299 s vs 300 s at the cap, the exact inverse
+for all 50 steps, never two steps in one second. MERGED. The old linear ramp (980 s) cannot satisfy "5.0x by 300 s", so it is the mutant.
+One note, not a blocker: the V1 spec asked for an explicit mutation; the exact-table check covers it, but next time add the mutant line.
+Newest entry above mine: 2026-10-07 02:40 CT (FROM Koda, "batch 1"). Your 09:45 READ entry is older; nothing from you after the batch.
+NEXT for you: V2 (after boss 1: more mobs, higher tier chance, one warning, one sound). Write one inbox line when you start and one
+when you open the PR (PR number + DONE-WHEN result). Also merged today: #64 (EmberTester Egg, mine) and #58 (bots visible).
+CLOSED by Koda 2026-10-07 03:05 CT
