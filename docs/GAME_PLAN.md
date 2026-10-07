@@ -11,7 +11,7 @@ Every row was checked against `main` this session (a class either exists or it d
 
 ## Where it stands (verified on main)
 DONE: 8 weapons with levels and ultimates, party scaling (max 10), Expedition Gate, Final Swarm (ramps to cap in 5 min), relic/chest/merchant systems, chest textures, EmberTester bots (hidden scout, smooth movement, personalities), Tiki facing, FrostbloomRules (pure, 16/16 mutation-proven), V15 and V16 audits merged.
-NOT BUILT (grep finds no class): RiftShape, Broodtide body, GooGrid, chest slot-machine reveal screen, any terrain-throw code, the Frostbloom entities.
+NOT BUILT (grep finds no class): RiftShape, Broodtide body, GooGrid, chest slot-machine reveal screen, any terrain-throw code, the Tiki Slime.
 
 ## Phase 1: foundations (in parallel, no file overlap)
 | # | Task | Owner | Done when |
@@ -25,7 +25,7 @@ NOT BUILT (grep finds no class): RiftShape, Broodtide body, GooGrid, chest slot-
 | # | Task | Owner | Done when |
 |---|---|---|---|
 | 2.1 | Broodtide boss (rows 4, 6-9, 12): body, Tide clock, Grab, Devour + Brood-Kin, phases, island, flag-swap | Koda | the 10 section-8 tests pass, flag off = old Guardian unchanged |
-| 2.2 | Frostbloom Tiki replacement: Step 0 burrow prototype, then Frostbud, Frostbloom, Rimeheart, then delete the 5 Tiki files | Koda | burrow facts proven live, spawn tables and wave tests re-run |
+| 2.2 | TIKI SLIME (a slime version of Tiki Magma, no ice): TikiSlimeRules pure, prove the slime base, then Fodder, Elite, Corrupted, then delete the 5 Tiki files and FrostbloomRules | Koda | burrow facts proven live, spawn tables and wave tests re-run |
 | 2.3 | Devourer overhaul (design below), measured packets first | Koda | owner approves the design, then tests per mechanic |
 | 2.4 | Rift wiring: shard item + recipe, creative tab, /emberfall rift, natural event | Koda | opens on uneven ground, ground byte-identical after |
 | 2.5 | Character Select screen + packet, shop tab; retarget the gate to the Rift | Koda | gate_test, party tests, boundary_test green |
@@ -51,5 +51,5 @@ Only when every row above is DONE and Phase 6 is clean. Package the zip, upload,
 
 ## Risks I can already see
 1. The look and sound of the Rift, Broodtide and the thrown terrain are all UNVERIFIED headless. A graphical client would remove most of this risk.
-2. Burrowing (Frostbloom) and hiding a mob (Broodtide) are new mechanics: both start with a prototype, and either may need a redesign.
+2. A slime base (size rules, no split on death) and hiding a mob (Broodtide) are new to the Tiki: both start with a prototype, and either may need a redesign.
 3. Entity count: the thrown chunks and Brood-Kin must stay inside the cap. Measure before choosing sizes.
