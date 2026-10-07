@@ -8,7 +8,8 @@
 		"EmberfallNoOrbMixin",
 		"EmberfallExplosionMixin",
 		"EmberfallRelicDamageMixin",
-		"EmberfallTabListMixin"
+		"EmberfallTabListMixin",
+		"InfoUpdateEntriesAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

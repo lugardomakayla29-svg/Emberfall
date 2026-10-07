@@ -40,10 +40,15 @@ bot.once('spawn', async () => {
   const tagged = (await ask('/execute if entity @e[tag=emberfall_swarm]', 600));
   check('S3b swarm mobs carry the swarm tag and NOT the elite tag (no free chests from them)', /passed|Count/.test(tagged) && (await ask('/execute if entity @e[tag=emberfall_swarm,tag=emberfall_elite]', 600)).includes('failed'), tagged.slice(0, 60));
   // step advance
+  // The ramp is an ease-in that reaches 5.0x at 300 s (FinalSwarm.RAMP_SECONDS). Exact values live in SwarmCheck; here we assert
+  // the SHAPE with windows computed from the curve: the live clock is the skip plus ~8 to 30 s of real time.
   await sw('skip 100'); await sleep(2500); s = await st();
-  check('S4 skipping 100 s moves to 0.6x (step 5) and the packet follows', s.tenths === 6 && hud[hud.length - 1].tenths === 6, JSON.stringify(s) + ' hud ' + hud[hud.length - 1].tenths);
-  await sw('skip 300'); await sleep(6000); s = await st();
-  check('S4b about 400 s in: 2.0x to 2.3x, crowd grew but stays under the ceiling', s.tenths >= 21 && s.tenths <= 23 && s.mobs > 6 && s.mobs <= 60, JSON.stringify(s));
+  check('S4 about 100 s in: 0.7x to 1.0x (an ease-in is still slow; the old linear ramp would read 0.6x here only by chance)', s.tenths >= 7 && s.tenths <= 10 && hud[hud.length - 1].tenths === s.tenths, JSON.stringify(s) + ' hud ' + hud[hud.length - 1].tenths);
+  const mid = s.tenths;
+  await sw('skip 80'); await sleep(6000); s = await st();
+  check('S4b about 180 s in: 2.0x to 2.5x, ahead of S4 by more than the same 80 s would give a straight line, crowd grew but stays under the ceiling', s.tenths >= 20 && s.tenths <= 25 && s.tenths - mid >= 10 && s.mobs > 6 && s.mobs <= 60, JSON.stringify(s) + ' was ' + mid);
+  await sw('skip 150'); await sleep(2500); s = await st();
+  check('S4c past 300 s the multiplier is already at the 5.0x cap (the old ramp needed 980 s)', s.tenths === 50, JSON.stringify(s));
   // cap + wrath
   await sw('skip 700'); await sleep(2500); s = await st();
   check('S5 past the cap the multiplier stops at 5.0x', s.tenths === 50 && hud[hud.length - 1].tenths === 50, JSON.stringify(s));
@@ -60,7 +65,12 @@ bot.once('spawn', async () => {
   await ask(`/tp @s ${px + 0.5} ${py} ${pz + 0.5}`, 600);
   const before = lines.length; await sleep(4000);
   const said = lines.slice(before).join(' | ');
-  check('S6 the run ended by the portal (graded from the server log below)', true, 'action-bar text is not chat');
+  // Only the quoted dimension name counts: chat lines that merely contain the word "expedition" must not match.
+  // This shows the player is out of the expedition. It does NOT show the exit was the portal: swarm_grade.py G1 (the server log's
+  // SWARM_TEST escape line) is what proves that. A missing reply (the bot was disconnected) is reported as such, and fails.
+  const dimNow = await ask('/data get entity @s Dimension', 600);
+  const inExp = /entity data: "[^"]*expedition[^"]*"/.test(dimNow), inOver = /entity data: "minecraft:overworld"/.test(dimNow);
+  check('S6 after the exit the player is back in the overworld (the portal itself is proven by swarm_grade.py G1)', inOver && !inExp, dimNow ? dimNow.slice(-60) : 'NO REPLY (bot gone)');
   await sleep(1000);
   console.log(fails === 0 ? 'ALL PASS (payout graded from the server log by swarm_grade.py)' : 'SOME FAIL ' + fails); bot.quit(); setTimeout(() => process.exit(0), 400);
 });
