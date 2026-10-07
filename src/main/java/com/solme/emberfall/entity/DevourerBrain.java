@@ -596,7 +596,8 @@ public class DevourerBrain extends Silverfish {
         if (worm == null) {
             return;
         }
-        for (ServerPlayer player : level.players()) {
+        // Snapshot: hurtServer can kill a player, which ends the run and removes them from this level mid-iteration.
+        for (ServerPlayer player : new java.util.ArrayList<>(level.players())) {
             for (int i = 0; i < worm.size(); i++) {
                 Vec3 p = worm.partPos(i);
                 double dx = player.getX() - p.x;
@@ -703,7 +704,8 @@ public class DevourerBrain extends Silverfish {
         level.playSound(null, leapTo.x, leapTo.y, leapTo.z, SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 2.0F, 0.7F);
         level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, leapTo.x, leapTo.y + 0.3, leapTo.z, 1, 0.0, 0.0, 0.0, 0.0);
         level.sendParticles(ParticleTypes.LAVA, leapTo.x, leapTo.y + 0.3, leapTo.z, 30, LEAP_LAND_RADIUS * 0.5, 0.2, LEAP_LAND_RADIUS * 0.5, 0.0);
-        for (ServerPlayer player : level.players()) {
+        // Snapshot: hurtServer can kill a player, which ends the run and removes them from this level mid-iteration.
+        for (ServerPlayer player : new java.util.ArrayList<>(level.players())) {
             double dx = player.getX() - leapTo.x;
             double dz = player.getZ() - leapTo.z;
             double distSq = dx * dx + dz * dz;
@@ -752,7 +754,8 @@ public class DevourerBrain extends Silverfish {
         dashTicksRemaining--;
         this.setPos(next.x, next.y, next.z);
         level.sendParticles(ParticleTypes.CRIT, next.x, next.y + 0.3, next.z, 3, 0.2, 0.1, 0.2, 0.02);
-        for (ServerPlayer player : level.players()) {
+        // Snapshot: hurtServer can kill a player, which ends the run and removes them from this level mid-iteration.
+        for (ServerPlayer player : new java.util.ArrayList<>(level.players())) {
             if (dashHitThisSwing.contains(player.getUUID())) {
                 continue;
             }
@@ -892,7 +895,8 @@ public class DevourerBrain extends Silverfish {
         level.sendParticles(ParticleTypes.EXPLOSION, burstTarget.x, burstTarget.y + 0.3, burstTarget.z,
                 1, 0.0, 0.0, 0.0, 0.0);
 
-        for (ServerPlayer player : level.players()) {
+        // Snapshot: hurtServer can kill a player, which ends the run and removes them from this level mid-iteration.
+        for (ServerPlayer player : new java.util.ArrayList<>(level.players())) {
             double dx = player.getX() - burstTarget.x;
             double dz = player.getZ() - burstTarget.z;
             double distSq = dx * dx + dz * dz;
@@ -928,7 +932,8 @@ public class DevourerBrain extends Silverfish {
             return;
         }
         for (LingeringPatch patch : lingeringPatches) {
-            for (ServerPlayer player : level.players()) {
+            // Snapshot: hurtServer can kill a player, which ends the run and removes them from this level mid-iteration.
+            for (ServerPlayer player : new java.util.ArrayList<>(level.players())) {
                 if (player.distanceToSqr(patch.pos().x, patch.pos().y, patch.pos().z) <= LINGER_RADIUS * LINGER_RADIUS) {
                     player.hurtServer(level, level.damageSources().generic(), LINGER_DAMAGE_PER_SECOND * damageScale);
                 }
