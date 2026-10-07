@@ -1,12 +1,15 @@
 // EmberTester step 1: a fake ServerPlayer joins, is a real player, and is invisible to every human's tab list.
 const mineflayer = require('mineflayer');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const mk = name => new Promise(res => { const b = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: name, version: '1.21.11', auth: 'offline' }); b.chat_ = []; b.on('message', m => b.chat_.push(m.toString())); b.once('spawn', () => res(b)); });
+const mk = name => new Promise(res => { const b = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: name, version: '1.21.11', auth: 'offline' }); b.__list = {}; b._client.on('player_info', p => { for (const e of (p.data || [])) { const k = e.uuid; b.__list[k] = b.__list[k] || {}; if (e.player && e.player.name) b.__list[k].name = e.player.name; if (e.listed !== undefined) b.__list[k].listed = Number(e.listed); } }); b.chat_ = []; b.on('message', m => b.chat_.push(m.toString())); b.once('spawn', () => res(b)); });
 let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + n + ' ' + note); if (!ok) fails++; };
 (async () => {
   const op = await mk('EmberTester'); await sleep(4000);
   const say = async (b, cmd, w = 900) => { b.chat_.length = 0; b.chat(cmd); await sleep(w); return b.chat_.join(' | '); };
-  const tabNames = () => Object.keys(op.players).sort();
+  // Since PR #58 the bot IS sent to clients (unlisted) so they can draw it, and mineflayer's players map keeps unlisted entries, so
+  // 'is the name in op.players' no longer means 'is it on the tab list'. What the tab list shows is the listed flag of the player_info
+  // packets, so record the latest flag for each uuid and name.
+  const tabNames = (b = op) => Object.values(b.__list).filter(e => e.listed === 1 && e.name).map(e => e.name).sort();
   check('B0 control: the human sees itself in its own tab list', tabNames().includes('EmberTester'), tabNames().join(','));
   const r1 = await say(op, '/emberfall bot spawn TestBotOne', 2500);
   check('B1 the bot joins', /BOT spawn TestBotOne ok/.test(r1), r1.slice(0, 90));
@@ -20,7 +23,7 @@ let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' :
   check('B2b and still contains the human (control)', tabNames().includes('EmberTester'), '');
   // a second human joining AFTER the bot must also not see it (the join-time snapshot path)
   const late = await mk('LateHuman'); await sleep(3000);
-  const lateNames = Object.keys(late.players).sort();
+  const lateNames = tabNames(late);
   check('B2c a human who joins AFTER the bot does not see it either', !lateNames.includes('TestBotOne') && lateNames.includes('EmberTester'), lateNames.join(','));
   late.quit(); await sleep(1200);
   check('B2d a human leaving does not disturb the bot', /online=TestBotOne/.test(await say(op, '/emberfall bot list', 800)), '');
