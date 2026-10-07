@@ -1,0 +1,2 @@
+[12:00:01] [Server thread/INFO]: RUNEND_TEST player=SA cause=escaped screen=true slotAfter=-1 goldAfter=0 earned=0 total=0
+[12:00:02] [Server thread/INFO]: RUNEND_TEST player=SB cause=escaped screen=true slotAfter=-1 goldAfter=0 earned=0 total=0

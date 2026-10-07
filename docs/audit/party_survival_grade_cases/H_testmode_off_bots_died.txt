@@ -1,0 +1,2 @@
+[12:00:01] [Server thread/INFO]: Slot 0 abandoned (last player left) - arena torn down
+[12:00:09] [Server thread/INFO]: SA was slain by Zombie
