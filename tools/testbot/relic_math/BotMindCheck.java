@@ -51,6 +51,35 @@ public class BotMindCheck {
         BotPersonality rush = BotPersonality.of(Kind.RUSHER, new Random(1));
         check("CONTROL: a rusher at 30% health still fights", !rush.shouldFlee(0.30), "flee below " + rush.fleeBelow());
         check("every reaction delay is 4..12 ticks", reactionsOk(), "");
+        // V9: the two slopes that the ordering checks could not see. The formulas are documented in BotPersonality ("0.05 .. 0.50" and "30 .. 120"),
+        // so each bot's own trait is turned into the documented value and compared. A slope change breaks every bot, not just the extremes.
+        int slopeBad = 0; double slopeWorst = 0; int jumpBad = 0; int jumpWorst = 0;
+        for (Kind slopeKind : Kind.values()) for (int slopeSeed = 0; slopeSeed < 500; slopeSeed++) {
+            BotPersonality slopeBot = BotPersonality.of(slopeKind, new Random(slopeSeed));
+            double wantFlee = 0.05 + 0.45 * slopeBot.caution(); double gotFlee = slopeBot.fleeBelow();
+            if (Math.abs(gotFlee - wantFlee) > 1e-9) { slopeBad++; slopeWorst = Math.max(slopeWorst, Math.abs(gotFlee - wantFlee)); }
+            int wantJump = (int) Math.round(120 - 90 * slopeBot.agility()); int gotJump = slopeBot.jumpEveryTicks();
+            if (gotJump != wantJump) { jumpBad++; jumpWorst = Math.max(jumpWorst, Math.abs(gotJump - wantJump)); }
+        }
+        check("fleeBelow follows its documented slope for 2000 bots: 0.05 + 0.45 * caution", slopeBad == 0, slopeBad + " off, worst " + slopeWorst);
+        check("jumpEveryTicks follows its documented slope for 2000 bots: round(120 - 90 * agility)", jumpBad == 0, jumpBad + " off, worst " + jumpWorst);
+        // The slope checks above compare a formula with the bot's own trait, so they cannot see a trait band move. Bands copied from BotPersonality.of
+        // (rusher, coward, guardian, diplomat): caution and agility. Every sample must be inside its band and the samples must reach both ends.
+        double[][] bandCaution = { {0.00, 0.25}, {0.75, 1.00}, {0.40, 0.65}, {0.35, 0.60} };
+        double[][] bandAgility = { {0.70, 1.00}, {0.50, 0.85}, {0.25, 0.55}, {0.45, 0.75} };
+        Kind[] bandKinds = { Kind.RUSHER, Kind.COWARD, Kind.GUARDIAN, Kind.DIPLOMAT };
+        int bandBad = 0; String bandNote = "";
+        for (int bandIdx = 0; bandIdx < 4; bandIdx++) {
+            double cLo = 9, cHi = -9, aLo = 9, aHi = -9;
+            for (int bandSeed = 0; bandSeed < 2000; bandSeed++) {
+                BotPersonality bandBot = BotPersonality.of(bandKinds[bandIdx], new Random(bandSeed));
+                cLo = Math.min(cLo, bandBot.caution()); cHi = Math.max(cHi, bandBot.caution()); aLo = Math.min(aLo, bandBot.agility()); aHi = Math.max(aHi, bandBot.agility());
+            }
+            boolean cOk = cLo >= bandCaution[bandIdx][0] - 1e-9 && cHi <= bandCaution[bandIdx][1] + 1e-9 && cLo <= bandCaution[bandIdx][0] + 0.02 && cHi >= bandCaution[bandIdx][1] - 0.02;
+            boolean aOk = aLo >= bandAgility[bandIdx][0] - 1e-9 && aHi <= bandAgility[bandIdx][1] + 1e-9 && aLo <= bandAgility[bandIdx][0] + 0.02 && aHi >= bandAgility[bandIdx][1] - 0.02;
+            if (!cOk || !aOk) { bandBad++; bandNote += bandKinds[bandIdx] + String.format(" caution %.2f..%.2f agility %.2f..%.2f; ", cLo, cHi, aLo, aHi); }
+        }
+        check("caution and agility stay inside the documented band of each kind and reach both ends of it (2000 bots per kind)", bandBad == 0, bandBad == 0 ? "all 4 kinds" : bandNote);
 
         // ---- steering: the live failure, in numbers ----
         // four allies standing at the SAME spot: old behaviour kept them there. Separation must push them apart, and must never be NaN.
