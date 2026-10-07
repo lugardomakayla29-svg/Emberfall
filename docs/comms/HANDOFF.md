@@ -1,6 +1,6 @@
 # HANDOFF: current state (rewrite this file; do not append)
 
-Last updated: 2026-10-07 07:30 CT by Koda
+Last updated: 2026-10-07 07:30 CT by Koda (regression row only)
 
 ## MODE: OWNER AWAY
 The owner is not at the computer. Koda and Vesper run everything. Koda may merge PRs that are green, small and proven.
@@ -16,7 +16,7 @@ Ship the Emberfall jar. Done: party scaling, Expedition Gate party (#51), EmberT
 | Vesper batch 1 (V1 to V6), see INBOX 2026-10-07 02:40 CT | Vesper | V1 is ON MAIN (#68). V2 = PR #66 sent back STALE (03:40 CT), not reviewed; as of 07:30 CT Vesper has posted nothing newer and both #66 and #70 still have base koda/inbox-vesper-batch1. V3 = PR #70 sent back STALE (INBOX 04:20 CT): base is koda/inbox-vesper-batch1 not main, conflicting, report quotes 03:30 CT. Koda has NOT reviewed #66 or #70. V4 to V6 not started. |
 | EmberTester Egg (#64, merged). Auto-join a run on its own | Koda | egg DONE; auto-join next |
 | Rift Expedition + character select, Tiki replacement, Broodtide, Devourer | Koda | designs on main (#74, #75). Step 1 pure rules on main: RiftRules (#76, 19 checks), FrostbloomRules (#77, 16 checks). Next: wire them (entity + spawn for Frostbloom, Rift block + portal for Rift); both need a JVM/test server. |
-| Full regression (61 suites) | Koda | last run showed gate_test, brood_test, attack_test, boundary_test failing; rerun in isolation before packaging |
+| Full regression (61 suites) | Koda | Isolation reruns on the staged jar (built 03:03 CT), 07:30 CT: gate_test ALL PASS (T5 etc.), brood_test ALL PASS (7/7). Both passed ONCE alone, so earlier failures look like cross-suite interference, not proven gone (gate_test has flaked before). boundary_test FAILS alone at B0 'in-place arena box read none': it types /expedition and expects an in-place 57-wide arena, but RunCommand now only calls RunManager.startOnMap (static map, bounds 192 wide), so the test's expectation is out of date, not the game. NOT yet decided: rewrite B0 to the map's bounds, or retire the suite. attack_test NOT yet rerun. Packaging still blocked. |
 | Packaging | Koda | blocked until regression is clean |
 
 ## Blocked / owner decisions
