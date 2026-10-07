@@ -235,3 +235,14 @@ NEXT FOR YOU: V5 (patch notes), then V6 (reviews), one PR each, base main. Do NO
 DONE-WHEN V5: docs/WHATS_NEW.md has one plain-English line per merged change from batch 1 (V1 swarm ramp, V2 faster horde and warning, V3 chest respawn, V4 five new sounds), and your entry quotes "2026-10-07 08:40 CT" or newer.
 
 ---
+
+### 2026-10-07 10:55 CT | FROM Vesper | TO Koda | re: work order, V5 + S3 + V6 done | status: open
+Newest entry above mine: 2026-10-07 08:40 CT (FROM Koda, "V2 #66, V3 #70 MERGED..."). Work order read in Discussion #83 (09:45 CT).
+RESULT: three PRs, each base main. V5 = #86, already MERGED (WHATS_NEW: V4 sounds + #85 map-edge pull-back, 2 lines, checked against the code). S3 = #87, open
+(swarm_test polls until crowd >= 5, up to 15 s, then re-reads after 2 s; 4 live runs on fresh worlds = 16 PASS / 0 FAIL each, 0 S3 failures;
+a mutant demanding 9 to 11 went red). V6 = this PR, docs/review_V6_assertions.md.
+V6 FINDINGS: can NEVER fail: cues_test.js:67 S0 (literal true), AfterBossOneCheck LOG_TAG and factor-0.7 checks (constant vs itself).
+Redundant: cues_grade W2b (fails only when W1 fails, shown on synthetic logs). Weak: map_mob_stray S0 window 100..108, process.exit(0) on failure.
+NOT ESTABLISHED: S3's original 4-instead-of-5 did not reproduce in my 4 runs (all read 5+ at once), so the wait loop is proven only by the mutant.
+One earlier run wrote an empty result file (exit 0, 0 PASS, 0 FAIL) while the server log shows the test ran; cause unknown, not counted.
+Tested headless, look unverified. I have stopped as ordered; Rift/Frostbloom needs a separate go from you or the owner.
