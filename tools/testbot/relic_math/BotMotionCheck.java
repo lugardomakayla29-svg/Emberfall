@@ -32,6 +32,18 @@ public class BotMotionCheck {
         check("JITTER baseline: the old snap-to-bearing rule turns up to 140 degrees in ONE tick", oldMax >= 139, String.format("%.0f", oldMax));
         check("JITTER fix: the limited turn never exceeds 24 degrees in one tick", newMax <= 24.0 + 1e-9, String.format("%.1f", newMax));
         check("the turn rate is gentler near the target than far from it", BotMotion.turnRate(5, 4, 24) < BotMotion.turnRate(120, 4, 24), BotMotion.turnRate(5, 4, 24) + " vs " + BotMotion.turnRate(120, 4, 24));
+        check("turn rate at 45 degrees left is halfway between min and max: 4 + (24-4) * 45/90 = 14", Math.abs(BotMotion.turnRate(45, 4, 24) - 14.0) < 1e-9 && Math.abs(BotMotion.turnRate(90, 4, 24) - 24.0) < 1e-9 && Math.abs(BotMotion.turnRate(0, 4, 24) - 4.0) < 1e-9, "" + BotMotion.turnRate(45, 4, 24));
+        // stepStrafe: hold = 8 + (int)(u1 * 22). u1=0 -> 8 ticks, u1=0.999 -> 29 ticks. u2 < share/2 -> side +1, share/2 <= u2 < share -> -1, u2 >= share -> rest.
+        BotMotion.Strafe sLo = BotMotion.stepStrafe(new BotMotion.Strafe(0, 1), 0.6, 0.0, 0.1);
+        BotMotion.Strafe sHi = BotMotion.stepStrafe(new BotMotion.Strafe(0, 1), 0.6, 0.999, 0.1);
+        check("a new strafe lasts 8 ticks at the low end and 29 at the high end (derived from 8 + u1 * 22)", sLo.ticksLeft() == 8 && sHi.ticksLeft() == 29, sLo.ticksLeft() + " and " + sHi.ticksLeft());
+        // From a standstill (dir 0) there is no previous strafe to reverse, so u1 does not matter; from dir +1 with u1 < 0.5 the side flips to -1, with u1 >= 0.5 it stays +1.
+        BotMotion.Strafe rev = BotMotion.stepStrafe(new BotMotion.Strafe(1, 1), 0.6, 0.3, 0.1);
+        BotMotion.Strafe keep = BotMotion.stepStrafe(new BotMotion.Strafe(1, 1), 0.6, 0.7, 0.1);
+        BotMotion.Strafe reverseAt20 = BotMotion.stepStrafe(new BotMotion.Strafe(1, 1), 0.6, 0.2, 0.1);
+        BotMotion.Strafe reverseAt40 = BotMotion.stepStrafe(new BotMotion.Strafe(1, 1), 0.6, 0.4, 0.1);
+        check("a strafe reverses the last one when u1 < 0.5 and keeps its side otherwise (u1 0.2 and 0.4 reverse, 0.7 keeps)", rev.dir() == -1 && keep.dir() == 1 && reverseAt20.dir() == -1 && reverseAt40.dir() == -1, rev.dir() + "," + keep.dir() + "," + reverseAt20.dir() + "," + reverseAt40.dir());
+        check("a strafe eases in over 3 ticks: 1/3, 2/3, then full speed", Math.abs(BotMotion.strafeStep(new BotMotion.Strafe(1, 20), 0, 0.3) - 0.1) < 1e-9 && Math.abs(BotMotion.strafeStep(new BotMotion.Strafe(1, 20), 1, 0.3) - 0.2) < 1e-9 && Math.abs(BotMotion.strafeStep(new BotMotion.Strafe(1, 20), 2, 0.3) - 0.3) < 1e-9, BotMotion.strafeStep(new BotMotion.Strafe(1, 20), 0, 0.3) + "");
         check("turn rate is bounded by min and max", BotMotion.turnRate(0, 4, 24) >= 4 - 1e-9 && BotMotion.turnRate(500, 4, 24) <= 24 + 1e-9, "");
 
         // ---- speed easing ----
