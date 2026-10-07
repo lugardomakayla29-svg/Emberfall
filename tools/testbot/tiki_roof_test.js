@@ -1,6 +1,6 @@
-// The roof slab must rest ON the top head, not inside it. Measured in a frozen tick for every tier:
-// slab underside = roof anchor + translation.y (slab fills the lower half of its block, so its underside is the block's bottom)
-// head top = highest head centre + half a head (head height = 0.5 * scale; scale read from each display's transformation).
+// The owner asked for NO roof on the Tiki. For every tier: the pole has its mask heads (item displays) and NO block display at all
+// (the old roof was a dark oak slab, a block display). CONTROL: a block display summoned beside the Tiki IS counted by the same selector,
+// so a count of 0 cannot come from a selector that sees nothing. File name kept so the regress scripts still run it.
 const mineflayer = require('mineflayer');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
@@ -15,27 +15,18 @@ async function measure(label, cmd, wantHeads) {
   await ask('/execute at @s run tp @e[type=emberfall:tiki_magma,limit=1] 0.5 200 0.5', 600);
   await ask('/attribute @e[type=emberfall:tiki_magma,limit=1] minecraft:movement_speed base set 0', 2200);
   await ask('/tick freeze', 400);
-  const heads = [];
-  for (let i = 0; i < 6; i++) {
-    const sel = SEL('minecraft:item_display', `,limit=1,sort=nearest,tag=!rd`);
-    const pos = nums(await ask(`/data get entity ${sel} Pos`, 400));
-    if (pos.length < 3) break;
-    const xf = nums(await ask(`/data get entity ${sel} transformation.scale`, 400));
-    await ask(`/tag ${sel} add rd`, 200);
-    heads.push({ y: pos[1], s: xf.length ? xf[0] : NaN });
-  }
-  const roofSel = '@e[type=minecraft:block_display,x=0,y=200,z=0,distance=..12,limit=1]';   // Corrupted stands over 4 blocks tall and the roof can leave the 6 block sphere
-  let rawRoof = await ask(`/data get entity ${roofSel} Pos`, 500);
-  if (nums(rawRoof).length < 3) { await sleep(1500); rawRoof = await ask(`/data get entity ${roofSel} Pos`, 600); }   // retry once: the rig may still be building
-  const rp = nums(rawRoof);
-  if (rp.length < 3) console.log('   raw roof reply:', rawRoof.slice(0, 160), '| block displays near:', (await ask(`/execute if entity @e[type=minecraft:block_display,x=0,y=200,z=0,distance=..12]`, 500)).slice(0, 60));
-  const rt = nums(await ask(`/data get entity ${roofSel} transformation.translation`, 400));
-  await ask('/tick unfreeze', 300);
-  if (rp.length < 3 || rt.length < 3 || !heads.length) { check(label + ' readings', false, `heads ${heads.length} roof ${rp} xf ${rt}`); return; }
-  const top = Math.max(...heads.map(h => h.y + 0.25 * h.s));   // head is 0.5*scale tall, centred on its anchor
-  const under = rp[1] + rt[1];
-  check(label + ' head count', heads.length === wantHeads, `${heads.length} (want ${wantHeads})`);
-  check(label + ' slab rests on the top head', Math.abs(under - top) < 0.03, `underside ${under.toFixed(3)} head top ${top.toFixed(3)} gap ${(under - top).toFixed(3)}`);
+  // distance 12, not 6: a Corrupted pole stands over 4 blocks tall and its roof sat outside the 6 block sphere (the first version of this test
+  // used 6 and could not see the elite or corrupted roofs on the shipped jar). The control is placed HIGH (y 205) where a roof would be.
+  const blocksSel = '@e[type=minecraft:block_display,x=0,y=200,z=0,distance=..12]';
+  const count = async sel => { const r = await ask(`/execute if entity ${sel}`, 450); return /Test passed/.test(r) ? parseInt((/Count: (\d+)/.exec(r) || [0, 1])[1], 10) : 0; };
+  const heads = await count('@e[type=minecraft:item_display,x=0,y=200,z=0,distance=..12]');
+  const roofs = await count(blocksSel);
+  check(label + ' has its mask heads (so an empty/absent Tiki cannot pass)', heads >= wantHeads, `item displays ${heads} (want >= ${wantHeads})`);
+  check(label + ' has NO roof: zero block displays near the Tiki', roofs === 0, `block displays ${roofs}`);
+  await ask('/summon minecraft:block_display 0.5 205 0.5 {block_state:{Name:"minecraft:dark_oak_slab"},Tags:["ctl"]}', 700);
+  const withCtl = await count(blocksSel);
+  check(label + ' CONTROL: a summoned block display IS seen by the same selector', withCtl === 1, `block displays after summon ${withCtl}`);
+  await ask('/kill @e[tag=ctl]', 300);
 }
 bot.once('spawn', async () => {
   await sleep(5000); await ask('/op EmberTester'); await ask('/gamemode creative');
