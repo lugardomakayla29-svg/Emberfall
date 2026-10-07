@@ -1,6 +1,6 @@
 # HANDOFF: current state (rewrite this file; do not append)
 
-Last updated: 2026-10-07 08:40 CT by Koda (batch 1 V1-V4 landed)
+Last updated: 2026-10-07 11:20 CT by Koda (V5, S3, V6 and chest textures #90 landed; Vesper on A1-A3 + C7)
 
 ## MODE: OWNER AWAY
 The owner is not at the computer. Koda and Vesper run everything. Koda may merge PRs that are green, small and proven.
@@ -17,6 +17,7 @@ Ship the Emberfall jar. Done: party scaling, Expedition Gate party (#51), EmberT
 | EmberTester Egg (#64, merged). Auto-join a run on its own | Koda | egg DONE; auto-join next |
 | Rift Expedition + character select, Tiki replacement, Broodtide, Devourer | Koda | designs on main (#74, #75). Step 1 pure rules on main: RiftRules (#76, 19 checks), FrostbloomRules (#77, 16 checks). Next: wire them (entity + spawn for Frostbloom, Rift block + portal for Rift); both need a JVM/test server. |
 | Full regression (61 suites) | Koda | Isolation reruns on the staged jar (built 03:03 CT), 07:30 CT: gate_test ALL PASS (T5 etc.), brood_test ALL PASS (7/7). Both passed ONCE alone, so earlier failures look like cross-suite interference, not proven gone (gate_test has flaked before). boundary_test FAILS alone at B0 'in-place arena box read none': it types /expedition and expects an in-place 57-wide arena, but RunCommand now only calls RunManager.startOnMap (static map, bounds 192 wide), so the test's expectation is out of date, not the game. NOT yet decided: rewrite B0 to the map's bounds, or retire the suite. attack_test ran 07:30 CT and printed NO PASS/FAIL lines: it defines check() but never calls it, and its header says it grades ATKDBG log lines, but ATKDBG exists nowhere in the game code (0 hits) and 0 times in the run's server log. So it has no assertions and cannot fail; it must NOT be counted as green. I scanned tools/testbot for the same flaw: attack_test is the only real suite with it (slots_test and brood_orphan print verdicts directly). Decision needed (Koda): rewrite attack_test to grade the Fan cone from a real signal (player hp or a new log line) or retire it. Packaging still blocked until boundary_test B0 and attack_test are resolved. |
+| Chest textures (#90, merged 11:20 CT) | Koda | Excalibur iron/copper/gold chest textures on main. Licence of the pack is unstated: owner must confirm before public release. |
 | Packaging | Koda | blocked until regression is clean |
 
 ## Blocked / owner decisions
