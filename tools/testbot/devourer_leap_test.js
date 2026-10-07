@@ -19,7 +19,9 @@ bot.once('spawn', async () => {
   await ask('/gamemode survival'); await ask('/effect give @s minecraft:resistance 999 4 true', 300);
   await ask('/effect give @s minecraft:regeneration 999 4 true', 300);
   await ask('/character select juggernaut', 600);
-  await ask('/expedition', 1500); await sleep(1500);
+  await ask('/expedition', 1500);
+  for (let i = 0; i < 60; i++) { await sleep(2000); if (/expedition/.test(await ask('/data get entity @s Dimension', 400))) break; }
+  await sleep(1500);
   await ask('/emberfall bossdevourer 0', 1500);
   await sleep(400);
   const d0 = await dump();
