@@ -265,7 +265,7 @@ public class TikiMagma extends MagmaCube {
             int skin = headsCycle ? CYCLING_MASK_POOL[i % CYCLING_MASK_POOL.length] : fixedHeadSkin;
             headSkin[i] = skin;
             var display = rig.addItem(level, EliteHeads.customHead(TikiSegment.MASK_TEXTURES[skin], "tiki_mask"),
-                    new Vector3f(0.0F, y + step / 2.0F, 0.0F), headSize, 0.0F, false);
+                    new Vector3f(0.0F, y + step / 2.0F, 0.0F), headSize, MaskFacing.CLIENT_HEAD_TURN_DEG, false);   // a head item is drawn a half turn from the display yaw
             display.setBillboardConstraints(Display.BillboardConstraints.FIXED);
             if (i == 0) {
                 firstHeadPart = rig.size() - 1;
@@ -300,7 +300,9 @@ public class TikiMagma extends MagmaCube {
         if (dx * dx + dz * dz < 1.0E-4) {
             return;   // standing exactly on top of the player: the bearing is undefined, keep the last yaw
         }
-        float want = (float) (Math.atan2(-dx, dz) * 180.0 / Math.PI);
+        // The display yaw that shows the FACE of a head item to the player is the bearing plus a half turn (see MaskFacing: the client
+        // draws a head item 180 degrees from the display yaw), so aiming the display at the player would show them the back of the skull.
+        float want = MaskFacing.yawToShowFace((float) (Math.atan2(-dx, dz) * 180.0 / Math.PI));
         if (Float.isNaN(headYaw)) {
             headYaw = want;   // first aim: start on target instead of sweeping in from the body yaw
         } else {
