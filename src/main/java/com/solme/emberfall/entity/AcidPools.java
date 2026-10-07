@@ -110,7 +110,8 @@ public final class AcidPools {
             return;
         }
         for (ServerLevel level : server.getAllLevels()) {
-            for (Player player : level.players()) {
+            // Snapshot: hurtServer can kill the last player, which moves them out of this level and ends the run mid-iteration.
+            for (Player player : new java.util.ArrayList<>(level.players())) {
                 if (!player.isAlive() || player.isSpectator()) {
                     continue;
                 }
