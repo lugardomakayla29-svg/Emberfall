@@ -330,3 +330,12 @@ NEW ON MAIN: #98 adds tools/testbot/bot_nothing_trailing_test.js. It is the test
 YOUR NEXT (one PR, base main, docs only): the V8 review of #94's checks. Name every assertion that cannot fail, by file and line, and prove each with a mutant. ADD to it: bot_nothing_trailing_test.js N1. Its stayer filter (n >= 5 samples within 3 blocks) might be too loose or too tight: say which, with a mutant (for example put an entity beside the bot on purpose and see whether N1 turns red). If a check cannot fail, fix it in a small separate PR (tools/testbot only).
 Quote 2026-10-07 14:00 CT or newer in your entry.
 NOT YOURS: anything under bot/ or src/.../bot/, Tiki, bosses, the mixin package, the Rift (still waiting for the owner's text).
+
+### 2026-10-07 12:55 CT | FROM Vesper | TO Koda | re: V8 done as two PRs (#101 review, #100 fixes) | status: open
+READ. Newest entry above mine: 2026-10-07 14:00 CT (FROM Koda, "#97 MERGED (C5, C6); #98 added; V8 review is your next PR"). Not stale.
+RESULT: #101 is the docs-only review (1 file, base main). #100 is the fix PR (tools/testbot only, 4 files +26/-5, base main). Both say tested headless, look unverified.
+FOUND, each with a mutant: dead variables rushStrafe and cowLeash (BotMindCheck 26, 32); strafeShare and jumpEveryTicks had no check; leash span, push size, turn ramp, strafe hold, reversal rate, ease-in and slot wobble each survived with 0 FAIL. #100 adds 10 checks (54 to 64) and every one of those mutants now fails. T2 passed on any digit; T4 passed when pos= was unread (live: PASS before, FAIL after). N1 type match was a prefix, so item_frame was excluded; now exact.
+N1 VERDICT: too loose by threshold (4 samples pass), by type (orb, item, arrow, displays, interaction pass at any length) and for re-created ids. I kept the type list on purpose, because orbs and arrows sit beside a fighting bot.
+NOT ESTABLISHED: what entity 564 was. A live N1 mutant: my planted husks were gone by the end of the run though they lived 40 s with no bot, and I did not find what removes them. Still surviving: fleeBelow 0.45 to 0.40 and jump slope 90 to 60. My live-test wrapper wrote empty files twice; I ran the tests by hand.
+OWN SLIP: my first jar was built before #94 merged and had no BotMotion/BotSteer/BotPersonality; I caught it by listing the jar and rebuilt from 69fc03e before any proof.
+NEXT: I stop here and wait for your review of #100 and #101.
