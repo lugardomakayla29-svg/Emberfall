@@ -13,7 +13,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.MagmaCube;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import org.joml.Vector3f;
 import net.minecraft.world.phys.Vec3;
 
@@ -27,7 +26,7 @@ import java.util.List;
  * green Slime, per the user's "whatever fits theme" call) that carries a
  * tiki pole. The pole is DISPLAY-ONLY (see {@link MobRig}, no invisible
  * carrier entities): rotating minecraft-heads.com Tiki Mask player heads
- * under a wide roof. Fodder stacks a second REAL magma cube ({@link TikiCube})
+ * with no roof (the owner asked for none). Fodder stacks a second REAL magma cube ({@link TikiCube})
  * below its single head. The whole pole sways in the
  * traveling cobra-charmer dance the user linked, driven by {@link #animate}.
  *
@@ -106,16 +105,14 @@ public class TikiMagma extends MagmaCube {
     private static final boolean TEST_MODE = Boolean.getBoolean("emberfall.testMode");
 
     private static final float CUBE_HEIGHT = 0.52F;   // a size-1 MagmaCube (2.04 * 0.255)
-    private static final float ROOF_OVERHANG = 1.35F; // roof is this many times wider than a head, like the reference
 
     public enum EliteTier { NONE, ELITE, CORRUPTED }
 
-    /** Display-only rig: the rotating heads and the roof. No invisible carrier entities. */
+    /** Display-only rig: the rotating heads. No invisible carrier entities. */
     private final MobRig rig = new MobRig(this);
     private TikiCube secondCube;
     private int headCount;
     private int firstHeadPart = -1;
-    private int roofPart = -1;
     private int[] headSkin = new int[0];
     private int[] headMaskPool = CYCLING_MASK_POOL;
     private boolean headsCycle = true;
@@ -225,7 +222,7 @@ public class TikiMagma extends MagmaCube {
      * Builds the totem on displays only (no invisible carrier entities). Layout, bottom to top, in blocks at mob
      * scale 1.0 (the rig multiplies by the mob's SCALE, so Elite and Corrupted grow with no extra maths):
      * the real mob cube is the hitbox; Fodder stacks a second REAL magma cube above it, then one rotating-skin
-     * head; Elite and Corrupted stack flush heads directly (3 and 4); every tier is capped with a roof.
+     * head; Elite and Corrupted stack flush heads directly (3 and 4); the top head is the top of the pole.
      * A head at scale s is 0.5 * s blocks tall (skull box is 8x8x8 px, read from SkullModel), so stacking
      * heads at 0.5 * s leaves no gap and no overlap.
      */
@@ -265,18 +262,13 @@ public class TikiMagma extends MagmaCube {
             int skin = headsCycle ? CYCLING_MASK_POOL[i % CYCLING_MASK_POOL.length] : fixedHeadSkin;
             headSkin[i] = skin;
             var display = rig.addItem(level, EliteHeads.customHead(TikiSegment.MASK_TEXTURES[skin], "tiki_mask"),
-                    new Vector3f(0.0F, y + step / 2.0F, 0.0F), headSize, 0.0F, false);
+                    new Vector3f(0.0F, y + step / 2.0F, 0.0F), headSize, MaskFacing.CLIENT_HEAD_TURN_DEG, false);   // a head item is drawn a half turn from the display yaw
             display.setBillboardConstraints(Display.BillboardConstraints.FIXED);
             if (i == 0) {
                 firstHeadPart = rig.size() - 1;
             }
             y += step;
         }
-        // Roof: one wide, flat dark-oak slab, wider than the heads like the reference hat.
-        float roofW = headSize * 0.5F * ROOF_OVERHANG;
-        roofPart = rig.size();
-        rig.addBlock(level, Blocks.DARK_OAK_SLAB.defaultBlockState(),
-                new Vector3f(0.0F, y + roofW * 0.5F, 0.0F), roofW, 0.0F);
     }
 
     /**
@@ -300,7 +292,9 @@ public class TikiMagma extends MagmaCube {
         if (dx * dx + dz * dz < 1.0E-4) {
             return;   // standing exactly on top of the player: the bearing is undefined, keep the last yaw
         }
-        float want = (float) (Math.atan2(-dx, dz) * 180.0 / Math.PI);
+        // The display yaw that shows the FACE of a head item to the player is the bearing plus a half turn (see MaskFacing: the client
+        // draws a head item 180 degrees from the display yaw), so aiming the display at the player would show them the back of the skull.
+        float want = MaskFacing.yawToShowFace((float) (Math.atan2(-dx, dz) * 180.0 / Math.PI));
         if (Float.isNaN(headYaw)) {
             headYaw = want;   // first aim: start on target instead of sweeping in from the body yaw
         } else {
@@ -315,7 +309,7 @@ public class TikiMagma extends MagmaCube {
 
     /**
      * Once a tick: the traveling sway (each head lags the one below, amplitude grows up the pole like a
-     * charmed cobra), the second cube and roof following the sway, and the slow skin rotation. The rig itself
+     * charmed cobra), the second cube following the sway, and the slow skin rotation. The rig itself
      * only writes positions every second tick and lets the client glide between them.
      */
     private void animate() {
@@ -323,21 +317,15 @@ public class TikiMagma extends MagmaCube {
         float amp = (float) (TikiSegment.SWAY_AMPLITUDE * swayMultiplier);
         float y = CUBE_HEIGHT + (secondCube != null ? CUBE_HEIGHT : 0.0F);
         float step = 0.5F * headSize;
-        float lastSway = 0.0F;
         for (int i = 0; i < headCount; i++) {
             float phase = t + (secondCube != null ? 1 : i + 1) * TikiSegment.PHASE_DELAY_PER_SEGMENT_TICKS;
             float level = (i + (secondCube != null ? 2 : 1));
             float sway = net.minecraft.util.Mth.sin(phase / TikiSegment.SWAY_PERIOD_TICKS * net.minecraft.util.Mth.TWO_PI)
                     * amp * (1.0F + level * 0.35F);
             rig.setLocal(firstHeadPart + i, sway, y + step / 2.0F, 0.0F);
-            lastSway = sway;
             y += step;
         }
         aimHeads();
-        if (roofPart >= 0) {
-            float roofW = headSize * 0.5F * ROOF_OVERHANG;
-            rig.setLocal(roofPart, lastSway, y + roofW * 0.5F, 0.0F);
-        }
         if (secondCube != null && secondCube.isAlive()) {
             // The second cube sits directly on the first and is nudged by a small share of the sway.
             double side = net.minecraft.util.Mth.sin((t + TikiSegment.PHASE_DELAY_PER_SEGMENT_TICKS)

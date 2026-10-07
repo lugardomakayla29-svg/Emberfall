@@ -15,9 +15,9 @@ bot.once('spawn', async () => {
   await sleep(6500);
   await ask('/gamemode creative');
   for (const [label, cmd, want] of [
-    ['FODDER', '/emberfall spawnveteran tiki_magma', { mobs: 1, cubes: 1, heads: 1, roofs: 1 }],
-    ['ELITE', null, { mobs: 1, cubes: 0, heads: 3, roofs: 1 }],
-    ['CORRUPTED', '/emberfall spawnelite tiki_magma_corrupted', { mobs: 1, cubes: 0, heads: 4, roofs: 1 }]]) {
+    ['FODDER', '/emberfall spawnveteran tiki_magma', { mobs: 1, cubes: 1, heads: 1, roofs: 0 }],
+    ['ELITE', null, { mobs: 1, cubes: 0, heads: 3, roofs: 0 }],
+    ['CORRUPTED', '/emberfall spawnelite tiki_magma_corrupted', { mobs: 1, cubes: 0, heads: 4, roofs: 0 }]]) {
     await ask('/kill @e[type=!player]', 700); await sleep(2500);
     let spawned = cmd;
     if (label === 'ELITE') { // tiki_magma elite rolls corrupted 20% of the time: retry until the tier is plain elite
