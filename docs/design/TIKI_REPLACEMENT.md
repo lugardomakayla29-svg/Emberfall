@@ -6,7 +6,7 @@ facing the player). It ties to the new slime boss, Broodtide (docs/PLAN_broodtid
 
 ## What stays (the Tiki identity)
 The tall pole of 1 / 3 / 4 player-head masks that sways and faces the player, the three tiers (Fodder, Elite, Corrupted), the spawn weight 0.15 and the wave slots,
-the levitate-toward-you hunt, the shriek and the laser. Roof stays removed. Displays only for the pole (the standing entity-count rule).
+the levitate-toward-you hunt, the shriek and the lane attack (now a goo jet, see Decisions). Roof stays removed. Displays only for the pole (the standing entity-count rule).
 
 ## What changes: the base is a real SLIME, not a MagmaCube
 Engine facts (VERIFIED in this repo, see PinkSlime): `Slime.setSize` clamps 1..127 and OVERWRITES max health, speed and damage, so every size change must re-apply the
@@ -32,11 +32,17 @@ and use Attributes.SCALE, as Tiki Magma does today). The vanilla slime outer lay
 | Tier | Body | Masks | Moves | Notes |
 |---|---|---|---|---|
 | Fodder | small slime | 1 | hop, Bounce Shriek, Goo Trail | no spit, no laser |
-| Elite | medium slime | 3 | the above + Mask Spit + the laser | laser keeps its wind-up and lane |
+| Elite | medium slime | 3 | the above + Mask Spit + Goo Jet | the jet keeps the old laser's wind-up, lane width and range |
 | Corrupted | large slime | 4 | the above + Split Totem + Swallow Mask | the only tier that sheds or swallows |
 
-## Open owner questions (short)
-1. Keep the laser, or turn it into a goo jet? 2. Do you want the swallow/Brood-Kin link, or keep the Tiki Slime self-contained? 3. Colour: Broodtide green-teal OK?
+## Decisions (owner, 2026-10-07 18:15 CT)
+1. **The laser becomes a GOO JET.** Same lane, same wind-up and the same shared constant for the telegraph and the damage as the old laser (so the existing lane maths and the
+   tier recharge difference carry over); only the look and sound change: a green-teal stream of goo that leaves a short fading slow-patch at the far end (counts against
+   the shared goo pool cap). No fire, no beam.
+2. **Swallow Mask / Brood-Kin link to Broodtide: YES.** Corrupted Tiki Slimes swallow a nearby fodder mob and spit it back as a Brood-Kin. It shares Broodtide's
+   rules: the Brood-Kin cap of 6 counts Tiki-made ones too, the swallowed mob is hidden (not deleted) and returns with its AI and team intact. It is built AFTER Broodtide's
+   Prototype A proves hide-and-reveal; if the prototype fails, this move is cut and the rest of the Tiki Slime ships unchanged.
+3. **Colour: Broodtide green-teal (not pink, not vanilla green).**
 
 ## Build order (each step proven before the next; every check has a mutant that goes red)
 1. Pure `TikiSlimeRules`: tier stats, shriek ring, spit timing, shed thresholds and caps. Pure check first.
