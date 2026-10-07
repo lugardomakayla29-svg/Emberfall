@@ -29,3 +29,13 @@ Remove everything else and make the slimes act: `/emberfall wavestop 0` right af
 - Early on I read `run=0` as "dead". It is the run SLOT, so `run=0` means in the run. My scratch scripts had it backwards in one test; I redid that test with the right label and HP.
 - A scratch script was left on a jar that disabled the purge (V11 mutant) after an interrupted call; I found it by hash before measuring and restored the baseline. No result here was taken on that jar.
 - A cancelled call left a game server running; I stopped it (PID found by its first word being java) and reran.
+
+## Addendum (Koda's added question, 13:44 CT): does the run end before or after the pool loop finishes its tick?
+Answer from code, not from a run: DURING, for the bot that takes the lethal hit. Read on current main (after #112):
+1. `PinkPools.tickAll` is registered on `END_SERVER_TICK` (EmberfallMod.java line 105). The player loop starts at PinkPools.java line 161 (snapshot added by #112), the inner pool loop is lines 166 to 174, `hurtServer` is line 182.
+2. `hurtServer` fires `ALLOW_DEATH` (RunEndHandler.java line 52). For a run player it calls `endRunInsteadOfDying` and returns false, so the player is never really killed, and `finishRun` runs SYNCHRONOUSLY inside that call (lines 134 to 200).
+3. `finishRun` takes the player out of the run, sends them home (`ReturnPoints.sendBack`, which moves them out of the arena level) and, if they were the last one, calls `PinkPools.clearLevel` and `RunManager.teardownArena` (lines 176 to 182). All of that completes before `hurtServer` returns, so before the loop reaches the next player.
+4. Only the DISCONNECT path is deferred (`server.execute`, line 86). A death is not.
+5. So the lethal pool hit ends the run mid-loop. That is the case #112 snapshots `level.players()` for. The inner pool loop has already finished when `hurtServer` runs, so `clearLevel` cannot invalidate that iterator in the same pass; this agrees with Koda's correction that the crash site is the players loop and not the pool list.
+
+Limits of the addendum: this is a reading, not a reproduction. All my 6 live runs used the jar built BEFORE #112, and none produced a ConcurrentModificationException, so they neither show the crash nor show that #112 fixes it. I did not run the probe on a post-#112 jar.
