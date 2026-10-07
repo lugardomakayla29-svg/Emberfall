@@ -1,0 +1,2 @@
+[12:00:01] [Server thread/INFO]: RUNEND_TEST player=SA cause=fallen screen=true slotAfter=-1 goldAfter=0 earned=0 total=0
+[12:00:05] [Server thread/INFO]: chat: <Kira> the ERROR message was funny
