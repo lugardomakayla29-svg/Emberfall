@@ -1,6 +1,6 @@
 # HANDOFF: current state (rewrite this file; do not append)
 
-Last updated: 2026-10-07 12:10 CT by Koda (#92 A1-A3 + C7 merged; Vesper next on C5 + C6)
+Last updated: 2026-10-07 13:05 CT by Koda (#94 EmberTester merged; Vesper next on C5 + C6, then post-merge review of #94's checks)
 
 ## MODE: OWNER AWAY
 The owner is not at the computer. Koda and Vesper run everything. Koda may merge PRs that are green, small and proven.
@@ -18,6 +18,7 @@ Ship the Emberfall jar. Done: party scaling, Expedition Gate party (#51), EmberT
 | Rift Expedition + character select, Tiki replacement, Broodtide, Devourer | Koda | designs on main (#74, #75). Step 1 pure rules on main: RiftRules (#76, 19 checks), FrostbloomRules (#77, 16 checks). Next: wire them (entity + spawn for Frostbloom, Rift block + portal for Rift); both need a JVM/test server. |
 | Full regression (61 suites) | Koda | Isolation reruns on the staged jar (built 03:03 CT), 07:30 CT: gate_test ALL PASS (T5 etc.), brood_test ALL PASS (7/7). Both passed ONCE alone, so earlier failures look like cross-suite interference, not proven gone (gate_test has flaked before). boundary_test FAILS alone at B0 'in-place arena box read none': it types /expedition and expects an in-place 57-wide arena, but RunCommand now only calls RunManager.startOnMap (static map, bounds 192 wide), so the test's expectation is out of date, not the game. NOT yet decided: rewrite B0 to the map's bounds, or retire the suite. attack_test ran 07:30 CT and printed NO PASS/FAIL lines: it defines check() but never calls it, and its header says it grades ATKDBG log lines, but ATKDBG exists nowhere in the game code (0 hits) and 0 times in the run's server log. So it has no assertions and cannot fail; it must NOT be counted as green. I scanned tools/testbot for the same flaw: attack_test is the only real suite with it (slots_test and brood_orphan print verdicts directly). Decision needed (Koda): rewrite attack_test to grade the Fan cone from a real signal (player hp or a new log line) or retire it. Packaging still blocked until boundary_test B0 and attack_test are resolved. |
 | Vesper follow-up #92 (A1 to A3, C7), merged 12:10 CT | Vesper | DONE. Koda read the diff and checked the facts by hand (no JVM in that run); CI green. Next for Vesper: C5 + C6 in map_mob_stray_test.js. |
+| EmberTester hidden scout, personalities, party spreading (#94, merged 13:05 CT, 8baffd2) | Koda | DONE, CI green on the rebased head. OPEN: bot_nothing_trailing_test.js (not on main yet, lives in the working tree) failed 1 of 2 completed runs with one unidentified entity within 3 blocks of the bot; probably a horde husk, NOT established. Owner asked for the placeholder mob to be invisible and impossible to see. |
 | Chest textures (#90, merged 11:20 CT) | Koda | Excalibur iron/copper/gold chest textures on main. Licence of the pack is unstated: owner must confirm before public release. |
 | Packaging | Koda | blocked until regression is clean |
 
@@ -38,4 +39,4 @@ C5 + C6 in tools/testbot/map_mob_stray_test.js only (read the real play radius i
 
 ## Next for Koda
 Own queue: resolve boundary_test B0 (rewrite to the static map bounds or retire) and attack_test (no assertions: rewrite to grade the Fan cone from a real signal or retire; it must not count as green). Then the EmberTester auto-join/difficulty bump and the big systems (Rift, Frostbloom). All need a JVM/test server, which a background run does not have.
-Note: main now includes #92 (952ce4f).
+Note: main now includes #92 (952ce4f) and #94 (8baffd2).
