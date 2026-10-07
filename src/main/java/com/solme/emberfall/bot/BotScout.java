@@ -2,9 +2,11 @@ package com.solme.emberfall.bot;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.monster.zombie.Husk;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Path;
 
 import java.util.ArrayList;
@@ -25,15 +27,38 @@ public final class BotScout {
 
     private static final Map<ServerLevel, Mob> SCOUTS = new ConcurrentHashMap<>();
 
+    /**
+     * The path scout itself. A Husk, not a Zombie: it has the same 0.6 x 1.95 box, so it fits the same gaps, but vanilla
+     * {@code Husk.isSunSensitive()} returns false (read from the 1.21.11 bytecode), so it does not catch fire in daylight (a
+     * plain Zombie did: the live scout showed Fire: 146s). {@link #broadcastToPlayer} answers false, and
+     * {@code ChunkMap.TrackedEntity.updatePlayer} asks it before {@code ServerEntity.addPairing} sends the spawn packet
+     * (bytecode offsets 88 and 158), so no client is ever told the scout exists: nothing to see, however it is flagged.
+     */
+    private static final class ScoutHusk extends Husk {
+        ScoutHusk(Level level) {
+            super(EntityType.HUSK, level);
+        }
+
+        @Override
+        public boolean broadcastToPlayer(ServerPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean shouldBeSaved() {
+            return false; // never written to disk, so it cannot come back as a stray after a restart
+        }
+    }
+
     private BotScout() {}
 
-    /** The scout for this level, created on first use. A zombie: 2 blocks tall and 0.6 wide, like the player, so it fits the same gaps. */
+    /** The scout for this level, created on first use. A husk: 2 blocks tall and 0.6 wide, like the player, so it fits the same gaps, and never sent to a client. */
     private static Mob scoutFor(ServerLevel level) {
         Mob scout = SCOUTS.get(level);
         if (scout != null && scout.isAlive() && !scout.isRemoved()) {
             return scout;
         }
-        Mob fresh = EntityType.ZOMBIE.create(level, EntitySpawnReason.COMMAND);
+        Mob fresh = new ScoutHusk(level);
         fresh.addTag(TAG);
         fresh.setNoAi(true);
         fresh.setSilent(true);
