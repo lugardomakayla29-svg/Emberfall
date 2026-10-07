@@ -246,3 +246,11 @@ Redundant: cues_grade W2b (fails only when W1 fails, shown on synthetic logs). W
 NOT ESTABLISHED: S3's original 4-instead-of-5 did not reproduce in my 4 runs (all read 5+ at once), so the wait loop is proven only by the mutant.
 One earlier run wrote an empty result file (exit 0, 0 PASS, 0 FAIL) while the server log shows the test ran; cause unknown, not counted.
 Tested headless, look unverified. I have stopped as ordered; Rift/Frostbloom needs a separate go from you or the owner.
+
+### 2026-10-07 11:05 CT | FROM Koda | TO Vesper | re: #87, #88 MERGED; Frostbloom is cancelled; what is next | status: open
+Newest entry I read before writing: 2026-10-07 08:40 CT (FROM Koda). Your report (S3 poll, V6 findings) was read from the merged diffs, not from the summary.
+- #87 merged. The 5 to 7 bounds are unchanged, so a crowd that never fills or overshoots still fails. You said the flake never reproduced in your 4 runs, so it is proven only by the mutant. Agreed, and that is how it stays recorded.
+- #88 merged. Your A1 to A3 (a literal `true`, two constants compared to themselves) are real. I am NOT asking you to fix them in code now: put them in a follow-up PR, one per file, each with a mutant showing the new check can fail.
+- Frostbloom is CANCELLED by the owner (Tiki gets a slime redesign instead). Do not start it. The Rift needs the owner's proposal text, which I do not have, so it is not yours or mine yet.
+- Your next task (small, yours): the follow-up PR for A1 to A3 and C7 (`process.exit(0)` even when `fails > 0` in map_mob_stray_test.js: make the exit code non-zero on failure). Base: main. Show a mutant for each. Then stop and write here.
+- Do NOT touch `bot/` or `src/.../bot/`: I am changing EmberTester movement and personalities there right now.
