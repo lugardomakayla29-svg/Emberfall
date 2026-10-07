@@ -23,18 +23,21 @@ public class BotMindCheck {
         int min = Arrays.stream(count).min().getAsInt(), max = Arrays.stream(count).max().getAsInt();
         check("the kinds are dealt roughly evenly (each 20..30% of 4000)", min > 800 && max < 1200, Arrays.toString(count));
 
-        double rushB = 0, cowB = 0, rushFlee = 0, cowFlee = 0, rushStand = 0, cowStand = 0, rushStrafe = 0, guardLeash = 0, cowLeash = 0;
+        double rushB = 0, cowB = 0, rushFlee = 0, cowFlee = 0, rushStand = 0, cowStand = 0, rushStrafe = 0, guardStrafe = 0, rushJump = 0, guardJump = 0, guardLeash = 0, cowLeash = 0;
         int n = 200;
         for (int i = 0; i < n; i++) {
             Random r = new Random(i);
             BotPersonality ru = BotPersonality.of(Kind.RUSHER, r), co = BotPersonality.of(Kind.COWARD, r), gu = BotPersonality.of(Kind.GUARDIAN, r);
             rushB += ru.boldness(); cowB += co.boldness(); rushFlee += ru.fleeBelow(); cowFlee += co.fleeBelow();
-            rushStand += ru.standOff(6.0); cowStand += co.standOff(6.0); rushStrafe += ru.strafeShare(); guardLeash += gu.allyLeash(); cowLeash += co.allyLeash();
+            rushStand += ru.standOff(6.0); cowStand += co.standOff(6.0); rushStrafe += ru.strafeShare(); guardStrafe += gu.strafeShare(); rushJump += ru.jumpEveryTicks(); guardJump += gu.jumpEveryTicks(); guardLeash += gu.allyLeash(); cowLeash += co.allyLeash();
         }
         check("a rusher is bolder than a coward", rushB / n > cowB / n + 0.5, String.format("%.2f vs %.2f", rushB / n, cowB / n));
         check("a rusher flees at a much lower health than a coward", rushFlee / n < 0.2 && cowFlee / n > 0.35, String.format("%.2f vs %.2f", rushFlee / n, cowFlee / n));
         check("a rusher stands closer to a foe than a coward (same weapon)", rushStand / n + 2.0 < cowStand / n, String.format("%.1f vs %.1f blocks", rushStand / n, cowStand / n));
         check("a guardian's ally leash stays within 4..18 blocks", guardLeash / n >= 4.0 && guardLeash / n <= 18.0, String.format("%.1f", guardLeash / n));
+        check("a loyal guardian's leash is near its 4-block floor and a coward's is clearly looser (the leash really follows loyalty)", guardLeash / n < 7.0 && cowLeash / n > guardLeash / n + 2.0, String.format("guardian %.1f, coward %.1f", guardLeash / n, cowLeash / n));
+        check("an agile rusher strafes more than a guardian (strafeShare follows agility)", rushStrafe / n > guardStrafe / n + 0.2, String.format("%.2f vs %.2f", rushStrafe / n, guardStrafe / n));
+        check("an agile rusher jumps more often than a guardian (jump interval follows agility)", rushJump / n < guardJump / n - 15, String.format("%.0f vs %.0f ticks", rushJump / n, guardJump / n));
         check("no stand-off is ever below 1.5 blocks", stands(1.0) >= 1.5 && stands(0.0) >= 1.5, stands(1.0) + " " + stands(0.0));
         // two rushers must not be clones: stand-off for a 9-block weapon varies across seeds 0..499, with small seeds too
         double sLo = 1e9, sHi = -1e9;
@@ -59,6 +62,10 @@ public class BotMindCheck {
         Push left = BotSteer.separation(0, 0, List.of(new Mate(-1, 0)), 3.0, 2.0, 0.0);
         check("an ally on the left pushes right, and not up or down", left.dx() > 0 && Math.abs(left.dz()) < 1e-9, left + "");
         check("the push never exceeds the cap", Math.hypot(onTop.dx(), onTop.dz()) <= 2.0 + 1e-9, "" + Math.hypot(onTop.dx(), onTop.dz()));
+        BotSteer.Push closeOne = BotSteer.separation(0, 0, List.of(new BotSteer.Mate(-0.5, 0)), 3.0, 2.5, 0.0);
+        check("a close ally pushes by the derived amount: strength (3-0.5)/3, scaled by the radius, capped at 2.5, straight away from it", Math.abs(closeOne.dx() - 2.5) < 1e-9 && Math.abs(closeOne.dz()) < 1e-9, closeOne.dx() + "," + closeOne.dz());
+        BotSteer.Push farther = BotSteer.separation(0, 0, List.of(new BotSteer.Mate(-2.5, 0)), 3.0, 2.5, 0.0);
+        check("a farther ally pushes by the derived amount: strength (3-2.5)/3 times radius = 0.5", Math.abs(farther.dx() - 0.5) < 1e-9, "" + farther.dx());
         Push near = BotSteer.separation(0, 0, List.of(new Mate(-0.5, 0)), 3.0, 2.5, 0.0), edge = BotSteer.separation(0, 0, List.of(new Mate(-2.5, 0)), 3.0, 2.5, 0.0);
         check("a closer ally pushes harder than a distant one", near.dx() > edge.dx(), near.dx() + " vs " + edge.dx());
 
@@ -71,6 +78,7 @@ public class BotMindCheck {
         boolean ring = true;
         for (double[] p : pts) ring &= Math.abs(Math.hypot(p[0] - 50, p[1] - 50) - 6.0) < 1e-9;
         check("each slot is exactly the stand-off from the foe", ring, "");
+        check("slot bearing adds the wobble once: index 1 of 4 with wobble 0.2 is pi/2 + 0.2", Math.abs(BotSteer.slotBearing(1, 4, 0.2) - (Math.PI / 2.0 + 0.2)) < 1e-9, "" + BotSteer.slotBearing(1, 4, 0.2));
         check("slot bearings of different party sizes still cover the circle", Math.abs(BotSteer.slotBearing(3, 4, 0) - 3 * Math.PI / 2) < 1e-9, "");
         check("a negative or oversize index wraps instead of crashing", Double.isFinite(BotSteer.slotBearing(-1, 4, 0)) && Double.isFinite(BotSteer.slotBearing(9, 4, 0)), "");
 

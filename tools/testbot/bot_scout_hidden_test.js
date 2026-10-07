@@ -23,11 +23,12 @@ let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' :
   // put the human right next to the bot so the scout is well inside any tracking range, then watch for 12 s
   await say('/tp @s @a[name=HideBot,limit=1]', 600); const t0 = Date.now(); await sleep(12000);
   const scoutHere = (await say('/execute as @e[tag=emberfall_bot_scout] run say SCOUTALIVE', 700));
-  check('T2 the scout entity really exists on the server', /SCOUTALIVE/.test(scoutHere) || /Count|\d/.test(scoutHere), scoutHere.slice(0, 60));
+  check('T2 the scout entity really exists on the server', /SCOUTALIVE/.test(scoutHere), scoutHere.slice(0, 60));
   const q = await say('/execute if entity @e[tag=emberfall_bot_scout,type=minecraft:husk]', 600);
   check('T3 the scout is a husk (not a zombie that burns)', /Test passed/.test(q), q.slice(0, 60));
   const near = spawns.filter(s => Math.hypot(s.x - (m ? +m[1] : 0), s.z - (m ? +m[2] : 0)) < 6 && s.t >= t0 - 1000);
-  check('T4 NO zombie or husk was ever sent to the client within 6 blocks of the bot', near.length === 0, `${near.length} spawn packets near the bot, ${spawns.length} total`);
+  // T4 is only meaningful if the bot's position was read: with m == null the filter measured from the world origin and could pass blind.
+  check('T4 NO zombie or husk was ever sent to the client within 6 blocks of the bot', !!m && near.length === 0, `${near.length} spawn packets near the bot (bot pos ${m ? m[1] + ',' + m[2] : 'NOT READ'}), ${spawns.length} total`);
   // CONTROL: a horde mob IS sent. Summon a visible husk next to the human and require its packet, otherwise T4 proves nothing.
   const before = spawns.length;
   await say('/summon minecraft:husk ~ ~ ~3 {NoAI:1b,Tags:["ctl"]}', 1500);

@@ -40,7 +40,7 @@ let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' :
   for (const [id, n] of Object.entries(trail)) if (n >= 5) console.log('LONG-STAYER id', id, 'samples', n, 'client-table:', idType[id] || 'gone', '| spawn packet type:', spawnType[id] || 'none');
   // Loot (experience orbs, items) and arrows legitimately sit on the floor beside a fighting bot, with real spawn packets. The scout
   // would be a MOB, so only living mobs count as "dragged along". An id with no client-table entry (it died or left) is judged by its spawn type.
-  const notMob = t => /^(experience_orb|item|arrow|spectral_arrow|interaction|item_display|block_display|text_display|unknown|none)/.test(String(t || 'none'));
+  const notMob = t => /^(experience_orb|item|arrow|spectral_arrow|interaction|item_display|block_display|text_display|unknown|none)$/.test(String(t || 'none'));
   const dragged = Object.entries(trail).filter(([id, n]) => n >= 5).filter(([id]) => !notMob((idType[id] || '').split(':')[0] || spawnType[id])).map(([id, n]) => `${id}:${n}(${idType[id] || spawnType[id]})`);
   const types = Object.keys(nearTypes).join(',') || 'none';
   console.log('ENTITY TYPES SEEN WITHIN 8 BLOCKS:', JSON.stringify(nearTypes));
