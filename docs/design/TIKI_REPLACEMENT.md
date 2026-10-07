@@ -1,6 +1,6 @@
 # Tiki Magma replacement: the Frostbloom colony
 
-Status: DESIGN, decided by Koda while the owner is away. Not built. Owner brief: "I don't want Tiki Magma anymore, completely fresh and
+Status: DESIGN, decided by Koda while the owner is away. Not built. AUTHORITY (corrected 2026-10-07 16:55 CT): the owner's 10-06 instruction was to replace Tiki Magma completely, all tiers, 'your call' on the design. So the REPLACEMENT is approved; the Frostbloom DESIGN is mine and he has not seen it. Build it, then show him; do not wait for approval first. Owner brief: "I don't want Tiki Magma anymore, completely fresh and
 new replacement for all tiers, similar design but like a polar opposite."
 
 ## What the Tiki is today (from the code)
@@ -36,3 +36,11 @@ ModEntities, one debug command.
 2. Entity + renderer for the Frostbud only. Live test: burrows, surfaces, bites, entity count.
 3. Elite, then Corrupted. Live test each.
 4. Swap the Tiki out of WaveDirector / MobSpawner / ModEntities, delete the 5 Tiki files, re-run the wave and spawn-table tests.
+
+## Step 0, before any tier work: prove the burrow on ONE slime (engine unknowns, no guessing)
+A burrowing mob is new in this mod. Settle these with a live prototype first; each gets a test that can fail:
+1. Can a real Slime be untargetable and unseen while burrowed (invisible + no collision + not a valid weapon target) and become targetable and hittable again on surfacing? Check it with the same client-packet method as `bot_scout_hidden_test` (does a watching client get the spawn or the movement?).
+2. Can it travel through blocks without suffocation damage (`noPhysics`), and what do `RunMobPurge`, the wave counter and `RunMobAggro.HUNTERS` do with a mob in that state? Read each before assuming.
+3. Is the surface point exactly under the player (ambush) and is the telegraph (ground crack, particles) timed by a constant shared with the damage, as Sentinel and Reaver do?
+4. Entity count: confirm the crystals are displays only and the fodder stays at or below the Tiki's 4.
+Only when 1 to 4 are green on a live server do the tiers get built (Frostbud, then Frostbloom, then Rimeheart).
