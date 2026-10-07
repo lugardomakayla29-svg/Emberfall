@@ -27,8 +27,16 @@ bot.once('spawn', async () => {
   t = await ask('/emberfall relic unlocks EmberTester', 600);
   check('K2 the 25th opening unlocks Ember Key', /unlocks \[[^\]]*open_25_chests/.test(t) && /open_25_chests=25/.test(t), t.slice(0, 120));
   check('K2b the player is told: Ember Key and why', /Relic unlocked: Ember Key/.test(said) && /Open 25 paid chests/.test(said), said.slice(0, 220));
-  n = lines.length; await open(); await sleep(800);
-  check('K3 control: the 26th opening does not announce it again', !lines.slice(n).join(' ').includes('Relic unlocked'), '');
+  // V15 F2: the old K3 was a bare negative, so a skipped open() passed it. The positive half is the chest count the server reports ('closed=N' drops by one
+  // per opening), read before and after. The progress counter cannot be the proof: addProgress caps at the goal and returns early once unlocked, so it
+  // reads 25 after the 25th AND the 26th opening (my first guess, '=26', was wrong; it failed on the real build).
+  const closedBefore = +((await ask('/emberfall relic chests EmberTester', 600)).match(/closed=(\d+)/) || [0, -1])[1];
+  n = lines.length; const opened26 = await open(); await sleep(800);
+  const closedAfter = +((await ask('/emberfall relic chests EmberTester', 600)).match(/closed=(\d+)/) || [0, -1])[1];
+  const t26 = await ask('/emberfall relic unlocks EmberTester', 600);
+  check('K3 control: the 26th opening really happened (closed chests dropped by one) and does not announce again',
+    opened26 === true && closedBefore > 0 && closedAfter === closedBefore - 1 && /open_25_chests=25/.test(t26) && !lines.slice(n).join(' ').includes('Relic unlocked'),
+    `opened=${opened26} closed ${closedBefore}->${closedAfter} ${t26.slice(0, 60)}`);
   await ask('/expedition leave', 1200);
   console.log(fails === 0 ? 'ALL PASS' : 'SOME FAIL ' + fails); bot.quit(); setTimeout(() => process.exit(0), 400);
 });
