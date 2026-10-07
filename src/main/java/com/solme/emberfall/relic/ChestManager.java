@@ -40,12 +40,20 @@ public final class ChestManager {
     /** Scoreboard tag the wave director puts on every elite it spawns. */
     public static final String ELITE_TAG = "emberfall_elite";
     private static final boolean TEST_MODE = Boolean.getBoolean("emberfall.testMode");
+    /**
+     * Test only. When the server is started with -Demberfall.chestRespawnRoll=0.0 every respawn roll uses that number instead of a
+     * random one, so a live test can force the hit and prove the one-per-run cap on its own. Unset (the shipped game) it is NaN and
+     * the roll is random.
+     */
+    private static final double FORCED_RESPAWN_ROLL = Double.parseDouble(System.getProperty("emberfall.chestRespawnRoll", "NaN"));
 
     private static final class RunChests {
         final Map<Long, ChestOpening.Kind> kinds = new HashMap<>();
         final Set<Long> opened = new HashSet<>();
         /** Free chests this run has already left behind (feeds {@link FreeChestRule}). */
         int freeGiven;
+        /** Looted chests this run has already brought back (feeds {@link ChestRespawnRule}; the cap is one per run). */
+        int respawnsUsed;
     }
 
     private static final Map<Integer, RunChests> RUNS = new HashMap<>();
@@ -225,12 +233,32 @@ public final class ChestManager {
         }
         run.opened.add(pos.asLong());
         arena.journal().set(pos, state.setValue(EmberChestBlock.OPENED, true));
+        boolean comesBack = ChestRespawnRule.respawns(kind, run.respawnsUsed,
+                Double.isNaN(FORCED_RESPAWN_ROLL) ? level.getRandom().nextDouble() : FORCED_RESPAWN_ROLL);
         if (TEST_MODE) {
             com.solme.emberfall.EmberfallMod.LOGGER.info("OPEN_TEST kind={} rarity={} relic={} key={} cost={} counter={} luck={}",
                     kind, out.relic().rarity(), out.relic().id(), out.keyProc(), out.goldCost(), PlayerRelics.chestsOpened(player), stats.luck());
         }
         reveal(player, level, pos, out, kind);
+        if (comesBack) {
+            respawn(player, level, arena, run, pos, state, kind);
+        }
         RelicUnlocks.announce(player, RelicUnlocks.get(level.getServer()).addProgress(player.getUUID(), "open_25_chests", 1));
+    }
+
+    /**
+     * Stands a just-looted chest up again, same kind and same place ({@link ChestRespawnRule}). Both the run's "opened" record and the
+     * block's OPENED property must be cleared, because {@link #tryOpen} refuses on either. Counts against the one-per-run cap.
+     */
+    private static void respawn(ServerPlayer player, ServerLevel level, ArenaInstance arena, RunChests run, BlockPos pos, BlockState openedState,
+                                ChestOpening.Kind kind) {
+        run.opened.remove(pos.asLong());
+        arena.journal().set(pos, openedState.setValue(EmberChestBlock.OPENED, false));
+        run.respawnsUsed++;
+        level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 1.0F, 0.8F);
+        level.sendParticles(ParticleTypes.HAPPY_VILLAGER, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 12, 0.3, 0.3, 0.3, 0.02);
+        player.sendSystemMessage(Component.literal("The chest shimmers and fills again.").withStyle(net.minecraft.ChatFormatting.AQUA), true);
+        com.solme.emberfall.EmberfallMod.LOGGER.info("CHEST_RESPAWN slot={} kind={} at={} used={}", arena.slot(), kind, pos, run.respawnsUsed);
     }
 
     private static void refuse(ServerPlayer player, ServerLevel level, BlockPos pos, ChestOpening.Outcome out, ChestOpening.Kind kind) {
