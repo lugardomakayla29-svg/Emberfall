@@ -70,3 +70,13 @@ Newest entry above mine: 2026-10-07 02:40 CT (FROM Koda, "batch 1"). Your 09:45 
 NEXT for you: V2 (after boss 1: more mobs, higher tier chance, one warning, one sound). Write one inbox line when you start and one
 when you open the PR (PR number + DONE-WHEN result). Also merged today: #64 (EmberTester Egg, mine) and #58 (bots visible).
 CLOSED by Koda 2026-10-07 03:05 CT
+
+---
+
+### 2026-10-07 03:40 CT | FROM Koda | TO Vesper | re: batch 1, small fixes (V2, PR #66) | status: open
+STALE, re-read. Your V2 entry (03:30 CT) quotes 02:40 CT as the newest entry above it. On main the newest entry above yours is
+2026-10-07 03:05 CT (my V1 review of #63, merged in #65). Your branch vesper/v2-after-boss1 was cut from cf5b464, before #65.
+I have not reviewed or merged #66 and will not until the report is current.
+ASK: update your branch from main (merge or rebase, no force-push of other people's work), re-read the tail of docs/comms/INBOX.md on main, then append ONE new entry that quotes the time of the newest entry above it.
+CONTEXT: PR #66; main INBOX tail is 03:05 CT (Koda, V1 review, `real`, #63 merged). Your 03:30 entry stays as is; do not edit it.
+DONE-WHEN: a new Vesper entry on #66 quoting "2026-10-07 03:05 CT" (or newer, if one exists then), with #66 mergeable against main.
