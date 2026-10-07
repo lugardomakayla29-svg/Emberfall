@@ -29,13 +29,17 @@ bot.once('spawn', async () => {
   await sleep(300);
   const placedX = await ask('/scoreboard players get #placed stray_x', 500);
   const mm = /has (-?\d+) \[stray_x\]/.exec(placedX); const px = mm ? +mm[1] : NaN;
-  check('S0 METHOD: the foe was placed outside the circle (x 107 read back in the same tick, before the guard ran)', px >= 100 && px <= 108, `x=${px} raw="${placedX.slice(0, 80)}"`);
+  // The play radius is read from the code (CircleBoundary.PLAY_RADIUS), not guessed: the foe only counts as outside if x is past it. A missing or
+  // unparsable constant fails S0 (NaN compares false), so this cannot pass by not finding the radius. STRAY_SRC lets a mutant point at a copy.
+  const src = process.env.STRAY_SRC || 'src/main/java/com/solme/emberfall/world/CircleBoundary.java';
+  let playRadius = NaN; try { const rm = /PLAY_RADIUS\s*=\s*([\d.]+)/.exec(require('fs').readFileSync(src, 'utf8')); if (rm) playRadius = +rm[1]; } catch (e) { /* NaN */ }
+  check('S0 METHOD: the foe was placed outside the circle (x read back in the same tick, before the guard ran, is past PLAY_RADIUS)', px > playRadius && px <= playRadius + 20, `x=${px} PLAY_RADIUS=${playRadius} raw="${placedX.slice(0, 80)}"`);
   const in0 = await posOf('@e[tag=stray_in,limit=1]');
   check('S0b the inside foe exists and is readable (r~88)', in0 && Math.abs(radius(in0) - 88) < 2, `r=${radius(in0).toFixed(1)}`);
   // The old guard checked mobs once a second; wait 6 s so a once-a-second guard has had 6 chances.
   await sleep(6000);
   const in1 = await posOf('@e[tag=stray_in,limit=1]'), out1 = await posOf('@e[tag=stray_out,limit=1]');
-  check('S1 CONTROL: the foe inside the circle was not moved', in1 && in0 && in1 && Math.abs(radius(in1) - radius(in0)) < 1.5, `r=${radius(in1).toFixed(2)} (was ${radius(in0).toFixed(2)})`);
+  check('S1 CONTROL: the foe inside the circle was not moved', in1 && in0 && Math.abs(radius(in1) - radius(in0)) < 1.5, `r=${radius(in1).toFixed(2)} (was ${radius(in0).toFixed(2)})`);
   check('S2 the foe outside the circle (r~107) was brought back inside (r<=94)', out1 && radius(out1) <= 94, `r=${radius(out1).toFixed(2)} (placed at x=${px})`);
   await ask('/kill @e[tag=stray_test]', 300);
   console.log(fails === 0 ? 'ALL PASS' : 'FAILED ' + fails); bot.quit(); process.exit(fails ? 1 : 0);
