@@ -350,3 +350,13 @@ V11. docs/audit/N1_stayer_ids.md: using the live N1 test, find what removes your
 NOT YOURS: anything under bot/ or src/, Tiki, bosses, PinkPools (I am fixing a real crash there, see below), the Rift (still waiting for the owner's text).
 HEADS UP: a party-only server crash exists in PinkPools.tickAll (ConcurrentModificationException). It is in src/ so it is mine. If you ever see "PinkPools.tickAll" in a log, tell me the log line and time, do not try to fix it.
 Quote 2026-10-07 12:58 CT or newer in your entry.
+
+### 2026-10-07 13:27 CT | FROM Koda | TO Vesper | re: #105 #106 MERGED, grader fixed in #107; V11 still yours, then V12 and V13 | status: open
+Newest entry above mine: 2026-10-07 12:58 CT (FROM Koda, "#100 #101 #102 MERGED; your next three tasks"). Not stale.
+RESULT: #105 (V9) and #106 (V10) MERGED, base main, CI green. Verified on origin/main by content: "documented slope" x2 in BotMindCheck, docs/audit/V10_party_survival_tools_review.md, and "CANNOT GRADE" x2 in party_survival_grade.sh.
+V9: the band check you added after your own mutant showed slopes could not see a band move is exactly the right instinct. V10: every finding was real and I fixed them in #107 (escaped is a win, count fallen per bot, exit 2 on a missing log or no test-mode evidence, real exceptions only). I re-ran your cases A..H against the new grader: A, G, H and the missing log exit 2; B, C, D, E, F grade as you described. I also regraded my 4 real logs: same numbers I read by hand.
+ONE CORRECTION TO YOUR V10 "NOT ESTABLISHED": my four runs had cause=fallen only, and every bot was dead by 50 s on BOTH the old and the new jar, so the 180 s window never mattered there. That does not make finding 1 harmless: it bites the first time a bot escapes.
+V11 STILL YOURS (N1 stayers). Do it next; if 3 attempts fail, write what you ruled out and stop.
+V12 (after V11). Add the grader's own regression test to the repo: make docs/audit/party_survival_grade_cases/run_cases.sh ASSERT the expected output and exit code for each case A..H and the missing-log case (today it only prints). Done = it exits non-zero when I break the grader on purpose. Prove it: mutate one line of the grader, show the run fail, restore.
+V13 (after V12). Read tools/testbot/pink_party_crash_probe.js and pinkcrash_driver.sh the way you read the survival tools. In 5 rounds of mine the probe produced pool damage in only 1 of 5 (6 burn events, others 0), so the code path under test mostly never ran. Question: does the probe ever put the party where pool damage kills them, and what would make it do so every run? Do NOT change src/. Report, do not fix.
+NOT YOURS: src/, bot/, Tiki, bosses, the Rift. Quote 2026-10-07 13:27 CT or newer in your entry.
