@@ -5,9 +5,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import com.solme.emberfall.combat.AutoAttackSystem;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,6 +33,10 @@ public final class CircleBoundary {
     /** A player higher than this above the play surface is on or over the wall and is put back. */
     static final double MAX_HEIGHT_ABOVE_FLOOR = 24.0;
     private static final int MESSAGE_COOLDOWN_TICKS = 60;
+    /** Mobs are checked once a second, like the box guard did. */
+    private static final int MOB_CHECK_EVERY_TICKS = 20;
+    /** How far past the play radius a stray is still searched for. */
+    private static final double MOB_SEARCH_MARGIN = 48.0;
     private static final Map<UUID, Long> lastMessageTick = new HashMap<>();
 
     private CircleBoundary() {}
@@ -62,6 +70,34 @@ public final class CircleBoundary {
             double cz = (b.minZ() + b.maxZ() + 1) / 2.0;
             double floorY = b.minY();
             keepPlayerIn(player, arena, cx, cz, radiusFor(b.getXSpan()), floorY, now);
+        }
+        if (now % MOB_CHECK_EVERY_TICKS == 0) {
+            for (ArenaInstance arena : RunManager.activeInstances()) {
+                if (owns(arena)) {
+                    var b = arena.bounds();
+                    pullMobsBack(arena.level(), (b.minX() + b.maxX() + 1) / 2.0, (b.minZ() + b.maxZ() + 1) / 2.0,
+                            radiusFor(b.getXSpan()), b.minY());
+                }
+            }
+        }
+    }
+
+    /**
+     * One entity query per run per second (no per-mob ticking): every hostile Emberfall mob past the play radius goes back to just inside
+     * it, so a knocked-back or kiting mob (or a boss) cannot end up stranded where the player can never reach it. The box guard
+     * ({@link ArenaBoundary}) did this for in-place arenas and skips map arenas, so on the map nothing did.
+     */
+    static void pullMobsBack(ServerLevel level, double cx, double cz, double radius, double floorY) {
+        AABB search = new AABB(cx - radius - MOB_SEARCH_MARGIN, floorY - 64, cz - radius - MOB_SEARCH_MARGIN,
+                cx + radius + MOB_SEARCH_MARGIN, floorY + 64 + MAX_HEIGHT_ABOVE_FLOOR, cz + radius + MOB_SEARCH_MARGIN);
+        List<Mob> strays = level.getEntitiesOfClass(Mob.class, search,
+                m -> m.isAlive() && AutoAttackSystem.isEmberfallHostile(m)
+                        && CircleMath.overshoot(cx, cz, m.getX(), m.getZ(), radius) > 0);
+        for (Mob mob : strays) {
+            double[] in = CircleMath.nearestInside(cx, cz, mob.getX(), mob.getZ(), radius, 2.0);
+            double y = ArenaBoundary.surfaceY(level, in[0], in[1], mob.getY());
+            mob.teleportTo(in[0], y, in[1]);
+            mob.setDeltaMovement(Vec3.ZERO);
         }
     }
 
