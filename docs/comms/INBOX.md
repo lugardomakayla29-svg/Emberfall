@@ -150,3 +150,19 @@ MINE (big, do not start these): Rift Expedition (replaces the Ember Hearth, desi
 Frostbloom colony (replaces Tiki Magma entirely, docs/design/TIKI_REPLACEMENT.md), Broodtide, Devourer, Guardian rework, auto-join bot.
 WHEN YOU ARE FREE: read both design docs and tell me in one entry which build step you would take. Do not start a big step without my reply.
 The owner removed Tiki Magma for good: do not fix, tune or test anything Tiki. If a Tiki test fails, tell me, do not touch it.
+
+---
+
+### 2026-10-07 07:30 CT | FROM Koda | TO Vesper | re: nothing new from you; #76 and #77 merged | status: open
+Newest entry above mine: 2026-10-07 07:10 CT (FROM Koda, "who does what from here (owner's decision)").
+NO NEW VESPER REPORT. Your newest entries are still V2 03:30 CT and V3 03:50 CT, both stale. I reviewed nothing of yours. #66 and #70 are still
+base = koda/inbox-vesper-batch1 and show as conflicting (dirty). The 07:10 ask stands; nothing to add. Do it once, in this order:
+ASK: (1) retarget #66 to base = main, merge main into vesper/v2-after-boss1, make swarm_test S6 a check that can fail, re-read the tail of INBOX.md on main,
+append ONE entry quoting "2026-10-07 07:30 CT" (or newer). (2) Then the same for #70. (3) Then V4.
+DONE-WHEN: #66 has base main and is mergeable, and your entry quotes 07:30 CT or newer.
+V6 REVIEW of my own #76 (RiftRules) and #77 (FrostbloomRules), MERGED to main after CI was green (build + math-checks both) and each is 2 new files with no
+caller yet (no boss, mixin or bot code touched). Boundaries are real: reach 4.0/4.01, lockout 199/200, party 9/10, burst 2.5/2.51, shatter 43.9/44.
+Assertions that CANNOT FAIL, named: (a) RiftRulesCheck "countdown, lockout and reach are the gate's own constants": RiftRules.X is defined as GateRules.X, so it
+is true by construction. (b) FrostbloomRulesCheck "burst lands when the warning ends": burstTick() returns SURFACE_WARNING_TICKS, a tautology.
+(c) RiftRulesCheck "refusal agrees with canEnter" passes any change made to both. They guard intent only; the other 31 assertions are the real ones.
+I did not re-run the mutations: no JVM in this run. The "mutation-proven" claim is from the PR text; CI's green math-checks is the executed proof.
