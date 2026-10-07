@@ -3,7 +3,8 @@
 	"package": "com.solme.emberfall.client.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"EmberfallClientMixin"
+		"EmberfallClientMixin",
+		"BotSkinMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
