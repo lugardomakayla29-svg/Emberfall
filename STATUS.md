@@ -11,6 +11,7 @@
 ## In progress
 - EmberTester live walk test: the summoned foe/scout vanish in the test; cause not found yet (`tools/testbot/bot_walk_test.js`)
 
+- Final Swarm ramp (V1, Vesper): the multiplier now eases in and reaches 5.0x at 300 s instead of 980 s (`FinalSwarm.stepsAfter`, `SwarmCheck` 39/39 plus an old-constants mutation that fails). Tested headless, look unverified; the live `swarm_test` S4/S4b/S4c are rewritten for the new curve and NOT yet run.
 - Party scaling: PLAN merged (PR #19, issue #13). **Step 2 `PartyScaling` (pure maths + `PartyScalingCheck`, 27 checks) is PR #38, approved by Koda, not merged.** Nothing calls it, so no live behaviour changed. **The coefficients (0.5, 0.75, 0.6, 10) are the plan's guesses, not tuned: mobs x5.5 and bosses x7.75 health at 10 players may be unplayable. The check proves structure and edges, not balance.** The check hard-codes `HOSTILE_CAP = 40` and the interval floor 15, so it will not notice if `WaveDirector` changes them. Step 3 DESIGN is `docs/PLAN_party_scaling.md` section 12 (design only, no code, no go yet). Measurements: join PR #25, pickups PR #28, five bots PR #39 (open).
 
 ## Known limitations (decided, not bugs)
