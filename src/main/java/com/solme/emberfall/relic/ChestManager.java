@@ -124,6 +124,8 @@ public final class ChestManager {
                     }
                     if (put(level, arena, p, ChestOpening.Kind.FREE)) {
                         run.freeGiven++;
+                        com.solme.emberfall.pickup.Cue.play(level, "free_chest_appears", SoundEvents.VAULT_OPEN_SHUTTER, SoundSource.BLOCKS,
+                                net.minecraft.world.phys.Vec3.atCenterOf(p), 1.2F, 1.1F);
                         if (TEST_MODE) {
                             com.solme.emberfall.EmberfallMod.LOGGER.info("CHEST_TEST free chest from {} at {} (given {})", source, p, run.freeGiven);
                         }

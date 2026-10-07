@@ -7,15 +7,16 @@ package com.solme.emberfall.wave;
  * climbs in slow steps; leaving through the portal cashes out the current multiplier, staying keeps it rising and keeps the
  * swarm growing. The multiplier is capped at {@link #CAP}; at the cap a player who is still alive meets the Wrath phase.
  *
- * Steps are a table (not a formula) so the pace is exactly what the design says: slow at the start (0.1, 0.2, 0.3, 0.4, 0.5),
- * then 0.5 to 1.0 in tenths, then 1.1 to 2.0, 2.1 to 3.0 and 3.1 to 5.0 each one tenth per step. The tier names follow
- * the ranges: 0.1-1.0 Easy, 1.1-2.0 Medium, 2.1-3.0 Hard, 3.1-5.0 Nightmare.
+ * The multiplier moves in whole tenths (0.1x per step, so 50 values from 0.1x to 5.0x). WHEN each step happens follows an
+ * ease-in curve: slow at the start, faster and faster later, and the cap is reached at {@link #RAMP_SECONDS} (five minutes).
+ * Steps after n seconds = floor(49 * n^2 / RAMP_SECONDS^2), in integer maths so the game and the check can never disagree.
+ * The tier names follow the ranges: 0.1-1.0 Easy, 1.1-2.0 Medium, 2.1-3.0 Hard, 3.1-5.0 Nightmare.
  */
 public final class FinalSwarm {
     private FinalSwarm() {}
 
-    /** Seconds between two multiplier steps. */
-    public static final int STEP_SECONDS = 20;
+    /** Seconds from the start of the swarm until the multiplier reaches the cap. The old linear ramp took 980. */
+    public static final int RAMP_SECONDS = 300;
     /** The highest multiplier, in tenths. */
     public static final int CAP_TENTHS = 50;
     public static final double CAP = CAP_TENTHS / 10.0;
@@ -43,9 +44,23 @@ public final class FinalSwarm {
         return tenthsAtStep(steps) / 10.0;
     }
 
-    /** How many whole steps have passed after {@code seconds} of swarm. */
+    /**
+     * How many whole steps have passed after {@code seconds} of swarm: an ease-in, floor(49 * n^2 / 300^2), capped at the last
+     * step. At most one step per second (so no tier is ever skipped), and the very first step comes after about 43 seconds.
+     */
     public static int stepsAfter(long seconds) {
-        return (int) Math.max(0, seconds / STEP_SECONDS);
+        long n = Math.max(0, Math.min(seconds, RAMP_SECONDS));
+        return (int) ((stepsToCap() * n * n) / ((long) RAMP_SECONDS * RAMP_SECONDS));
+    }
+
+    /** The first whole second at which {@code steps} steps have passed (0 for step 0). The inverse of {@link #stepsAfter}. */
+    public static int secondsForStep(int steps) {
+        int target = Math.max(0, Math.min(steps, stepsToCap()));
+        int n = 0;
+        while (stepsAfter(n) < target) {
+            n++;
+        }
+        return n;
     }
 
     /** The step at which the cap is reached. */

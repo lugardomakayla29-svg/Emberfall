@@ -46,6 +46,7 @@ public final class ModItems {
     public static Item GUARDIAN_SUMMONER;
     public static Item DEVOURER_SUMMONER;
     public static Item MERCHANT_SUMMONER;
+    public static Item EMBER_TESTER_EGG;
 
     /** Mob id to its creative-tab egg, in tab order. */
     public static final Map<String, Item> MOB_EGGS = new java.util.LinkedHashMap<>();
@@ -59,6 +60,9 @@ public final class ModItems {
         GUARDIAN_SUMMONER = registerSummoner("ember_guardian_summoner", BossSummonerItem.Boss.GUARDIAN);
         DEVOURER_SUMMONER = registerSummoner("devourer_summoner", BossSummonerItem.Boss.DEVOURER);
         MERCHANT_SUMMONER = registerSummoner("merchant_summoner", BossSummonerItem.Boss.MERCHANT);
+        ResourceKey<Item> botEggKey = ResourceKey.create(Registries.ITEM, EmberfallMod.id("ember_tester_egg"));
+        EMBER_TESTER_EGG = Registry.register(BuiltInRegistries.ITEM, botEggKey,
+                new BotEggItem(new Item.Properties().setId(botEggKey).stacksTo(1).rarity(Rarity.EPIC)));
         for (String mobId : com.solme.emberfall.entity.MobSpawner.RECIPES.keySet()) {
             ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, EmberfallMod.id(mobId + "_egg"));
             Item egg = new MobEggItem(new Item.Properties().setId(key), mobId);

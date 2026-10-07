@@ -33,6 +33,8 @@ public final class GateManager {
         final BlockPos gate;
         final long startedTick;
         final List<Member> members = new ArrayList<>();
+        /** The "seconds left" value the bell last rang for, so each of 3, 2, 1 rings once however the first tick lines up. */
+        int lastBell = -1;
 
         Departure(BlockPos gate, long startedTick) {
             this.gate = gate;
@@ -130,6 +132,8 @@ public final class GateManager {
         long now = server.getTickCount();
         for (Departure d : new ArrayList<>(DEPARTURES.values())) {
             long elapsed = now - d.startedTick;
+            int secondsLeft = GateRules.secondsLeft(elapsed);
+            boolean bellDue = !GateRules.groupDeparts(elapsed) && secondsLeft != d.lastBell;
             List<RunCommand.PartyMember> going = new ArrayList<>();
             for (Member m : new ArrayList<>(d.members)) {
                 ServerPlayer p = server.getPlayerList().getPlayer(m.id());
@@ -144,12 +148,24 @@ public final class GateManager {
                 }
                 if (GateRules.groupDeparts(elapsed)) {
                     going.add(returnFor(p, m, d.gate, going.size()));
-                } else if (elapsed % 20 == 0) {
+                    continue;
+                }
+                if (bellDue) {
+                    // One soft bell per second left (3, 2, 1), a little higher each time. Rung here and not on `elapsed % 20`
+                    // because the first tick can land one tick after the click and would skip the first bell.
+                    com.solme.emberfall.pickup.Cue.play((net.minecraft.server.level.ServerLevel) p.level(), "gate_countdown",
+                            net.minecraft.sounds.SoundEvents.NOTE_BLOCK_BELL.value(), net.minecraft.sounds.SoundSource.BLOCKS,
+                            p.position(), 0.6F, 0.9F + 0.05F * (GateRules.COUNTDOWN_SECONDS - secondsLeft));
+                }
+                if (elapsed % 20 == 0) {
                     p.sendSystemMessage(Component.literal("\u00A76Departing in \u00A7e" + GateRules.secondsLeft(elapsed)
                             + (d.members.size() > 1 ? " \u00A77(" + d.members.size() + " at the gate)" : "")), true);
                     // A slow darkening as the gate opens: Darkness is vanilla, costs no entity, and ends by itself.
                     p.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 50, 0, false, false));
                 }
+            }
+            if (bellDue) {
+                d.lastBell = secondsLeft;
             }
             if (d.members.isEmpty()) {
                 DEPARTURES.remove(d.gate);
