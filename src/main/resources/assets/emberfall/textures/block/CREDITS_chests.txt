@@ -1,0 +1,3 @@
+ember_chest_wood.png (iron), ember_chest_free.png (copper), ember_chest_gold.png (gold) are from the
+"Excalibur | Iron Chests Support" add-on pack by Starlezz_ for the Excalibur resource pack by Maffhew.
+The pack's README states credit but no licence. Supplied by the project owner; confirm the terms before public release.
