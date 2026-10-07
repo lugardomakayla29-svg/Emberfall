@@ -28,7 +28,9 @@ bot.once('spawn', async () => {
   // ---- 2. SLOTS FULL: a one-slot Ranger with the bow must get NO weapon offer at all.
   await ask('/emberfall weaponoffer EmberTester', 500);
   const wp = await ask('/emberfall weaponpending EmberTester', 500);
-  R('T2 a full weapon loadout gets no weapon offer (nothing pending)', !/WPEND .*(broadsword|twin_daggers|war_halberd|arcane_staff|gravechain|spectral_sickles|ashen_beacon)/.test(wp), wp.slice(-140));
+  // V15 F3: the old regex was a bare negative, so an EMPTY reply passed. describePending prints exactly 'WPEND none' when nothing is pending,
+  // so require that reply (an empty reply and a pending offer 'WPEND bow,..|incoming=..|req=N' both fail).
+  R('T2 a full weapon loadout gets no weapon offer (the command answered WPEND none)', /WPEND none\s*$/.test(wp.trim()), wp.slice(-140));
 
   // ---- 3. STAT SERIES: vitality 2.0 flat; the n-th stack is 2 * 1.3479 * 0.85^(n-1).
   const hp0 = await ask('/attribute @s minecraft:max_health get', 400);

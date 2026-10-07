@@ -18,8 +18,15 @@ bot.once('spawn', async () => {
   await sleep(4000);
   await ask('/gamemode survival'); await ask('/effect clear @s'); await ask('/character select juggernaut'); 
   await ask('/expedition', 2500);
+  // V15 F4: wait for the run the way the working tests do (poll the dimension). A fixed 2.5 s sleep read hudstate BEFORE the map was ready, and the old
+  // 'D0 ... || true' printed PASS next to 'HUD sends=0 none'. The control (the original test on the same jar) showed D1 and D6 failing for that reason.
+  for (let i = 0; i < 40; i++) { await sleep(2000); if (/expedition/.test(await ask('/data get entity @s Dimension', 400))) break; }
+  await sleep(2500);   // the first HUD goes out within a couple of check periods of the run starting
   const inRun = await ask('/emberfall hudstate EmberTester', 1200);
-  R('D0 run started', !/nothing|not in|null|hidden/i.test(inRun) || true, '(' + inRun.slice(0, 60) + ')');
+  // V15 F4: was '... || true', true for every input. hudstate prints 'HUD sends=N none' before any HUD was sent and 'HUD sends=N <slots>|...' once the
+  // run's HUD went out (HudSync.describeLast), so a started run is sends >= 1 and a state other than 'none'.
+  const hm = /HUD sends=(\d+) (\S+)/.exec(inRun);
+  R('D0 run started: the run HUD was sent (sends >= 1, state is not none)', !!hm && +hm[1] >= 1 && hm[2] !== 'none', '(' + inRun.slice(0, 60) + ')');
   await sleep(6000); // let some run time pass so seconds > 0
   const bal0 = await ask('/emberfall silver EmberTester', 800);
   // lethal, real damage from a real source type

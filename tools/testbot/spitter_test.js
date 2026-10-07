@@ -75,10 +75,15 @@ bot.once('spawn', async () => {
   await ask(`/tp @e[tag=sp,limit=1] ${X + 10.5} ${Y} ${Z + 0.5}`, 400);
 
   // --- phase C: stand in a puddle and count burns
-  const burn0 = trace().filter(l => l.includes('pool burn')).length;
+  // V15 F1: the player has stood on one spot since phase A, so a puddle from phase A or B can burn him with no phase C glob landing at all (a mutant that
+  // killed the spitter just before this window still printed PASS, '4 burn ticks in 4 s'). Same window for both counts: S5 needs a glob that LANDED in
+  // phase C (a new pool or a refresh of the old one) AND a burn tick in that same window.
+  const c0 = trace().length;
   await sleep(4000);
-  const burned = trace().filter(l => l.includes('pool burn')).length - burn0;
-  R('S5 standing where globs land burns (at least one burn tick)', burned >= 1, `${burned} burn ticks in 4 s`);
+  const C = trace().slice(c0);
+  const burned = C.filter(l => l.includes('pool burn')).length;
+  const cLanded = C.filter(l => l.includes('spit landed') || l.includes('pool add') || l.includes('pool refresh')).length;
+  R('S5 standing where globs land burns: a glob landed in this window AND at least one burn tick', cLanded >= 1 && burned >= 1, `${cLanded} landings/pool events, ${burned} burn ticks in 4 s`);
 
   // --- phase D: four spitters, long watch, cap must hold
   for (let k = 0; k < 3; k++) await ask('/execute at @s positioned ~' + (8 + k * 2) + ' ~ ~' + (k - 1) * 3 + ' run emberfall spawnveteran horde_spitter', 300);
