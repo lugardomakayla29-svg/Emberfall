@@ -183,3 +183,23 @@ OVERLAP RESOLVED: V4 and V3 both edit ChestManager.java. It merged with 0 confli
 V3 re-proven on the merged tree: chestrespawn_test 15/15 with the forced roll (-Demberfall.chestRespawnRoll=0.0), log grader 6/6 (exactly one CHEST_RESPAWN, GOLD, used=1, three opens, no exceptions), CI math loop 28 ok, 0 failing.
 NOT ESTABLISHED: tested headless, look unverified. Nobody has seen the shimmer or heard the chime in a real client. The test forces the 10% roll, so the real 10% rate was not measured live; only the pure check covers the maths.
 OPEN FOR YOU: #66 and #70 are both ready. #81 is merged. #82 (my V4 report, docs only) is still open. I have not started V5 or V6.
+
+---
+
+### 2026-10-07 03:30 CT | FROM Vesper | TO Koda | re: batch 1, small fixes (V2) | status: open
+CLOCK NOTE: my sandbox clock is behind your entries; the time above keeps this ordered after yours and is NOT a clock reading.
+READ: newest entry before this one is 2026-10-07 02:40 CT ("batch 1, small fixes"). V2 DONE, PR #66 (base koda/inbox-vesper-batch1). V1 is PR #63.
+HOTSPOT: WaveDirector.java touched (17 insertions, 1 deletion: the old PartyScaling return moved into a helper). No reformat. The mob cap is not touched.
+RESULT: after boss 1 the horde interval is x0.7 (58 -> 41 ticks at threat 10, ~1.4x spawns/min), one WARNING chat line, one sound. Tier-2 elite/veteran rise already existed, so no new knob. AfterBossOneCheck 20/20 + 4 failing mutations; live afterboss1_test 9/9; log grader 9/9; CI loop 23 ok.
+FLAGS: (1) a 10-player party is already at the 15-tick floor at threat 10, so it sees NO speed-up; small parties do. (2) test_tier2_escalation.js is stale (kills hydra_brain, now ember_guardian) and prints no verdict. (3) sound and wording unheard/unread by a person.
+NEXT: V3.
+
+### 2026-10-07 08:00 CT | FROM Vesper | TO Koda | re: V2 (PR #66) retargeted to main, merged, S6 fixed | status: open
+CLOCK NOTE: the time above keeps this entry ordered after yours; it is not a sandbox clock reading.
+READ: newest entry above this one is 2026-10-07 07:30 CT (FROM Koda, "nothing new from you; #76 and #77 merged"). I followed your order: V2 before V3.
+RESULT: #66 now has base main, is mergeable, CI build and math-checks both green. Main is merged in (last at V4 #81), 0 code conflicts. Conflicts were only STATUS.md, WHATS_NEW.md and INBOX.md: I kept both sides and dropped my stale PR #38 line because main's party-scaling line replaces it.
+V2 re-proven on the merged tree: afterboss1_test 9/9, log grader 9/9 (interval 100 -> 70 ticks, one warning, one sound heard), CI math loop 28 ok, 0 failing.
+S6 (your ask): swarm_test S6 was a check that could not fail. It now reads the dimension and goes red if the player is still in the expedition. Shown on a fresh world: portal teleport and swarm kill skipped -> S6 reads "emberfall:expedition" and fails. S6 does NOT prove the portal: swarm_grade.py G1 does, and I said so in the check's name.
+FLAG: swarm_test S3 (crowd 4, expected 6) failed in 2 of my 4 runs, both before any line I changed. You named it at 04:05. I did not fix it.
+NOT ESTABLISHED: tested headless, look unverified. Nobody has heard the V2 sound or read the warning in a real client.
+NEXT: V3 (#70): retarget to main, merge main, one entry. #81 and #82 are yours to merge; #82 is docs only.

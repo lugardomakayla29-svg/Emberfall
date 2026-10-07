@@ -254,6 +254,10 @@ public final class WaveDirector {
                 com.solme.emberfall.relic.FreeChestRule.Source.BOSS);
         RunManager.broadcastToSlot(level.getServer(), instance.slot(),
                 Component.literal("§4§lThe corruption deepens... something far worse now stirs."));
+        RunManager.broadcastToSlot(level.getServer(), instance.slot(), Component.literal(AfterBossOne.WARNING));
+        int heard = AfterBossOneSound.play(level, instance);
+        EmberfallMod.LOGGER.info("{} slot={} warned=1 heard={} tier={} soloIntervalBefore={} soloIntervalAfter={}", AfterBossOne.LOG_TAG, instance.slot(), heard,
+                tier, soloSpawnIntervalTicks(1), soloSpawnIntervalTicks(tier));
         EmberfallMod.LOGGER.info("Slot {} escalated to tier 2 after Hydra's defeat", instance.slot());
     }
 
@@ -488,10 +492,22 @@ public final class WaveDirector {
     }
 
     private int currentSpawnIntervalTicks() {
+        return currentSpawnIntervalTicksAtTier(tier);
+    }
+
+    private int currentSpawnIntervalTicksAtTier(int atTier) {
+        return com.solme.emberfall.world.PartyScaling.spawnIntervalTicks(soloSpawnIntervalTicks(atTier), MIN_SPAWN_INTERVAL_TICKS, frozenPartySize());
+    }
+
+    /**
+     * The interval for ONE player at this moment's threat, if the run were at this tier. Pure: it reads nothing that changes, so the
+     * AFTERBOSS1 log line can compare tier 1 with the real tier without freezing the party as a side effect.
+     */
+    private int soloSpawnIntervalTicks(int atTier) {
         double t = threatLevel / THREAT_CAP; // 0..1
         int span = BASE_SPAWN_INTERVAL_TICKS - MIN_SPAWN_INTERVAL_TICKS;
         int solo = (int) Math.round(BASE_SPAWN_INTERVAL_TICKS - t * span);
-        return com.solme.emberfall.world.PartyScaling.spawnIntervalTicks(solo, MIN_SPAWN_INTERVAL_TICKS, frozenPartySize());
+        return AfterBossOne.spawnIntervalTicks(solo, MIN_SPAWN_INTERVAL_TICKS, atTier); // V2: faster horde once the first boss is dead
     }
 
     /** The party size for this run: counted once, on first use, then kept. Never below 1. */
