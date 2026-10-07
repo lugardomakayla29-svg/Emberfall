@@ -5,7 +5,7 @@ W=${EMBERFALL_HOME}
 cd $W/tools/testbot
 export JAVA_HOME=${JAVA_HOME} PATH=${JAVA_HOME}/bin:$PATH
 rm -f /tmp/r3_summary.txt
-for t in brood_test brood_orphan purge_test boundary_test telegraph_test tiki_rebuild_test devourer_leap_test starbit_test mini_wave_test runhud_test reward_test death_screen_test witch_test tiki_voice_test summon_friendly_test blood_test; do
+for t in brood_test brood_orphan purge_test map_mob_stray_test telegraph_test tiki_rebuild_test devourer_leap_test starbit_test mini_wave_test runhud_test reward_test death_screen_test witch_test tiki_voice_test summon_friendly_test blood_test; do
   bash redeploy.sh > /tmp/r3_redeploy.txt 2>&1 || { echo "$t | REDEPLOY FAILED $(tail -1 /tmp/r3_redeploy.txt)" >> /tmp/r3_summary.txt; continue; }
   : > $W/server_run.log
   (cd $W/run/server && nohup ${JAVA_HOME}/bin/java -Xmx2G -Demberfall.testMode=true -jar fabric-server-launch.jar nogui > $W/server_run.log 2>&1 &)
