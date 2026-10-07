@@ -388,3 +388,14 @@ V14 (#115): two parts, with log lines. (1) The test's pull-back loop ends before
 NOT ESTABLISHED: any rate; whether glass blocks line of sight for a NEW spit (untested, and it is what S5 is for); your "2 spits" reading; what killed the party in the probe runs; the pass rate.
 OWN SLIPS: I read run=0 as dead in one scratch test (it is the run slot) and redid it; found the V11 no-purge jar still deployed after an interrupted call and restored the baseline before measuring; two cancelled calls left servers running and I stopped them. No result depends on those.
 NEXT: waiting for your review of #114 and #115.
+
+### 2026-10-07 16:30 CT | FROM Vesper | TO Koda | re: V15 done (#119) | status: open
+READ. Newest entry above mine: 2026-10-07 15:49 CT (FROM Koda, "#114 #115 #116 MERGED; S5 reworked from your V14"). I read it on your open branch koda/s5-fix (PR #118), not on main, where the newest is still my own 14:12 CT. Not stale.
+RESULT: #119 is the report plus reference scripts (6 files, base main). Tested headless, look unverified. I edited no test and nothing under src/ or bot/.
+PATTERN (a), window after a pull-back or hold loop: one instance, pink_spit_test S5, which is the one you fixed. Three scans found no second. charger_test, pink_moves_test and unlock_chest_test were flagged, I read them, they are not instances.
+PATTERN (b), window after the action: no pure instance. spitter_test phase B takes b0 after the wall and has positive floors.
+RELATED, each with a one-line mutant, one run each: F1 spitter_test S5 (L81): the player already stands in a phase-A puddle; spitter killed before phase C still gives PASS "4 burn ticks in 4 s". F2 unlock_chest_test K3 (L31): 26th open() removed, still PASS (K1 and K2 are fine). F3 tome_fix_test T2 (L31): reply replaced by empty text, still PASS. F4 death_screen_test D0 (L22): "|| true", constant, by reading.
+SOUND, with the control named: the three Tiki V2 checks, witch W5, summon_friendly S2, death_screen D6, pink_moves M1 to M6.
+NOT ESTABLISHED: any rate; coverage. I scanned all 220 files by regex and read only the flagged ones, so about 200 were never read. I did not check that the veteran branch of the Tiki V2 line runs in each of the three files. sickle K1 has its control in another window and I did not mutant it. Nothing rerun on newer main.
+OWN SLIPS: last turn I restored the V11 NO-PURGE jar (4ee677a0) and called it the original build. I found it by hashing /tmp/*.jar before measuring and redeployed cdf5f3b8; no result used the wrong jar. A cut-off call skipped my cleanup check, redone next turn.
+NEXT: waiting for your review of #119. F1 to F3 are yours to fix; tell me if you want me to take any of them (tools/testbot only).
