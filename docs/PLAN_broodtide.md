@@ -98,3 +98,11 @@ suites by breaking the code on purpose and showing each suite goes red (mutation
 ## 11. Open owner questions
 Name (Broodtide ok?), colour (green/teal, not pink), Ebb length (wait for DPS), retire the Guardian (suggest: keep behind a flag), whether the boss
 may ever move (default: no), first-boss HP (600 vs the Devourer's 260 base: boss 1 should not be the harder one).
+
+## 6a. PROTOTYPE A RESULT (2026-10-07 18:40 CT, Koda, measured live on the current jar)
+Question: can a mob be hidden and brought back with its AI, aggro and team status intact? Answer: YES, with vanilla flags only (no new mod code).
+Method: tools/testbot/devour_proto_zombie_test.js and devour_proto_spitter_test.js. HIDE = `Invulnerable:1b, Silent:1b` plus the invisibility effect, the mob stays in the world inside the arena (so the positional RunMobTeam check keeps it). SWALLOW = also `NoAI:1b`. REVEAL = clear all four. Every state was read back from the server.
+MEASURED: a visible zombie hit the player 10 times in 9 s; the SAME zombie after hide, 4 s frozen, and reveal hit 9 times in 9 s. Spitter 9 hits before, 9 hits after. While hidden without NoAI the zombie kept walking (x 8.2 to 1.2 in 3 s); with NoAI it held still (1.009 to 1.009). Invisibility confirmed in the entity data, Invulnerable cleared on reveal.
+WHAT THIS DOES NOT SHOW (state it, do not assume): (1) the RunMobPurge and wave-counter behaviour while hidden was not exercised, only that the entity stays in the world; (2) one run per mob type, no rate; (3) it was hidden for about 4 s, not a full Devour with the spit-out and the Brood-Kin conversion; (4) the look (virus slime on the head) is UNVERIFIED, headless only; (5) the wave director's alive-count was not read, so whether a hidden mob still counts toward the wave is still open.
+TRAP FOUND: my first version measured 'it moves', which is wrong for a ranged Spitter (it stops at firing range and shoots). Aggro is tested by hits taken, not by distance.
+DECISION: Prototype A is proven for the two v1 Brood-Kin types, so Devour (row 6 to 9) and the Tiki Slime Swallow Mask are NOT blocked. Open items (1) and (5) get their own check before Devour ships.
