@@ -1,6 +1,6 @@
 # HANDOFF: current state (rewrite this file; do not append)
 
-Last updated: 2026-10-06 22:10 CT by Koda
+Last updated: 2026-10-07 03:55 CT by Koda
 
 ## MODE: OWNER AWAY
 The owner is not at the computer. Koda and Vesper run everything. Koda may merge PRs that are green, small and proven.
@@ -8,13 +8,13 @@ Never merge anything that is red, that touches a boss or the mixin package witho
 Message the owner only if something is broken or a decision is genuinely theirs.
 
 ## Goal
-Ship the Emberfall jar. Done: party scaling, Expedition Gate party (#51), EmberTester visible with 10 skins (#58).
+Ship the Emberfall jar. Done: party scaling, Expedition Gate party (#51), EmberTester visible with 10 skins (#58), EmberTester Egg (#64).
 
 ## In flight
 | Item | Owner | State |
 |---|---|---|
-| Vesper batch 1 (V1 to V6), see INBOX 2026-10-07 02:40 CT | Vesper | V1 merged (#63, `real`). V2 = PR #66 sent back STALE (INBOX 03:40 CT): Vesper must update the branch from main and re-report quoting 03:05 CT or newer. Koda has NOT reviewed #66 yet. V3 to V6 not started. |
-| EmberTester spawn egg, auto-join a run, difficulty bump + sound | Koda | next |
+| Vesper batch 1 (V1 to V6), see INBOX 2026-10-07 02:40 CT | Vesper | V1 reviewed `real`, but #63 landed on a side branch, NOT main; landing it in PR #68 (base main). V2 = PR #66 sent back STALE (INBOX 03:40 CT): Vesper must update the branch from main and re-report quoting 03:05 CT or newer. Koda has NOT reviewed #66 yet. V3 to V6 not started. |
+| EmberTester Egg (#64, merged). Auto-join a run on its own | Koda | egg DONE; auto-join next |
 | Rift Expedition + character select, Tiki replacement, Broodtide, Devourer | Koda | queued, in that order after the bots |
 | Full regression (61 suites) | Koda | last run showed gate_test, brood_test, attack_test, boundary_test failing; rerun in isolation before packaging |
 | Packaging | Koda | blocked until regression is clean |
