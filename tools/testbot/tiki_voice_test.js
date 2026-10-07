@@ -5,6 +5,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const lines = []; bot.on('message', m => lines.push(m.toString()));
 const ask = async (x, w = 600) => { const n = lines.length; bot.chat(x); await sleep(w); return lines.slice(n).join(' | '); };
 const R = (n, ok, extra = '') => console.log(`${ok ? 'PASS' : 'FAIL'} ${n} ${extra}`);
+
+// V4 FIX (2026-10-07): /expedition returns at once while the map is BUILT (about 30 s the first time in a fresh world), and the player is teleported in
+// only when it finishes. The old fixed 3.5 s wait spawned the Tiki into the overworld, and the arrival then left it behind. Wait for the real condition.
+async function waitInExpedition(ms = 90000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    const r = await ask('/data get entity @s Dimension', 400);
+    if (/emberfall:expedition/.test(r)) return true;
+    await sleep(1500);
+  }
+  return false;
+}
 const tierArg = process.argv[2] || 'corrupted';
 const cmd = tierArg === 'veteran' ? '/emberfall spawnveteran tiki_magma' : '/emberfall spawnelite tiki_magma_corrupted';
 let rec = false, sonic = [], lane = [], hurt = [];
@@ -22,7 +34,9 @@ bot.on('error', e => console.log('ERROR', e));
 bot.once('spawn', async () => {
   await sleep(4000);
   await ask('/gamemode survival'); await ask('/effect clear @s');
-  await ask('/character select battlemage'); await ask('/expedition leave', 800); await ask('/expedition', 3500);
+  await ask('/character select battlemage'); await ask('/expedition leave', 800); await ask('/expedition', 800);
+  const arrived = await waitInExpedition(); R('V0 the player reached the expedition before the Tiki was spawned', arrived);
+  if (!arrived) { bot.quit(); process.exit(0); }
   await ask('/effect give @s minecraft:resistance 999 4 true'); await ask('/effect give @s minecraft:regeneration 999 4 true');
   await ask('/emberfall wavestop 0', 300);
   await ask('/kill @e[type=!player,distance=..90]', 900);
