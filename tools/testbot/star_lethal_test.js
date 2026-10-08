@@ -11,7 +11,11 @@ bot.once('spawn', async () => {
   await sleep(6500);
   await ask('/gamemode survival'); await ask('/op EmberTester');
   await ask('/kill @e[type=!player]', 600); await sleep(1000);
-  await ask('/character select juggernaut', 600); await ask('/expedition', 1500); await sleep(2000);
+  await ask('/character select juggernaut', 600); await ask('/expedition', 1500);
+  // The map builds async (about 32 s). Poll the dimension so the checks below run in the RUN, not in the hub, and assert it (R0).
+  let inRun = false; for (let i = 0; i < 80 && !inRun; i++) { await sleep(1500); inRun = /expedition/.test(await ask('/data get entity @s Dimension', 400)); }
+  console.log((inRun ? 'PASS' : 'FAIL') + ' R0 the bot is inside a run (nothing below means anything in the hub) inRun=' + inRun);
+  await sleep(2000);
   await ask('/emberfall wavestop 0', 500);
   console.log('spawn:', (await ask('/emberfall spawnelite umbral_magus', 900)).slice(0, 80));
   // stand 9 blocks from the Magus, keep hp at 1 so the first star that lands kills the player
@@ -26,7 +30,9 @@ bot.once('spawn', async () => {
   // The client death event is unreliable here; the run-end is the proof: outside a run the expedition command reports it.
   const left = await ask('/emberfall debugloadout', 500);
   console.log('after-death state reply:', left.slice(0, 100));
-  console.log(deaths > 0 ? 'PASS L0 the player died to a star' : 'INFO L0 no client death event (judge by the server log run-end line)');
+  // The client death event cannot tell a star from the loop's own /damage, so the verdict is the server's STAR_TEST line (a star's own
+  // hit with the player's hp before/after). The wrapper greps the server log for it; here we only print the marker it needs.
+  console.log('STARTEST_DONE (verdict is graded from the server log by star_lethal_grade.sh, not here) deaths=' + deaths);
   bot.quit(); setTimeout(() => process.exit(0), 300);
 });
 bot.on('error', e => console.log('ERR', e.message));
