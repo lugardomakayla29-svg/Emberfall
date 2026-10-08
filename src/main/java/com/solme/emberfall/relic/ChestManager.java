@@ -303,6 +303,16 @@ public final class ChestManager {
         }
     }
 
+    /** Stored reveal entries, expired or not (see {@link ChestRevealSessions#size}); read by the debug command. */
+    public static int revealStored() {
+        return REVEALS.size();
+    }
+
+    /** Reveals that are open and not expired at {@code now}. */
+    public static int revealOpen(long now) {
+        return REVEALS.count(now);
+    }
+
     public static void forgetReveal(ServerPlayer player) {
         REVEALS.forget(player.getUUID());
     }

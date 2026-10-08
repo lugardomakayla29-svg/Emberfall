@@ -93,6 +93,11 @@ public final class ChestRevealSessions {
         return n;
     }
 
+    /** How many entries are STORED, expired or not. Only {@link #sweep} and {@link #forget} lower it, so it is what a test reads to prove they ran. */
+    public int size() {
+        return open.size();
+    }
+
     /** Forgets one player (they left or died). */
     public void forget(UUID player) {
         open.remove(player);
