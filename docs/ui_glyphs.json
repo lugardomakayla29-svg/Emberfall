@@ -1,0 +1,917 @@
+{
+ "source": "owner allowed-minecraft-emojis.md",
+ "minecraft": "1.21.11",
+ "note": "bitmap = verified in the client jar; unifont_unverified = width not verified",
+ "bitmap": [
+  {
+   "char": "☺",
+   "code": "U+263A",
+   "name": "SMILING FACE",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "☹",
+   "code": "U+2639",
+   "name": "FROWNING FACE",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "☠",
+   "code": "U+2620",
+   "name": "SKULL AND CROSSBONES",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "❣",
+   "code": "U+2763",
+   "name": "HEART EXCLAMATION",
+   "width": 5,
+   "rows": "0..6"
+  },
+  {
+   "char": "❤",
+   "code": "U+2764",
+   "name": "RED HEART",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "⌛",
+   "code": "U+231B",
+   "name": "HOURGLASS DONE",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "⌚",
+   "code": "U+231A",
+   "name": "WATCH",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "☀",
+   "code": "U+2600",
+   "name": "SUN",
+   "width": 8,
+   "rows": "0..7"
+  },
+  {
+   "char": "☁",
+   "code": "U+2601",
+   "name": "CLOUD",
+   "width": 8,
+   "rows": "0..5"
+  },
+  {
+   "char": "☂",
+   "code": "U+2602",
+   "name": "UMBRELLA",
+   "width": 7,
+   "rows": "0..7"
+  },
+  {
+   "char": "❄",
+   "code": "U+2744",
+   "name": "SNOWFLAKE",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "☃",
+   "code": "U+2603",
+   "name": "SNOWMAN",
+   "width": 7,
+   "rows": "0..7"
+  },
+  {
+   "char": "☄",
+   "code": "U+2604",
+   "name": "COMET",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "♠",
+   "code": "U+2660",
+   "name": "SPADE SUIT",
+   "width": 5,
+   "rows": "1..6"
+  },
+  {
+   "char": "♥",
+   "code": "U+2665",
+   "name": "HEART SUIT",
+   "width": 5,
+   "rows": "1..6"
+  },
+  {
+   "char": "♦",
+   "code": "U+2666",
+   "name": "DIAMOND SUIT",
+   "width": 5,
+   "rows": "1..6"
+  },
+  {
+   "char": "♣",
+   "code": "U+2663",
+   "name": "CLUB SUIT",
+   "width": 5,
+   "rows": "1..6"
+  },
+  {
+   "char": "✉",
+   "code": "U+2709",
+   "name": "ENVELOPE",
+   "width": 7,
+   "rows": "1..6"
+  },
+  {
+   "char": "✂",
+   "code": "U+2702",
+   "name": "SCISSORS",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "↔",
+   "code": "U+2194",
+   "name": "LEFT-RIGHT ARROW",
+   "width": 8,
+   "rows": "1..5"
+  },
+  {
+   "char": "☯",
+   "code": "U+262F",
+   "name": "YIN YANG",
+   "width": 9,
+   "rows": "2..10"
+  },
+  {
+   "char": "☮",
+   "code": "U+262E",
+   "name": "PEACE SYMBOL",
+   "width": 9,
+   "rows": "2..10"
+  },
+  {
+   "char": "▶",
+   "code": "U+25B6",
+   "name": "PLAY BUTTON",
+   "width": 6,
+   "rows": "1..5"
+  },
+  {
+   "char": "◀",
+   "code": "U+25C0",
+   "name": "REVERSE BUTTON",
+   "width": 6,
+   "rows": "1..5"
+  },
+  {
+   "char": "♀",
+   "code": "U+2640",
+   "name": "FEMALE SIGN",
+   "width": 3,
+   "rows": "1..6"
+  },
+  {
+   "char": "♂",
+   "code": "U+2642",
+   "name": "MALE SIGN",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "‼",
+   "code": "U+203C",
+   "name": "DOUBLE EXCLAMATION MARK",
+   "width": 3,
+   "rows": "0..6"
+  },
+  {
+   "char": "☑",
+   "code": "U+2611",
+   "name": "CHECK BOX WITH CHECK",
+   "width": 9,
+   "rows": "2..10"
+  },
+  {
+   "char": "✔",
+   "code": "U+2714",
+   "name": "CHECK MARK",
+   "width": 6,
+   "rows": "0..6"
+  },
+  {
+   "char": "©",
+   "code": "U+00A9",
+   "name": "COPYRIGHT",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "®",
+   "code": "U+00AE",
+   "name": "REGISTERED",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "™",
+   "code": "U+2122",
+   "name": "TRADE MARK",
+   "width": 8,
+   "rows": "0..3"
+  },
+  {
+   "char": "Ⓜ",
+   "code": "U+24C2",
+   "name": "CIRCLED M",
+   "width": 9,
+   "rows": "2..10"
+  },
+  {
+   "char": "☷",
+   "code": "U+2637",
+   "name": "TRIGRAM FOR EARTH",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "☵",
+   "code": "U+2635",
+   "name": "TRIGRAM FOR WATER",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "☶",
+   "code": "U+2636",
+   "name": "TRIGRAM FOR MOUNTAIN",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "♡",
+   "code": "U+2661",
+   "name": "WHITE HEART SUIT",
+   "width": 5,
+   "rows": "1..6"
+  },
+  {
+   "char": "♬",
+   "code": "U+266C",
+   "name": "BEAMED SIXTEENTH NOTES",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "♮",
+   "code": "U+266E",
+   "name": "MUSIC NATURAL SIGN",
+   "width": 3,
+   "rows": "0..6"
+  },
+  {
+   "char": "♯",
+   "code": "U+266F",
+   "name": "SHARP",
+   "width": 5,
+   "rows": "0..6"
+  },
+  {
+   "char": "☴",
+   "code": "U+2634",
+   "name": "TRIGRAM FOR WIND",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "♭",
+   "code": "U+266D",
+   "name": "FLAT",
+   "width": 3,
+   "rows": "0..6"
+  },
+  {
+   "char": "♢",
+   "code": "U+2662",
+   "name": "WHITE DIAMOND SUIT",
+   "width": 5,
+   "rows": "1..6"
+  },
+  {
+   "char": "☈",
+   "code": "U+2608",
+   "name": "THUNDERSTORM",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "☒",
+   "code": "U+2612",
+   "name": "BALLOT BOX WITH X",
+   "width": 9,
+   "rows": "2..10"
+  },
+  {
+   "char": "★",
+   "code": "U+2605",
+   "name": "BLACK STAR",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "✎",
+   "code": "U+270E",
+   "name": "LOWER RIGHT PENCIL",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "♪",
+   "code": "U+266A",
+   "name": "EIGHTH NOTE",
+   "width": 5,
+   "rows": "0..6"
+  },
+  {
+   "char": "☰",
+   "code": "U+2630",
+   "name": "TRIGRAM FOR HEAVEN",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "☽",
+   "code": "U+263D",
+   "name": "FIRST QUARTER MOON",
+   "width": 8,
+   "rows": "0..7"
+  },
+  {
+   "char": "☐",
+   "code": "U+2610",
+   "name": "BALLOT BOX",
+   "width": 9,
+   "rows": "2..10"
+  },
+  {
+   "char": "♧",
+   "code": "U+2667",
+   "name": "WHITE CLUB SUIT",
+   "width": 5,
+   "rows": "1..6"
+  },
+  {
+   "char": "☱",
+   "code": "U+2631",
+   "name": "TRIGRAM FOR LAKE",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "☻",
+   "code": "U+263B",
+   "name": "BLACK SMILING FACE",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "♤",
+   "code": "U+2664",
+   "name": "WHITE SPADE SUIT",
+   "width": 5,
+   "rows": "1..6"
+  },
+  {
+   "char": "#",
+   "code": "U+0023",
+   "name": "HASH SIGN",
+   "width": 5,
+   "rows": "0..6"
+  },
+  {
+   "char": "♩",
+   "code": "U+2669",
+   "name": "QUARTER NOTE",
+   "width": 3,
+   "rows": "0..6"
+  },
+  {
+   "char": "☞",
+   "code": "U+261E",
+   "name": "WHITE RIGHT POINTING INDEX",
+   "width": 9,
+   "rows": "4..9"
+  },
+  {
+   "char": "♫",
+   "code": "U+266B",
+   "name": "BEAMED EIGHTH NOTES",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "☜",
+   "code": "U+261C",
+   "name": "WHITE LEFT POINTING INDEX",
+   "width": 9,
+   "rows": "4..9"
+  },
+  {
+   "char": "☲",
+   "code": "U+2632",
+   "name": "TRIGRAM FOR FIRE",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "☳",
+   "code": "U+2633",
+   "name": "TRIGRAM FOR THUNDER",
+   "width": 5,
+   "rows": "1..5"
+  },
+  {
+   "char": "⚔",
+   "code": "U+2694",
+   "name": "CROSSED SWORDS",
+   "width": 7,
+   "rows": "0..6"
+  },
+  {
+   "char": "⚀",
+   "code": "U+2680",
+   "name": "DICE ONE",
+   "width": 7,
+   "rows": "0..6"
+  }
+ ],
+ "unifont_unverified": [
+  {
+   "char": "✌",
+   "code": "U+270C",
+   "name": "VICTORY HAND"
+  },
+  {
+   "char": "☝",
+   "code": "U+261D",
+   "name": "INDEX POINTING UP"
+  },
+  {
+   "char": "✍",
+   "code": "U+270D",
+   "name": "WRITING HAND"
+  },
+  {
+   "char": "♨",
+   "code": "U+2668",
+   "name": "HOT SPRINGS"
+  },
+  {
+   "char": "✈",
+   "code": "U+2708",
+   "name": "AIRPLANE"
+  },
+  {
+   "char": "♟",
+   "code": "U+265F",
+   "name": "CHESS PAWN"
+  },
+  {
+   "char": "☎",
+   "code": "U+260E",
+   "name": "TELEPHONE"
+  },
+  {
+   "char": "⌨",
+   "code": "U+2328",
+   "name": "KEYBOARD"
+  },
+  {
+   "char": "✏",
+   "code": "U+270F",
+   "name": "PENCIL"
+  },
+  {
+   "char": "✒",
+   "code": "U+2712",
+   "name": "BLACK NIB"
+  },
+  {
+   "char": "☢",
+   "code": "U+2622",
+   "name": "RADIOACTIVE"
+  },
+  {
+   "char": "☣",
+   "code": "U+2623",
+   "name": "BIOHAZARD"
+  },
+  {
+   "char": "⬆",
+   "code": "U+2B06",
+   "name": "UP ARROW"
+  },
+  {
+   "char": "⬇",
+   "code": "U+2B07",
+   "name": "DOWN ARROW"
+  },
+  {
+   "char": "➡",
+   "code": "U+27A1",
+   "name": "RIGHT ARROW"
+  },
+  {
+   "char": "⬅",
+   "code": "U+2B05",
+   "name": "LEFT ARROW"
+  },
+  {
+   "char": "↗",
+   "code": "U+2197",
+   "name": "UP-RIGHT ARROW"
+  },
+  {
+   "char": "↘",
+   "code": "U+2198",
+   "name": "DOWN-RIGHT ARROW"
+  },
+  {
+   "char": "↙",
+   "code": "U+2199",
+   "name": "DOWN-LEFT ARROW"
+  },
+  {
+   "char": "↖",
+   "code": "U+2196",
+   "name": "UP-LEFT ARROW"
+  },
+  {
+   "char": "↕",
+   "code": "U+2195",
+   "name": "UP-DOWN ARROW"
+  },
+  {
+   "char": "↩",
+   "code": "U+21A9",
+   "name": "RIGHT ARROW CURVING LEFT"
+  },
+  {
+   "char": "↪",
+   "code": "U+21AA",
+   "name": "LEFT ARROW CURVING RIGHT"
+  },
+  {
+   "char": "✡",
+   "code": "U+2721",
+   "name": "STAR OF DAVID"
+  },
+  {
+   "char": "☸",
+   "code": "U+2638",
+   "name": "WHEEL OF DHARMA"
+  },
+  {
+   "char": "✝",
+   "code": "U+271D",
+   "name": "LATIN CROSS"
+  },
+  {
+   "char": "☦",
+   "code": "U+2626",
+   "name": "ORTHODOX CROSS"
+  },
+  {
+   "char": "☪",
+   "code": "U+262A",
+   "name": "STAR AND CRESCENT"
+  },
+  {
+   "char": "♈",
+   "code": "U+2648",
+   "name": "ARIES"
+  },
+  {
+   "char": "♉",
+   "code": "U+2649",
+   "name": "TAURUS"
+  },
+  {
+   "char": "♊",
+   "code": "U+264A",
+   "name": "GEMINI"
+  },
+  {
+   "char": "♋",
+   "code": "U+264B",
+   "name": "CANCER"
+  },
+  {
+   "char": "♌",
+   "code": "U+264C",
+   "name": "LEO"
+  },
+  {
+   "char": "♍",
+   "code": "U+264D",
+   "name": "VIRGO"
+  },
+  {
+   "char": "♎",
+   "code": "U+264E",
+   "name": "LIBRA"
+  },
+  {
+   "char": "♏",
+   "code": "U+264F",
+   "name": "SCORPIO"
+  },
+  {
+   "char": "♐",
+   "code": "U+2650",
+   "name": "SAGITTARIUS"
+  },
+  {
+   "char": "♑",
+   "code": "U+2651",
+   "name": "CAPRICORN"
+  },
+  {
+   "char": "♒",
+   "code": "U+2652",
+   "name": "AQUARIUS"
+  },
+  {
+   "char": "♓",
+   "code": "U+2653",
+   "name": "PISCES"
+  },
+  {
+   "char": "✖",
+   "code": "U+2716",
+   "name": "MULTIPLY"
+  },
+  {
+   "char": "〰",
+   "code": "U+3030",
+   "name": "WAVY DASH"
+  },
+  {
+   "char": "✳",
+   "code": "U+2733",
+   "name": "EIGHT-SPOKED ASTERISK"
+  },
+  {
+   "char": "✴",
+   "code": "U+2734",
+   "name": "EIGHT-POINTED STAR"
+  },
+  {
+   "char": "❇",
+   "code": "U+2747",
+   "name": "SPARKLE"
+  },
+  {
+   "char": "㊗",
+   "code": "U+3297",
+   "name": "JAPANESE “CONGRATULATIONS” BUTTON"
+  },
+  {
+   "char": "㊙",
+   "code": "U+3299",
+   "name": "JAPANESE “SECRET” BUTTON"
+  },
+  {
+   "char": "▪",
+   "code": "U+25AA",
+   "name": "BLACK SMALL SQUARE"
+  },
+  {
+   "char": "▫",
+   "code": "U+25AB",
+   "name": "WHITE SMALL SQUARE"
+  },
+  {
+   "char": "☋",
+   "code": "U+260B",
+   "name": "DESCENDING NODE"
+  },
+  {
+   "char": "☌",
+   "code": "U+260C",
+   "name": "CONJUNCTION"
+  },
+  {
+   "char": "♜",
+   "code": "U+265C",
+   "name": "BLACK CHESS ROOK"
+  },
+  {
+   "char": "♕",
+   "code": "U+2655",
+   "name": "WHITE CHESS QUEEN"
+  },
+  {
+   "char": "☚",
+   "code": "U+261A",
+   "name": "BLACK LEFT POINTING INDEX"
+  },
+  {
+   "char": "♝",
+   "code": "U+265D",
+   "name": "BLACK CHESS BISHOP"
+  },
+  {
+   "char": "☓",
+   "code": "U+2613",
+   "name": "SALTIRE"
+  },
+  {
+   "char": "☛",
+   "code": "U+261B",
+   "name": "BLACK RIGHT POINTING INDEX"
+  },
+  {
+   "char": "☭",
+   "code": "U+262D",
+   "name": "HAMMER AND SICKLE"
+  },
+  {
+   "char": "✐",
+   "code": "U+2710",
+   "name": "UPPER RIGHT PENCIL"
+  },
+  {
+   "char": "♖",
+   "code": "U+2656",
+   "name": "WHITE CHESS ROOK"
+  },
+  {
+   "char": "♚",
+   "code": "U+265A",
+   "name": "BLACK CHESS KING"
+  },
+  {
+   "char": "♛",
+   "code": "U+265B",
+   "name": "BLACK CHESS QUEEN"
+  },
+  {
+   "char": "☡",
+   "code": "U+2621",
+   "name": "CAUTION SIGN"
+  },
+  {
+   "char": "☼",
+   "code": "U+263C",
+   "name": "WHITE SUN WITH RAYS"
+  },
+  {
+   "char": "♅",
+   "code": "U+2645",
+   "name": "URANUS"
+  },
+  {
+   "char": "☟",
+   "code": "U+261F",
+   "name": "WHITE DOWN POINTING INDEX"
+  },
+  {
+   "char": "❦",
+   "code": "U+2766",
+   "name": "FLORAL HEART"
+  },
+  {
+   "char": "☊",
+   "code": "U+260A",
+   "name": "ASCENDING NODE"
+  },
+  {
+   "char": "☍",
+   "code": "U+260D",
+   "name": "OPPOSITION"
+  },
+  {
+   "char": "☬",
+   "code": "U+262C",
+   "name": "ADI SHAKTI"
+  },
+  {
+   "char": "☫",
+   "code": "U+262B",
+   "name": "FARSI SYMBOL"
+  },
+  {
+   "char": "☾",
+   "code": "U+263E",
+   "name": "LAST QUARTER MOON"
+  },
+  {
+   "char": "☤",
+   "code": "U+2624",
+   "name": "CADUCEUS"
+  },
+  {
+   "char": "❧",
+   "code": "U+2767",
+   "name": "ROTATED FLORAL HEART BULLET"
+  },
+  {
+   "char": "♄",
+   "code": "U+2644",
+   "name": "SATURN"
+  },
+  {
+   "char": "♁",
+   "code": "U+2641",
+   "name": "EARTH"
+  },
+  {
+   "char": "♔",
+   "code": "U+2654",
+   "name": "WHITE CHESS KING"
+  },
+  {
+   "char": "❥",
+   "code": "U+2765",
+   "name": "ROTATED HEAVY BLACK HEART BULLET"
+  },
+  {
+   "char": "☥",
+   "code": "U+2625",
+   "name": "ANKH"
+  },
+  {
+   "char": "♞",
+   "code": "U+265E",
+   "name": "BLACK CHESS KNIGHT"
+  },
+  {
+   "char": "♆",
+   "code": "U+2646",
+   "name": "NEPTUNE"
+  },
+  {
+   "char": "♃",
+   "code": "U+2643",
+   "name": "JUPITER"
+  },
+  {
+   "char": "☇",
+   "code": "U+2607",
+   "name": "LIGHTNING"
+  },
+  {
+   "char": "☏",
+   "code": "U+260F",
+   "name": "WHITE TELEPHONE"
+  },
+  {
+   "char": "♘",
+   "code": "U+2658",
+   "name": "WHITE CHESS KNIGHT"
+  },
+  {
+   "char": "☧",
+   "code": "U+2627",
+   "name": "CHI RHO"
+  },
+  {
+   "char": "☉",
+   "code": "U+2609",
+   "name": "SUN"
+  },
+  {
+   "char": "♇",
+   "code": "U+2647",
+   "name": "PLUTO"
+  },
+  {
+   "char": "☩",
+   "code": "U+2629",
+   "name": "CROSS OF JERUSALEM"
+  },
+  {
+   "char": "♙",
+   "code": "U+2659",
+   "name": "WHITE CHESS PAWN"
+  },
+  {
+   "char": "☨",
+   "code": "U+2628",
+   "name": "CROSS OF LORRAINE"
+  },
+  {
+   "char": "♗",
+   "code": "U+2657",
+   "name": "WHITE CHESS BISHOP"
+  }
+ ]
+}
