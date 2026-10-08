@@ -34,7 +34,7 @@ public class HudLayoutCheck {
 
     public static void main(String[] a) {
         // The sizes: [windowW, windowH, guiScaleOption(0 = auto)]. Scaled = window / scale.
-        int[][] windows = {{854, 480}, {1920, 1080}};
+        int[][] windows = {{854, 480}, {1920, 1080}, {320, 240}};
         int[] options = {0, 1, 2, 3, 4};
 
         // S: the scale rule matches the one read from the 1.21.11 jar (calculateScale), so the sizes below are what a player sees.
@@ -90,6 +90,39 @@ public class HudLayoutCheck {
         check("O1 no two drawn boxes ever share a pixel", overlaps == 0);
         check("O2 no drawn weapon box leaves the screen", offscreen == 0);
         check("O3 the weapon box is drawn in some layouts and hidden in others (the test exercises both)", shown > 0 && hidden > 0);
+
+        // Q: the smallest GUI the game allows, 320 x 240 at scale 1 (vanilla never goes under it). The sweep repeats the O loop's ranges but counts this one
+        // size on its own, so a broken fit rule cannot hide inside the totals of the bigger windows. Hiding the weapon box here is correct; drawing it over
+        // the stats panel, over the timer plate or off screen is not. Koda measured 55 shown, 2195 hidden at this size, so both outcomes must occur.
+        int qCases = 0, qShown = 0, qHidden = 0, qBad = 0;
+        int qSw = 320, qSh = 240;
+        check("Q0 a 320x240 window is scale 1, a 320x240 GUI", HudLayout.autoScale(320, 240) == 1);
+        for (int labelW = 20; labelW <= 60; labelW += 10) {
+            for (int valueW = 10; valueW <= 60; valueW += 10) {
+                Box st = stats(labelW, valueW);
+                for (int timerW = 40; timerW <= 80; timerW += 20) {
+                    Box timer = HudLayout.timerBox(qSw, timerW, 21);
+                    for (int rows = 1; rows <= 5; rows++) {
+                        for (int widest = 40; widest <= 120; widest += 20) {
+                            Box wb = HudLayout.weaponBox(st, widest, rows, RELIC_ROW, PAD);
+                            qCases++;
+                            // The same "drawn" rule RunHud.drawWeaponBox applies: fits beside the stats panel and timer, and inside the right margin.
+                            boolean drawn = HudLayout.weaponBoxFits(st, wb, timer) && wb.right() <= qSw - HudLayout.MARGIN;
+                            if (drawn) {
+                                qShown++;
+                                if (wb.overlaps(st) || wb.overlaps(timer) || wb.right() > qSw || wb.bottom() > qSh) qBad++;
+                            } else {
+                                qHidden++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println("  (320x240: " + qCases + " layouts, " + qShown + " weapon boxes drawn, " + qHidden + " hidden)");
+        check("Q1 at 320x240 a drawn weapon box never overlaps the stats panel or the timer and never leaves the screen (" + qBad + " bad)", qBad == 0);
+        check("Q2 at 320x240 the weapon box is hidden in most layouts (the panel is too wide for the room)", qHidden > qShown);
+        check("Q3 at 320x240 both outcomes occur, so Q1 is not vacuous (" + qShown + " drawn, " + qHidden + " hidden)", qShown > 0 && qHidden > 0);
 
         // The two named window sizes as written, at the scale a player gets by default, with typical widths.
         for (int[] win : windows) {
