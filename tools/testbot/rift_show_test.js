@@ -20,7 +20,13 @@ bot.once('spawn', async () => {
   const s0 = await state(); R('T0 the state command answers', !!s0, JSON.stringify(s0)); if (!s0) process.exit(1);
   const sum = ws => ws.reduce((a, w) => { for (const [k, v] of Object.entries(w.pk)) a.pk[k] = (a.pk[k] || 0) + v; for (const [k, v] of Object.entries(w.types)) a.types[k] = (a.types[k] || 0) + v; a.r += w.r; a.pos.push(...w.pos); return a; }, { pk: {}, types: {}, pos: [], r: '' });
   const idles = [], opens = [];
-  for (let i = 0; i < 3; i++) { idles.push(await window(7000, null)); opens.push(await window(7000, '/emberfall rift open')); }   // interleaved so drift hits both alike
+  for (let i = 0; i < 3; i++) {
+    idles.push(await window(7000, null));
+    // The manager now enforces 48 blocks between Rifts, so the previous one must be gone before the next opens at the same spot: close it and let
+    // the closing show finish OUTSIDE the counted window, so only the opening is measured.
+    await ask('/emberfall rift closeall', 300); await sleep(3000);
+    opens.push(await window(7000, '/emberfall rift open'));
+  }   // interleaved so drift hits both alike
   const idle = sum(idles), open = sum(opens);
   const mid = await state();
   R('T1 every opening reported a schedule', opens.every(w => /RIFT opening events=(\d+)/.test(w.r) && +/events=(\d+)/.exec(w.r)[1] > 50), opens.map(w => w.r.slice(0, 24)).join(' / '));

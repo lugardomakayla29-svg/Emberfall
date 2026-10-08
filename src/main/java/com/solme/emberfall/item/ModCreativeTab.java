@@ -47,6 +47,7 @@ public final class ModCreativeTab {
                     output.accept(ModItems.GUARDIAN_SUMMONER);
                     output.accept(ModItems.DEVOURER_SUMMONER);
                     output.accept(ModItems.MERCHANT_SUMMONER);
+                    output.accept(ModItems.RIFT_SHARD);
                     output.accept(ModItems.EMBER_TESTER_EGG);
                 })
                 .build();

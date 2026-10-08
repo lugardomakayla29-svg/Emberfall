@@ -75,5 +75,7 @@
   "emberfall.rift.tearing": "The air begins to tear...",
   "emberfall.rift.open": "A Rift has opened.",
   "emberfall.rift.closing": "The Rift shudders...",
-  "emberfall.rift.collapsed": "The Rift collapses."
+  "emberfall.rift.collapsed": "The Rift collapses.",
+  "item.emberfall.rift_shard": "Rift Shard",
+  "emberfall.rift.natural": "The air nearby begins to tear..."
 }
