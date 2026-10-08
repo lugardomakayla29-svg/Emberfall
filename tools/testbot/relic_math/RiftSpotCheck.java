@@ -9,14 +9,23 @@ public class RiftSpotCheck {
 
     public static void main(String[] a) {
         // O: open air. The boundary is exact: 70% of 10 is 7.
-        check("O1 exactly 70% open is open", RiftSpot.hasOpenAir(7, 10), "");
-        check("O2 one cell short is not open", !RiftSpot.hasOpenAir(6, 10), "");
-        check("O3 fully open", RiftSpot.hasOpenAir(10, 10), "");
-        check("O4 fully buried", !RiftSpot.hasOpenAir(0, 10), "");
+        // Sample size 25 is RiftManager's 5 by 5 grid. 70% of 25 is 17.5, so 18 open is the smallest that passes.
+        check("O1 exactly the smallest passing count is open (18 of 25)", RiftSpot.hasOpenAir(18, 25), "");
+        check("O2 one cell short is not open (17 of 25)", !RiftSpot.hasOpenAir(17, 25), "");
+        check("O3 fully open", RiftSpot.hasOpenAir(25, 25), "");
+        check("O4 fully buried", !RiftSpot.hasOpenAir(0, 25), "");
         check("O5 a sample of 0 cells is never open", !RiftSpot.hasOpenAir(0, 0), "");
-        check("O6 more open than sampled is refused (bad input)", !RiftSpot.hasOpenAir(11, 10), "");
-        check("O7 negative open is refused (bad input)", !RiftSpot.hasOpenAir(-1, 10), "");
-        check("O8 rounds UP: 70% of 9 = 6.3 needs 7", !RiftSpot.hasOpenAir(6, 9) && RiftSpot.hasOpenAir(7, 9), "");
+        check("O6 more open than sampled is refused (bad input)", !RiftSpot.hasOpenAir(26, 25), "");
+        check("O7 negative open is refused (bad input)", !RiftSpot.hasOpenAir(-1, 25), "");
+        check("O8 rounds UP at another size: 70% of 16 = 11.2 needs 12", !RiftSpot.hasOpenAir(11, 16) && RiftSpot.hasOpenAir(12, 16), "");
+        // M: the loaded-cell floor. With the old rule (1,1) passed: one loaded cell, and it was open.
+        check("M1 one loaded cell, and it is open, is refused", !RiftSpot.hasOpenAir(1, 1), "");
+        check("M2 15 of 15 sampled, all open, is open (the floor itself)", RiftSpot.hasOpenAir(15, 15), "");
+        check("M3 14 of 14 sampled, all open, is refused (one under the floor)", !RiftSpot.hasOpenAir(14, 14), "");
+        check("M4 the floor is 15 (a quarter of 25 would be 6, so a change to it must show)", RiftSpot.MIN_SAMPLED == 15, "got " + RiftSpot.MIN_SAMPLED);
+        boolean floorHolds = true;
+        for (int total = 0; total < RiftSpot.MIN_SAMPLED; total++) { for (int open = 0; open <= total; open++) { if (RiftSpot.hasOpenAir(open, total)) floorHolds = false; } }
+        check("M5 no combination under the floor is ever open (every open count for 0..14 sampled)", floorHolds, "");
 
         // F: facing. The normal of the answer must point AT the player, checked through RiftPlacement.normal (index 0 = x, 1 = z).
         double[][] players = {{5, 0}, {-5, 0}, {0, 5}, {0, -5}, {7, 3}, {-7, 3}, {3, 7}, {3, -7}, {-3, -7}, {-7, -3}};

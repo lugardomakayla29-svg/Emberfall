@@ -18,9 +18,15 @@ public final class RiftSpot {
     /** At least this share of the sampled cells must be non-solid (air, water, plants) for a spot to count as open air. PROPOSAL. */
     public static final double MIN_OPEN_SHARE = 0.70;
 
-    /** Whether {@code openCells} of {@code sampledCells} are non-solid enough. An empty sample is never open. */
+    /**
+     * The fewest cells that must have been sampled (of the 25 in RiftManager's 5 by 5 grid) before the share is judged. Cells in unloaded
+     * chunks are skipped, so with one loaded cell a single open cell used to pass (70% of 1 rounds up to 1). PROPOSAL: 15 of 25, as asked.
+     */
+    public static final int MIN_SAMPLED = 15;
+
+    /** Whether {@code openCells} of {@code sampledCells} are non-solid enough. Fewer than {@link #MIN_SAMPLED} sampled cells is never open. */
     public static boolean hasOpenAir(int openCells, int sampledCells) {
-        if (sampledCells <= 0 || openCells < 0 || openCells > sampledCells) {
+        if (sampledCells < MIN_SAMPLED || openCells < 0 || openCells > sampledCells) {
             return false;
         }
         return openCells >= Math.ceil(sampledCells * MIN_OPEN_SHARE);
