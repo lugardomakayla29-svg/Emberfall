@@ -76,6 +76,21 @@ public final class EmberfallCommands {
                     .then(Commands.literal("paste")
                             .then(Commands.argument("structure", StringArgumentType.word())
                                     .executes(ctx -> paste(ctx.getSource(), StringArgumentType.getString(ctx, "structure")))))
+                    .then(Commands.literal("rift")
+                            .then(Commands.literal("open").executes(ctx -> riftShow(ctx.getSource(), false)))
+                            .then(Commands.literal("close").executes(ctx -> riftShow(ctx.getSource(), true)))
+                            .then(Commands.literal("clear").executes(ctx -> {
+                                com.solme.emberfall.rift.RiftStage.clear();
+                                ctx.getSource().sendSuccess(() -> Component.literal("RIFT cleared"), false);
+                                return 1;
+                            }))
+                            .then(Commands.literal("state").executes(ctx -> {
+                                int ents = 0;
+                                for (var e : ctx.getSource().getLevel().getAllEntities()) { ents++; }
+                                final int n = ents;
+                                ctx.getSource().sendSuccess(() -> Component.literal("RIFT active=" + com.solme.emberfall.rift.RiftStage.activeCount() + " entities=" + n), false);
+                                return 1;
+                            })))
                     .then(Commands.literal("teardown")
                             .then(Commands.argument("slot", IntegerArgumentType.integer())
                                     .executes(ctx -> teardown(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "slot")))))
@@ -725,6 +740,24 @@ public final class EmberfallCommands {
         com.solme.emberfall.world.MapManager.ensureBuilt(level, slot, origin,
                 b -> src.sendSuccess(() -> Component.literal("MAPDONE " + com.solme.emberfall.world.MapManager.lastReport()), false));
         src.sendSuccess(() -> Component.literal("MAPSTART slot " + slot + " origin " + origin.toShortString()), false);
+        return 1;
+    }
+
+    /** Debug trigger for the Rift show: opens (or closes) one 6 blocks in front of whoever ran it, facing them. Entity-free. */
+    private static int riftShow(CommandSourceStack source, boolean closing) {
+        var player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.literal("Run this as a player."));
+            return 0;
+        }
+        var look = player.getLookAngle();
+        double x = player.getX() + look.x * 6.0;
+        double z = player.getZ() + look.z * 6.0;
+        double y = player.getY() + 5.0;
+        // The Rift faces the player: its normal must point back at them. Pick the facing whose normal opposes the look direction.
+        int facing = Math.abs(look.x) > Math.abs(look.z) ? (look.x > 0 ? 1 : 3) : (look.z > 0 ? 2 : 0);
+        int events = com.solme.emberfall.rift.RiftStage.start(source.getLevel(), x, y, z, facing, source.getLevel().getGameTime(), closing);
+        source.sendSuccess(() -> Component.literal("RIFT " + (closing ? "closing" : "opening") + " events=" + events), false);
         return 1;
     }
 
