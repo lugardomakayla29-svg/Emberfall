@@ -69,6 +69,7 @@ public class EmberfallMod implements ModInitializer {
 		com.solme.emberfall.combat.MobPresentation.register();
 		com.solme.emberfall.pickup.KillRewards.register();
 		com.solme.emberfall.world.RunManager.registerLifecycleSafety();
+		com.solme.emberfall.rift.RiftManager.registerLifecycle();
 		CompositeParts.register();
 		enableHeadlessTestModeIfRequested();
 		ServerTickEvents.END_SERVER_TICK.register(WaveDirector::tickAll);
@@ -100,6 +101,7 @@ public class EmberfallMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.relic.MerchantManager::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.wave.SwarmPortal::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.hub.GateManager::tickAll);
+		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftGate::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.network.SwarmHudSync::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(ShrineManager::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(WeaponChoiceManager::tickAll);
