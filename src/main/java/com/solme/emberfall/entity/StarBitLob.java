@@ -37,6 +37,7 @@ import java.util.List;
  * {@code emberfall_run} so the run teardown removes any that somehow survive.
  */
 public final class StarBitLob {
+    private static final boolean TEST_MODE = Boolean.getBoolean("emberfall.testMode");
     private StarBitLob() {}
 
     /** The seven verified minecraft-heads.com "Star Bit" colours (Super Mario candy set). */
@@ -268,7 +269,15 @@ public final class StarBitLob {
             s.level.sendParticles(new DustParticleOptions(s.colour.rgb, 0.9F), next.x, next.y, next.z, 1, 0.0, 0.0, 0.0, 0.0);
             if (struck) {
                 DamageSource source = s.caster.damageSources().mobAttack(s.caster);
-                victim.hurtServer(s.level, source, (float) (DIRECT_DAMAGE * s.damageScale));
+                float dmg = (float) (DIRECT_DAMAGE * s.damageScale);
+                float before = victim.getHealth();
+                victim.hurtServer(s.level, source, dmg);
+                if (TEST_MODE) {
+                    // Lets a live test tell a star's own damage from anything else that hurt the same player.
+                    com.solme.emberfall.EmberfallMod.LOGGER.info("STAR_TEST hit victim={} dmg={} hpBefore={} hpAfter={} dead={}",
+                            victim.getName().getString(), String.format("%.1f", dmg), String.format("%.1f", before),
+                            String.format("%.1f", victim.getHealth()), !victim.isAlive());
+                }
                 s.end();
                 burst.add(s);
                 it.remove();
