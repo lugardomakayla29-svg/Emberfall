@@ -22,7 +22,12 @@ bot.once('spawn', async () => {
   await sleep(3000);
   check('T0 outside a run nothing is removed', (await count('@e[tag=pg_x]')) === 4, `left=${await count('@e[tag=pg_x]')} of 4`);
   await ask('/kill @e[tag=pg_x]', 500);
-  await ask('/character select juggernaut', 600); await ask('/expedition', 1500); await sleep(2000);
+  await ask('/character select juggernaut', 600); await ask('/expedition', 1500);
+  // The map builds async (about 32 s). Without this wait the bot is still in the hub: the removal checks fail loudly, but the
+  // keep-checks pass because nothing is removed there. Poll the dimension and assert it, so a keep-check cannot be vacuous.
+  let inRun = false; for (let i = 0; i < 80 && !inRun; i++) { await sleep(1500); inRun = /expedition/.test(await ask('/data get entity @s Dimension', 400)); }
+  await sleep(2000);
+  check('R0 the bot is inside a run (the keep-checks below mean nothing in the hub)', inRun, `inRun=${inRun}`);
   await ask('/kill @e[type=!player,type=!minecraft:item_display]', 700);
   // T1: same-tick placement of foreign mobs INSIDE the run, count a moment later -> load hook and sweep must clear them
   put('zombie', '"pg_f"', '', '~4 ~ ~'); put('cow', '"pg_f"', '', '~4 ~ ~2'); put('villager', '"pg_f"', '', '~4 ~ ~-2'); put('creeper', '"pg_f"', '', '~6 ~ ~'); put('skeleton', '"pg_f"', '', '~6 ~ ~2');

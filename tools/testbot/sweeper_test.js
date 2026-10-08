@@ -20,7 +20,12 @@ bot.once('spawn', async () => {
   await sleep(2500);
   check('T0 a hostile OUTSIDE a run is left alone', (await count(HOSTILE)) === 1, `zombies=${await count(HOSTILE)}`);
   await ask('/kill @e[tag=sw_h]', 500);
-  await ask('/character select juggernaut', 600); await ask('/expedition', 1500); await sleep(1500);
+  await ask('/character select juggernaut', 600); await ask('/expedition', 1500);
+  // The map builds async (about 32 s). Without this wait the bot is still in the hub: the removal checks fail loudly, but the
+  // keep-checks pass because nothing is removed there. Poll the dimension and assert it, so a keep-check cannot be vacuous.
+  let inRun = false; for (let i = 0; i < 80 && !inRun; i++) { await sleep(1500); inRun = /expedition/.test(await ask('/data get entity @s Dimension', 400)); }
+  await sleep(1500);
+  check('R0 the bot is inside a run (the keep-checks below mean nothing in the hub)', inRun, `inRun=${inRun}`);
   await ask('/kill @e[type=!player,type=!minecraft:item_display]', 700);
   // place EVERYTHING in one server tick: a single command that runs 8 summons via execute, then count at once
   const S = (t, nbt, off) => `execute at @s run summon minecraft:${t} ${off} {${nbt}}`;
@@ -29,18 +34,26 @@ bot.once('spawn', async () => {
     S('zombie', `Tags:["sw_h"],${base}`, '~4 ~ ~'), S('creeper', `Tags:["sw_h"],${base}`, '~4 ~ ~1'),
     S('skeleton', `Tags:["sw_h"],${base}`, '~4 ~ ~-1'), S('spider', `Tags:["sw_h"],${base}`, '~5 ~ ~'),
     S('zombie', `Tags:["sw_k","named"],${base},CustomName:'"Bob"'`, '~-4 ~ ~'),
-    S('cow', `Tags:["sw_k"],${base}`, '~ ~ ~4'), S('villager', `Tags:["sw_k"],${base}`, '~ ~ ~-4'),
+    // RunMobPurge.shouldPurge spares only a named or leashed mob, a tame pet, or a mod mob. An UNNAMED cow or villager is purged by design
+    // (purge_test T2 holds the same rule), so these keepers carry a custom name. The old test left them unnamed and could never pass T1/T3.
+    S('cow', `Tags:["sw_k","named"],${base},CustomName:'"Daisy"'`, '~ ~ ~4'), S('villager', `Tags:["sw_k","named"],${base},CustomName:'"Elder"'`, '~ ~ ~-4'),
     S('wolf', `Tags:["sw_k"],${base},Owner:[I;1,2,3,4]`, '~2 ~ ~2')];
+  const n0 = lines.length;
   for (const c of cmds) bot.chat('/' + c);           // fire back to back, no waits between
   await sleep(120);
+  // Proof that every hostile was really summoned (the purge may remove them before the first count): the server confirms each summon.
+  const fb = lines.slice(n0).join(' | '); const said = t => (fb.match(new RegExp('Summoned new ' + t, 'g')) || []).length;
+  const hostSummoned = said('Zombie') + said('Creeper') + said('Skeleton') + said('Spider');   // the named zombie reads "Bob", not Zombie
   const h0 = await count(HOSTILE), k0 = await count(KEEP);
   console.log(`placed: hostiles=${h0} keepers=${k0}`);
   for (const t of ['zombie', 'cow', 'villager', 'wolf']) console.log('   keeper type', t, await count(`@e[tag=sw_k,type=minecraft:${t}]`));
-  check('T1 setup: 4 hostiles and 4 keepers placed', h0 === 4 && k0 === 4, `h=${h0} k=${k0}`);
+  // The purge also acts on spawn, so the 4 hostiles are normally already gone at this first count (h0 0 to 4 are all valid). What must hold
+  // is that all 4 keepers exist, otherwise T3 proves nothing. The hostiles' removal itself is judged by T2 below.
+  check('T1 setup: server confirmed all 4 hostile summons and all 4 keepers exist', hostSummoned === 4 && k0 === 4, `hostile summons confirmed=${hostSummoned} h=${h0} keepers=${k0}`);
   await sleep(3500);                                   // several sweeps
   const h1 = await count(HOSTILE), k1 = await count(KEEP);
   check('T2 every vanilla hostile in the run was removed', h1 === 0, `hostiles left=${h1}`);
-  check('T3 named zombie, cow, villager and tame wolf all survived', k1 === 4, `keepers left=${k1} of 4`);
+  check('T3 named zombie, named cow, named villager and tame wolf all survived', k1 === 4, `keepers left=${k1} of 4`);
   await ask('/summon minecraft:zombie ~5 ~ ~ {Tags:["sw_h"],NoAI:1b,PersistenceRequired:1b,Silent:1b}', 300);
   await sleep(2500);
   check('T4 a hostile that appears LATER is also removed', (await count(HOSTILE)) === 0, `hostiles=${await count(HOSTILE)}`);
