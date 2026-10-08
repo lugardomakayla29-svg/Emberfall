@@ -19,7 +19,7 @@ real = [h for i, h in byid if i == rid]
 # The id-to-name table comes from RelicPool.java itself (the source of truth), so any rolled relic is checkable, not just one.
 import os
 POOL = os.environ.get('RELICPOOL', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'main', 'java', 'com', 'solme', 'emberfall', 'relic', 'RelicPool.java'))
-KNOWN = dict(re.findall(r'add\("([a-z_]+)",\s*"([^"]+)"', open(POOL).read()))
+KNOWN = dict(re.findall(r'\b(?:add|gated)\("([a-z_]+)",\s*"([^"]+)"', open(POOL).read()))
 rel = opens[0][1] if opens else None
 chk('G2b the reveal carries the tier of the open', bool(opens) and bool(sent) and opens[0][0].lower() == sent[0][1].lower(), f'open={opens[:1]} reveal={[s[1] for s in sent]}')
 chk('G2c the reveal names the relic the open granted' + ('' if rel in KNOWN else ' (id not in KNOWN: not checkable here)'),

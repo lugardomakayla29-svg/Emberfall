@@ -118,6 +118,16 @@ public class EmberfallModClient implements ClientModInitializer {
 						context.client().setScreen(new MerchantScreen(payload));
 					}
 				});
+		// The chest slot-machine. The relic is ALREADY granted when this arrives, so it only shows the answer. If the player is in another window
+		// (a shop, a pick) it is not opened over it, and the close id is sent at once so the server's record of it does not linger until its sweep.
+		ClientPlayNetworking.registerGlobalReceiver(com.solme.emberfall.network.OpenChestRevealPayload.TYPE,
+				(payload, context) -> {
+					if (context.client().screen == null) {
+						context.client().setScreen(new ChestRevealScreen(payload));
+					} else {
+						ClientPlayNetworking.send(new com.solme.emberfall.network.CloseChestRevealPayload(payload.revealId()));
+					}
+				});
 		// Weapon system: starting pick before a run, or a mid-run swap offer.
 		ClientPlayNetworking.registerGlobalReceiver(OpenWeaponChoicePayload.TYPE,
 				(payload, context) -> context.client().setScreen(
