@@ -11,6 +11,9 @@ bot.once('spawn', async () => {
   await sleep(4000);
   await ask('/gamemode survival'); await ask('/effect clear @s');
   await ask('/character select juggernaut'); await ask('/expedition', 2500);
+  // The map builds async (about 32 s). Poll the dimension so what follows is judged in the RUN, not in the hub, and assert it.
+  let inRun = false; for (let i = 0; i < 80 && !inRun; i++) { await sleep(1500); inRun = /expedition/.test(await ask('/data get entity @s Dimension', 400)); }
+  R('R0 the bot is inside the first run', inRun, `inRun=${inRun}`);
   R('X0 music on in the run', (await now()) !== 'none');
   const s0 = stops;
   await ask('/damage @s 1000 minecraft:generic', 1500); await sleep(1000);
@@ -20,6 +23,9 @@ bot.once('spawn', async () => {
   // a second run must start music again, once
   const m0 = music;
   await ask('/character select juggernaut'); await ask('/expedition', 2500);
+  // The map builds async (about 32 s). Poll the dimension so what follows is judged in the RUN, not in the hub, and assert it.
+  let inRun2 = false; for (let i = 0; i < 80 && !inRun2; i++) { await sleep(1500); inRun2 = /expedition/.test(await ask('/data get entity @s Dimension', 400)); }
+  R('R0b the bot is inside the second run', inRun2, `inRun2=${inRun2}`);
   R('X3 a second run starts exactly one new track', music === m0 + 1, `(${music - m0})`);
   bot.quit(); setTimeout(() => process.exit(0), 400);
 });
