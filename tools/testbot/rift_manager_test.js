@@ -11,7 +11,7 @@ let spawns = []; let counting = false;
 bot._client.on('packet', (d, m) => { if (counting && m.name === 'spawn_entity') spawns.push({ type: d.type, x: d.x, y: d.y, z: d.z }); });
 const state = async () => { const r = await ask('/emberfall rift state', 600); const m = /RIFT active=(\d+) entities=(\d+) rifts=(\d+)/.exec(r); return m ? { active: +m[1], entities: +m[2], rifts: +m[3], raw: r } : { rifts: -1, raw: r }; };
 const shards = async () => { const r = await ask('/clear @s emberfall:rift_shard 0', 500); const m = /(\d+) (?:item|matching)/.exec(r) || /Found (\d+)/.exec(r); return m ? +m[1] : (/No items/.test(r) ? 0 : -1); };
-const useShard = async (pos) => { bot.setQuickBarSlot(0); await sleep(200); const b = bot.blockAt(pos); try { await Promise.race([bot.activateBlock(b, new Vec3(0, 1, 0)), sleep(2500)]); } catch (e) {} await sleep(700); };
+const useShard = async (pos) => { const from = lines.length; bot.setQuickBarSlot(0); await sleep(200); const b = bot.blockAt(pos); try { await Promise.race([bot.activateBlock(b, new Vec3(0, 1, 0)), sleep(2500)]); } catch (e) {} await sleep(700); return lines.slice(from).join(' | '); };
 bot.once('spawn', async () => {
   await sleep(5000);
   await ask('/gamerule spawn_mobs false', 150); await ask('/gamerule mob_spawning false', 150); await ask('/difficulty peaceful', 150);
@@ -43,9 +43,12 @@ bot.once('spawn', async () => {
   R('C1 using a shard opens a Rift', sC.rifts === 1, sC.raw.slice(-60));
   R('C2 survival uses up exactly one shard', n1 === 2, `${n0} -> ${n1}`);
   await sleep(500);
-  await useShard(new Vec3(100, 199, 102));
+  const c3text = await useShard(new Vec3(100, 199, 102));
   const n2 = await shards(); const sD = await state();
   R('C3 a second use next to it is refused and keeps the shard', sD.rifts === 1 && n2 === 2, `rifts=${sD.rifts} shards=${n2}`);
+  // READ FROM HANDLER, NOT SEEN ARRIVING (no live run yet): RiftShardItem sends "The shard cannot open a Rift here: <reason>." with overlay=true; mineflayer 4.39.0
+  // systemChat emits 'message' for that packet too (chat.js:133-142), so the existing lines capture should hold it. The count assert above stays: this one adds the WHY.
+  R('C3b the refusal TEXT says too close to another Rift (not just "nothing happened")', /shard cannot open a Rift here: too close to another Rift/.test(c3text), `text=${JSON.stringify(c3text.slice(0, 120))}`);
   await sleep(5500); counting = false;
   R('C4 ZERO entities spawned for the Rift (whole window, any type)', spawns.length === 0, `spawns=${JSON.stringify(spawns.slice(0, 3))}`);
   await ask('/emberfall rift closeall', 400); await sleep(2500);
@@ -61,8 +64,10 @@ bot.once('spawn', async () => {
   await ask('/tp @s 100 250 100', 700); await sleep(1500);
   await ask('/item replace entity @s hotbar.0 with emberfall:rift_shard 2', 500);
   const d0 = await shards(); R('D0 the bot is alive and holds 2 shards before the buried test', d0 === 2, `n=${d0}`);
-  await useShard(new Vec3(100, 249, 100)); const d1 = await shards(); const sG = await state();
+  const d1text = await useShard(new Vec3(100, 249, 100)); const d1 = await shards(); const sG = await state();
   R('D1 a shard used with the Rift buried in solid rock is refused and kept', sG.rifts === 0 && d1 === d0, `rifts=${sG.rifts} shards ${d0}->${d1}`);
+  // READ FROM HANDLER, NOT SEEN ARRIVING. Spacing and the dimension guard are checked before open air, so the count assert alone cannot tell WHY it was refused.
+  R('D1b the refusal TEXT says no open air', /shard cannot open a Rift here: no open air/.test(d1text), `text=${JSON.stringify(d1text.slice(0, 120))}`);
   // control: hollow out the box above the platform (also under the cap); the click block, the shard and the bot are unchanged, only the air differs
   const hollow = await fillOk('/fill 89 250 89 111 263 111 minecraft:air'); R('D-setup the hollowing fill was ACCEPTED', hollow === true, String(hollow));
   await ask('/tp @s 100 250 100', 700); await sleep(1500);
