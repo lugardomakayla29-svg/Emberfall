@@ -3,6 +3,7 @@ package com.solme.emberfall.command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.solme.emberfall.relic.MerchantManager;
+import com.solme.emberfall.relic.ChestManager;
 import com.solme.emberfall.relic.PlayerRelics;
 import com.solme.emberfall.relic.RelicRarity;
 import com.solme.emberfall.relic.Relic;
@@ -126,6 +127,11 @@ public final class RelicCommands {
                                     return say(ctx.getSource(), sb.toString());
                                 })))
                         .then(Commands.literal("relic")
+                                .then(Commands.literal("revealstate").executes(ctx -> {
+                                    // stored counts expired entries too: only the sweep and forgetReveal lower it, so this is what proves they ran.
+                                    long now = ctx.getSource().getServer().getTickCount();
+                                    return say(ctx.getSource(), "REVEAL stored=" + ChestManager.revealStored() + " open=" + ChestManager.revealOpen(now));
+                                }))
                                 .then(Commands.literal("list").executes(ctx -> {
                                     StringBuilder sb = new StringBuilder("RELIC pool " + RelicPool.all().size() + ":");
                                     for (Relic r : RelicPool.all()) {
