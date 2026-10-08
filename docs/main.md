@@ -202,7 +202,7 @@ See [boss-concepts.md](./boss-concepts.md) for the full write-up of **The Devour
 
 * **No real death**: `RunEndHandler.ALLOW_DEATH` returns false for a run player. `endRunInsteadOfDying` heals, gives 5s resistance, and calls `finishRun("fallen")`, which reads stats before `leavePlayer` clears them, then sends `RunEndPayload` and the client opens `RunEndScreen`. `RunStats` counts kills. Because nobody dies, the sword and other items stay in the inventory (the old "sword dropped on death" assertion was replaced).
 
-* **Music**: `music/ModSounds` (3 tracks with exact tick lengths) and `music/RunMusic` (per-player shuffle, full pass before any repeat). Started in `RunManager.joinPlayer`, stopped in `leavePlayer`, so every exit path is covered. Songs ship inside the jar (`assets/emberfall/sounds/music`, streamed). Debug: `/emberfall musicnow|musicskip <player>`.
+* **Music**: `music/ModSounds` (8 tracks with exact tick lengths) and `music/RunMusic` (per-player shuffle, full pass before any repeat). Started in `RunManager.joinPlayer`, stopped in `leavePlayer`, so every exit path is covered. Songs ship inside the jar (`assets/emberfall/sounds/music`, streamed). Debug: `/emberfall musicnow|musicskip <player>`.
 
 * **Test lesson**: registering any new registry (here `SOUND_EVENT`) makes Fabric registry sync kick vanilla test bots. Add it to the OPTIONAL list in `EmberfallMod.enableHeadlessTestModeIfRequested`. Real players run the mod, so they are unaffected.
 

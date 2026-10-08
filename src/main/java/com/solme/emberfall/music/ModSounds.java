@@ -16,8 +16,13 @@ public final class ModSounds {
     public static final Track PUMP_IT_UP = track("pump_it_up_hyperdron", 206.262857);
     public static final Track MINECART = track("multi_minecart_drifting", 231.990567);
     public static final Track FINAL_CUBIC = track("final_cubic_generator", 618.579592);
+    public static final Track FLIGHT_IN_FANTASIA = track("flight_in_fantasia", 297.076100);
+    public static final Track GAMEMODE88 = track("gamemode88", 635.623039);
+    public static final Track ICY_BREEZE = track("icy_breeze", 353.059410);
+    public static final Track LICENSE_TO_INFINITY = track("license_to_infinity", 326.170703);
 
-    public static final java.util.List<Track> ALL = java.util.List.of(NYNY_08, PUMP_IT_UP, MINECART, FINAL_CUBIC);
+    public static final java.util.List<Track> ALL = java.util.List.of(NYNY_08, PUMP_IT_UP, MINECART, FINAL_CUBIC,
+            FLIGHT_IN_FANTASIA, GAMEMODE88, ICY_BREEZE, LICENSE_TO_INFINITY);
 
     private static Track track(String name, double seconds) {
         var id = EmberfallMod.id("music." + name);
