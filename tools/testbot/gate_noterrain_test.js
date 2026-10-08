@@ -17,7 +17,11 @@ bot.once('spawn', async () => {
   await sleep(6500);
   await ask('/kill @e[type=!player]', 600); await ask('/kill @e[type=minecraft:item_display]', 600); await sleep(1500);
   await ask('/gamemode survival'); await ask('/effect give @s minecraft:resistance 999 4 true', 300); await ask('/effect give @s minecraft:regeneration 999 4 true', 300);
-  await ask('/character select juggernaut', 600); await ask('/expedition', 1500); await sleep(1500);
+  await ask('/character select juggernaut', 600); await ask('/expedition', 1500);
+  // The map builds async (about 32 s). Poll the dimension so the checks below run in the RUN, not in the hub, and assert it (R0).
+  let inRun = false; for (let i = 0; i < 80 && !inRun; i++) { await sleep(1500); inRun = /expedition/.test(await ask('/data get entity @s Dimension', 400)); }
+  await sleep(1500);
+  check('R0 the bot is inside a run (nothing below means anything in the hub)', inRun, `inRun=${inRun}`);
   // Bury the whole play area: solid stone from 7 below to 9 above the player, so no column has a floor with 2 clear blocks.
   // The player is moved into a tiny pocket first so the run is not suffocated.
   const r0 = await ask('/data get entity @s Pos', 700); const m = /\[(-?[\d.]+)d, (-?[\d.]+)d, (-?[\d.]+)d\]/.exec(r0);
