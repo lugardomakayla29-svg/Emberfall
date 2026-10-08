@@ -78,6 +78,7 @@ public class EmberfallMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(GuardianBossFight::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftStage::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftManager::tickAll);
+		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.relic.ChestManager::tickReveals);
 		ServerTickEvents.END_SERVER_TICK.register(DevourerBossFight::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(AutoAttackSystem::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(LevelingHandler::tickAll);

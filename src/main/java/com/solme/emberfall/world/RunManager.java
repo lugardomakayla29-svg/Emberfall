@@ -411,6 +411,7 @@ public final class RunManager {
         CharacterEffects.clear(player);
         PlayerBuild.clear(player);
         com.solme.emberfall.relic.PlayerRelics.clear(player);
+        com.solme.emberfall.relic.ChestManager.forgetReveal(player);
         PlayerTomeCharges.clear(player);
         com.solme.emberfall.tome.TomeOfferGenerator.clear(player);
         CombatStats.clear(player);

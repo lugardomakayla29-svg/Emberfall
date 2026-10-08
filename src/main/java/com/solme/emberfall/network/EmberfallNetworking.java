@@ -32,6 +32,8 @@ public final class EmberfallNetworking {
         PayloadTypeRegistry.playS2C().register(OpenShrinePayload.TYPE, OpenShrinePayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(ChooseShrinePayload.TYPE, ChooseShrinePayload.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(OpenMerchantPayload.TYPE, OpenMerchantPayload.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(OpenChestRevealPayload.TYPE, OpenChestRevealPayload.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(CloseChestRevealPayload.TYPE, CloseChestRevealPayload.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(SwarmHudPayload.TYPE, SwarmHudPayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(BuyMerchantItemPayload.TYPE, BuyMerchantItemPayload.STREAM_CODEC);
 
@@ -47,6 +49,8 @@ public final class EmberfallNetworking {
                 (payload, context) -> ShopManager.onBuyReceived(context.player(), payload));
         ServerPlayNetworking.registerGlobalReceiver(BuyMerchantItemPayload.TYPE,
                 (payload, context) -> com.solme.emberfall.relic.MerchantManager.onBuyReceived(context.player(), payload));
+        ServerPlayNetworking.registerGlobalReceiver(CloseChestRevealPayload.TYPE,
+                (payload, context) -> com.solme.emberfall.relic.ChestManager.onRevealClosed(context.player(), payload));
         ServerPlayNetworking.registerGlobalReceiver(ChooseCharacterPayload.TYPE,
                 (payload, context) -> com.solme.emberfall.character.CharacterSelectManager.onChoiceReceived(context.player(), payload));
     }
