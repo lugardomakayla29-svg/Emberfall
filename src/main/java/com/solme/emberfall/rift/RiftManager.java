@@ -46,6 +46,8 @@ public final class RiftManager {
         public int waiting;
         /** The one invisible click target (a vanilla Interaction) that lets a player right click this Rift; null until spawned or after it is discarded. */
         Interaction target;
+        /** The chunk this Rift keeps loaded while it is open (see {@link #holdChunk}); null once released. */
+        net.minecraft.world.level.ChunkPos heldChunk;
         /** Game time the closing show started, or -1 while the Rift is open. */
         long closingAt = -1;
         /** How many timed events the last show (opening or closing) holds, for diagnostics. */
@@ -122,6 +124,7 @@ public final class RiftManager {
         RIFTS.add(r);
         r.showEvents = RiftStage.start(level, x, y, z, facing, seed, false);
         r.target = spawnTarget(level, x, y, z);
+        holdChunk(r);
         return new Result(r, null);
     }
 
@@ -169,8 +172,17 @@ public final class RiftManager {
                 return;
             }
             if (riftOf(entity) == null) {
+                // A leftover from a previous session: its Rift is gone, so the chunk a Rift held for it must be let go too. The forced list is
+                // saved with the world, so without this a crash would keep one chunk loaded for ever. No live Rift stands in this chunk (they all
+                // hold theirs in memory and none owns this target), so releasing it cannot unload a Rift that is open.
+                net.minecraft.world.level.ChunkPos cp = new net.minecraft.world.level.ChunkPos(entity.blockPosition());
                 // Defer: removing an entity from inside its own load event is not safe, and the chunk may still be settling.
-                level.getServer().execute(entity::discard);
+                level.getServer().execute(() -> {
+                    entity.discard();
+                    if (!heldByLiveRift(level, cp)) {
+                        level.setChunkForced(cp.x, cp.z, false);
+                    }
+                });
             }
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -185,6 +197,45 @@ public final class RiftManager {
             r.target.discard();
             r.target = null;
         }
+        releaseChunk(r);
+    }
+
+    /**
+     * Keeps the chunk under an open Rift loaded. The click target is an entity saved WITH its chunk, so when the last player nearby leaves
+     * (a run takes the whole party to another dimension) the chunk unloads and the target goes with it; coming back it is a new object that
+     * no Rift owns, and the load hook discards it as a leftover, so an open Rift could not be entered again. Measured: with the chunk forced
+     * the target stays at 1 through a whole run and the client sees it again on return.
+     */
+    private static void holdChunk(Rift r) {
+        if (r.heldChunk == null) {
+            r.heldChunk = new net.minecraft.world.level.ChunkPos(net.minecraft.core.BlockPos.containing(r.x, r.y, r.z));
+            r.level.setChunkForced(r.heldChunk.x, r.heldChunk.z, true);
+        }
+    }
+
+    /** True when a live Rift in this level holds this chunk. */
+    private static boolean heldByLiveRift(ServerLevel level, net.minecraft.world.level.ChunkPos cp) {
+        for (Rift r : RIFTS) {
+            if (r.level == level && cp.equals(r.heldChunk)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Releases the hold, unless another Rift in the same level still stands on that chunk (a forced chunk is one flag, not a count). */
+    private static void releaseChunk(Rift r) {
+        net.minecraft.world.level.ChunkPos held = r.heldChunk;
+        if (held == null) {
+            return;
+        }
+        r.heldChunk = null;
+        for (Rift other : RIFTS) {
+            if (other != r && other.level == r.level && held.equals(other.heldChunk)) {
+                return;
+            }
+        }
+        r.level.setChunkForced(held.x, held.z, false);
     }
 
     /**
