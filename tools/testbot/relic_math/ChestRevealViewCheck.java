@@ -94,6 +94,60 @@ public class ChestRevealViewCheck {
         check("different seeds give different decoy orders (the seed is not ignored)", orders.size() > 10, "distinct orders over 20 seeds=" + orders.size());
         check("the pool counts are the real ones: 24 relics, 6 in each tier", items.size() == 24 && perTierIsSix(), "items=" + items.size());
         check("the pools are fresh lists (a caller cannot corrupt the next build)", mutateAndRebuild(), "");
+
+        // --- Added with the Task 4 list (Koda 13:55 CT). Expected values are written by hand, not read back from the class under test.
+        // Every case goes through guarded(): if the code under test throws, THAT case fails by name instead of run() dying before the cases after it.
+        Relic aRare = RelicPool.all().stream().filter(r -> r.rarity() == RelicRarity.RARE).findFirst().orElse(null);
+        final String rareName = aRare == null ? "" : aRare.name();
+        // Case 6: PINNED current behaviour. safeBuild only checks that each name is in its own pool; it does not check the item belongs to that tier.
+        // Koda's decision: keep it. The screen colours from the ITEM (case 7), so a skewed server cannot show a wrong colour, and rejecting would swap a spin for a bare answer.
+        guarded("PINNED: a Rare relic named under the Common tier IS accepted (the tier pool and the item pool are checked separately), so a skewed server shows a spin, not nothing", () -> {
+            ChestReveal.Reveal mixed = ChestRevealView.safeBuild("Common", rareName, 1L);
+            return aRare != null && mixed != null && mixed.trueTier().equals("Common") && mixed.trueItem().equals(rareName);
+        });
+        guarded("PINNED: the accepted mismatch is coloured by the ITEM (Rare purple B266FF), not by the tier it was sent with",
+                () -> aRare != null && ChestRevealView.itemRgb(rareName, -1) == 0xB266FF && ChestRevealView.tierRgb("Common", -1) == 0x9D9D9D);
+        // Case 7: for every relic the colour of its tier label equals the colour of its name.
+        guarded("every relic: the colour of its tier label equals the colour of its name (all of them)", () -> {
+            for (Relic r : RelicPool.all()) {
+                if (ChestRevealView.tierRgb(r.rarity().label(), -1) != ChestRevealView.itemRgb(r.name(), -2)) {
+                    return false;
+                }
+            }
+            return !RelicPool.all().isEmpty();
+        });
+        // Case 8: null and near-miss labels give the fallback and never throw. Matching is exact and case sensitive.
+        final int fb = 0x123456;
+        guarded("tierRgb(null) is the fallback, not an exception", () -> ChestRevealView.tierRgb(null, fb) == fb);
+        guarded("itemRgb(null) is the fallback, not an exception", () -> ChestRevealView.itemRgb(null, fb) == fb);
+        guarded("tierRgb is case sensitive: \"legendary\" is the fallback, \"Legendary\" is gold",
+                () -> ChestRevealView.tierRgb("legendary", fb) == fb && ChestRevealView.tierRgb("Legendary", fb) == 0xFFC247);
+        guarded("tierRgb does not trim: \" Legendary\" and \"Legendary \" are the fallback",
+                () -> ChestRevealView.tierRgb(" Legendary", fb) == fb && ChestRevealView.tierRgb("Legendary ", fb) == fb);
+        guarded("itemRgb is case sensitive: the lower case of a real relic name is the fallback, the real name is Rare purple",
+                () -> aRare != null && ChestRevealView.itemRgb(rareName.toLowerCase(), fb) == fb && ChestRevealView.itemRgb(rareName, fb) == 0xB266FF);
+        // Case 9: extreme seeds still build, land on the truth and keep it out of the decoys.
+        for (long seed : new long[] {Long.MIN_VALUE, -1L, 0L, Long.MAX_VALUE}) {
+            final long sd = seed;
+            guarded("seed " + sd + " builds, lands on the truth and keeps it out of the decoys", () -> {
+                ChestReveal.Reveal e = ChestRevealView.safeBuild("Rare", rareName, sd);
+                return aRare != null && e != null && e.trueTier().equals("Rare") && e.trueItem().equals(rareName)
+                        && !e.itemDecoys().contains(rareName) && !e.tierDecoys().contains("Rare");
+            });
+        }
+    }
+
+    /** Runs one assertion. An exception is reported as THAT check failing (with its name), not as the whole run() dying before later checks run. */
+    static void guarded(String label, java.util.function.BooleanSupplier body) {
+        boolean ok;
+        String why = "";
+        try {
+            ok = body.getAsBoolean();
+        } catch (RuntimeException e) {
+            ok = false;
+            why = "threw " + e.getClass().getSimpleName() + ": " + e.getMessage();
+        }
+        check(label, ok, why);
     }
 
     static boolean perTierIsSix() {
