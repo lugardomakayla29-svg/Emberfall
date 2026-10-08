@@ -29,6 +29,9 @@ public final class HubInteractions {
 
     public static void register() {
         UseEntityCallback.EVENT.register((player, level, hand, entity, hit) -> {
+            if (entity instanceof Interaction && entity.getTags().contains(com.solme.emberfall.rift.RiftEntry.TAG)) {
+                return riftClick(player, level, hand, entity);
+            }
             if (!(entity instanceof Interaction) || !hasHubTag(entity)) {
                 return InteractionResult.PASS;
             }
@@ -41,6 +44,28 @@ public final class HubInteractions {
             }
             return runAction(sp, entity) ? InteractionResult.SUCCESS_SERVER : InteractionResult.PASS;
         });
+    }
+
+    /**
+     * A right click on a Rift's click target. The off-hand click is swallowed so one click never starts two countdowns, and a refusal is shown to
+     * the player as a plain chat line (the same way the gate shows its refusals).
+     */
+    private static InteractionResult riftClick(net.minecraft.world.entity.player.Player player, net.minecraft.world.level.Level level, InteractionHand hand, Entity entity) {
+        if (hand != InteractionHand.MAIN_HAND) {
+            return InteractionResult.SUCCESS;
+        }
+        if (level.isClientSide() || !(player instanceof ServerPlayer sp)) {
+            return InteractionResult.SUCCESS;
+        }
+        String refusal = com.solme.emberfall.rift.RiftGate.click(sp, entity, level.getServer().getTickCount());
+        if (refusal != null) {
+            sp.sendSystemMessage(Component.literal("\u00A7c" + capitalise(refusal) + "."));
+        }
+        return InteractionResult.SUCCESS_SERVER;
+    }
+
+    private static String capitalise(String s) {
+        return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
     /**

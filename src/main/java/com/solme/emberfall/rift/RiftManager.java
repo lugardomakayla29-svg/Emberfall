@@ -15,6 +15,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Interaction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -41,6 +44,8 @@ public final class RiftManager {
         public final long openedAt;
         /** Players who stepped into this Rift (step 4 fills it); an idle Rift has none. */
         public int waiting;
+        /** The one invisible click target (a vanilla Interaction) that lets a player right click this Rift; null until spawned or after it is discarded. */
+        Interaction target;
         /** Game time the closing show started, or -1 while the Rift is open. */
         long closingAt = -1;
         /** How many timed events the last show (opening or closing) holds, for diagnostics. */
@@ -82,6 +87,9 @@ public final class RiftManager {
 
     /** Forgets everything (server stop, tests). */
     public static void clear() {
+        for (Rift r : new ArrayList<>(RIFTS)) {
+            dropTarget(r);
+        }
         RIFTS.clear();
         LAST_ROLL.clear();
         LAST_NATURAL.clear();
@@ -113,6 +121,7 @@ public final class RiftManager {
         Rift r = new Rift(level, x, y, z, facing, seed, level.getGameTime());
         RIFTS.add(r);
         r.showEvents = RiftStage.start(level, x, y, z, facing, seed, false);
+        r.target = spawnTarget(level, x, y, z);
         return new Result(r, null);
     }
 
@@ -120,8 +129,75 @@ public final class RiftManager {
     public static void close(Rift r) {
         if (r.closingAt < 0) {
             r.closingAt = r.level.getGameTime();
+            dropTarget(r);   // a closing Rift can no longer be entered
             r.showEvents = RiftStage.start(r.level, r.x, r.y, r.z, r.facing, r.seed, true);
         }
+    }
+
+    /**
+     * The one invisible click target of a Rift: a vanilla Interaction over the middle column of the tear (RiftEntry sizes it so it is only ever over
+     * the tear). A right click on empty air with an empty hand sends the server nothing, so without this a bare-handed player could not click the Rift.
+     */
+    private static Interaction spawnTarget(ServerLevel level, double x, double y, double z) {
+        Interaction t = new Interaction(EntityType.INTERACTION, level);
+        t.setPos(x, RiftEntry.targetBaseY(y), z);
+        t.setWidth(RiftEntry.TARGET_WIDTH);
+        t.setHeight(RiftEntry.TARGET_HEIGHT);
+        t.setResponse(true);
+        t.setInvulnerable(true);
+        t.addTag(RiftEntry.TAG);
+        FRESH.add(t);   // ENTITY_LOAD fires inside addFreshEntity, before the caller stores it on the Rift: the hook must not mistake it for a leftover
+        try {
+            return level.addFreshEntity(t) ? t : null;
+        } finally {
+            FRESH.remove(t);
+        }
+    }
+
+    /** Targets being created right now (see {@link #spawnTarget}). Identity set: an Entity's equals is identity, but say so. */
+    private static final java.util.Set<Entity> FRESH = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+
+    /**
+     * Registers the clean-up of leftover click targets. Rifts live in memory and entities are saved with their chunk, so after a crash or a stop
+     * that missed {@link #clear} a target comes back from disk with no Rift behind it: an invisible, unclickable-by-sight ghost nobody would ever
+     * find. ENTITY_LOAD fires for every entity as its chunk loads, including from disk, so the ghost is removed the moment it exists. A target
+     * a Rift owns is never touched. Also clears every Rift when the server stops, so a clean stop leaves nothing saved.
+     */
+    public static void registerLifecycle() {
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
+            if (!(entity instanceof Interaction) || !entity.getTags().contains(RiftEntry.TAG) || FRESH.contains(entity)) {
+                return;
+            }
+            if (riftOf(entity) == null) {
+                // Defer: removing an entity from inside its own load event is not safe, and the chunk may still be settling.
+                level.getServer().execute(entity::discard);
+            }
+        });
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            clear();
+            RiftGate.clear();
+        });
+    }
+
+    /** Removes a Rift's click target. Safe to call twice. */
+    private static void dropTarget(Rift r) {
+        if (r.target != null) {
+            r.target.discard();
+            r.target = null;
+        }
+    }
+
+    /**
+     * The live Rift that owns this click target, or null. A null answer means the target is left over from before a restart (Rifts live in
+     * memory, entities do not), and the click handler discards it ({@link RiftGate#click}).
+     */
+    public static Rift riftOf(Entity target) {
+        for (Rift r : new ArrayList<>(RIFTS)) {
+            if (r.level == target.level() && r.target == target) {
+                return r;
+            }
+        }
+        return null;
     }
 
     private static List<RiftSpot.At> positions() {
@@ -175,6 +251,7 @@ public final class RiftManager {
             long now = r.level.getGameTime();
             if (r.closingAt >= 0) {
                 if (now - r.closingAt > RiftFx.CLOSE_TICKS) {
+                    dropTarget(r);
                     RIFTS.remove(r);
                 }
             } else if (RiftRules.idleExpired(now - r.openedAt, r.waiting)) {

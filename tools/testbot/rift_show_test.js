@@ -42,7 +42,11 @@ bot.once('spawn', async () => {
   const me = bot.entity.position, yaw = bot.entity.yaw;
   const ax = me.x - Math.sin(yaw) * 6, ay = me.y + 5, az = me.z - Math.cos(yaw) * 6;
   const near = open.pos.filter(p => Math.hypot(p.x - ax, p.y - ay, p.z - az) < 12);
-  R('T6 no entity of ANY type spawned within 12 blocks of the Rift during three openings', near.length === 0, `near=${JSON.stringify(near.slice(0, 4))} (all spawns this run: ${JSON.stringify(open.types)})`);
+  // The SHOW is particles only. Each opening also creates the Rift's one invisible click target (an Interaction, type 69), so three openings must
+  // spawn exactly three Interactions near the Rift and NOTHING of any other type: a particle-as-entity regression would add other spawns and fail here.
+  const INTERACTION = 69;
+  const nearOther = near.filter(p => p.type !== INTERACTION), nearTargets = near.filter(p => p.type === INTERACTION);
+  R('T6 the three openings spawn only click targets: 3 Interactions near the Rift, no other entity of any type', nearOther.length === 0 && nearTargets.length === 3, `targets=${nearTargets.length} other=${JSON.stringify(nearOther.slice(0, 4))} (all spawns this run: ${JSON.stringify(open.types)})`);
   const idleNear = idle.pos.filter(p => Math.hypot(p.x - ax, p.y - ay, p.z - az) < 12);
   R('T7 control: the same zone saw nothing during the idle windows either', idleNear.length === 0, `near=${JSON.stringify(idleNear.slice(0, 4))}`);
   const close = await window(5000, '/emberfall rift close');

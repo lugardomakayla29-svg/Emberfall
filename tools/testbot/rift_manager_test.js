@@ -1,4 +1,4 @@
-// Rift manager, live: the shard item, spacing, open-air, idle expiry, natural event, zero entities.
+// Rift manager, live: the shard item, spacing, open-air, idle expiry, natural event, one click-target entity and no other.
 // Every claim has a control: a refusal is shown beside an acceptance with the only difference being the thing under test.
 const mineflayer = require('mineflayer');
 const { Vec3 } = require('vec3');
@@ -50,7 +50,11 @@ bot.once('spawn', async () => {
   // systemChat emits 'message' for that packet too (chat.js:133-142), so the existing lines capture should hold it. The count assert above stays: this one adds the WHY.
   R('C3b the refusal TEXT says too close to another Rift (not just "nothing happened")', /shard cannot open a Rift here: too close to another Rift/.test(c3text), `text=${JSON.stringify(c3text.slice(0, 120))}`);
   await sleep(5500); counting = false;
-  R('C4 ZERO entities spawned for the Rift (whole window, any type)', spawns.length === 0, `spawns=${JSON.stringify(spawns.slice(0, 3))}`);
+  // The Rift's BODY is still particles only. Since the step-in, an open Rift carries exactly ONE invisible vanilla Interaction as its click target
+  // (a right click on empty air with an empty hand sends the server nothing, so the target is the only way to click it). Interaction is entity type 69.
+  // So: exactly one spawn, of that type, and nothing else. A particle-as-entity regression would add more and fail here.
+  const INTERACTION = 69;
+  R('C4 the Rift spawns exactly ONE entity, an Interaction (its click target), and nothing else', spawns.length === 1 && spawns[0].type === INTERACTION, `spawns=${JSON.stringify(spawns.slice(0, 4))}`);
   await ask('/emberfall rift closeall', 400); await sleep(2500);
   const sE = await state(); R('C5 closeall empties the list', sE.rifts === 0, sE.raw.slice(-40));
   await useShard(new Vec3(100, 199, 102)); const n3 = await shards(); const sF = await state();
