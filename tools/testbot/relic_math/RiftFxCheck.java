@@ -5,8 +5,10 @@ import com.solme.emberfall.rift.RiftRules;
 import com.solme.emberfall.rift.RiftShape;
 import com.solme.emberfall.rift.RiftShape.Shape;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -21,7 +23,7 @@ public class RiftFxCheck {
     static final int SEEDS = 600;
     /** The ONLY keys the schedule may use. An entity name, "summon" or anything else is not on it. */
     static final Set<String> KEYS = new HashSet<>(Arrays.asList(
-            "end_rod", "electric_spark", "glow", "dust_ring", "rift_drone", "rift_crackle", "rift_boom", "rift_hum", "rift_push",
+            "end_rod", "electric_spark", "glow", "dust_ring", "rim_dust", "rift_drone", "rift_crackle", "rift_boom", "rift_hum", "rift_push",
             "rift_tearing", "rift_open", "rift_closing", "rift_collapsed"));
 
     static void check(String l, boolean ok, String e) {
@@ -280,6 +282,9 @@ public class RiftFxCheck {
         check("hand: a satellite is announced by the fill beat, not by the crack (1 crack for the 1 body cell, 1 satellite pop)", count(RiftFx.opening(RiftShape.fromRows("#.o")), Kind.PARTICLE, "electric_spark") == 1 && popsOf(RiftFx.opening(RiftShape.fromRows("#.o")), 2, 0) == 1, "");
         check("hand: the satellite pops at the fill beat (tick 60), never during the crack", onlyAt(RiftFx.opening(RiftShape.fromRows("#.o")), 2, 0, 60), "");
 
+        // ---- rim colour (end_rod, electric_spark, dust_plume carry no colour, so each rim particle gets a warm dust partner) -------------
+        rimChecks();
+
         System.out.println(fails == 0 ? "ALL PASS (" + total + " checks)" : "FAILED " + fails + " of " + total);
         if (fails != 0) {
             System.exit(1);
@@ -457,6 +462,84 @@ public class RiftFxCheck {
             }
         }
         return true;
+    }
+
+    /** True for the two particle keys that draw the rim and cannot carry a colour. */
+    static boolean isRimKey(Event e, int flareLo, int flareHi) {
+        if (e.kind != Kind.PARTICLE) {
+            return false;
+        }
+        return e.key.equals("electric_spark") || (e.key.equals("end_rod") && e.tick >= flareLo && e.tick < flareHi);
+    }
+
+    static void rimChecks() {
+        int lo = RiftFx.T_FLARE, hi = RiftFx.T_FLARE + RiftFx.FLARE_SPREAD;
+        int rimEvents = 0, noPartner = 0, wrongColour = 0, wrongCount = 0, dustTotal = 0, orphanDust = 0, baseParticles = 0, allParticles = 0, overCap = 0;
+        int closingMismatch = 0, closingPeakOver = 0;
+        for (long s = 0; s < SEEDS; s++) {
+            List<Event> ev = RiftFx.opening(RiftShape.generate(s));
+            Map<String, Integer> dustAt = new HashMap<>();
+            for (Event e : ev) {
+                if (e.kind == Kind.PARTICLE && e.key.equals("rim_dust")) {
+                    dustAt.merge(e.tick + ":" + e.x + ":" + e.y, 1, Integer::sum);
+                    dustTotal++;
+                    if (((int) e.a & 0xFFFFFF) != RiftFx.RIM_DUST) {
+                        wrongColour++;
+                    }
+                    if (e.count != RiftFx.DENSITY_RIM_DUST) {
+                        wrongCount++;
+                    }
+                }
+            }
+            int rimThis = 0;
+            int dustThis = 0;
+            for (Event e : ev) {
+                if (e.kind == Kind.PARTICLE && e.key.equals("rim_dust")) {
+                    dustThis++;
+                }
+            }
+            for (Event e : ev) {
+                if (e.kind == Kind.PARTICLE) {
+                    allParticles += Math.max(1, e.count);
+                    if (!e.key.equals("rim_dust")) {
+                        baseParticles += Math.max(1, e.count);
+                    }
+                }
+                if (isRimKey(e, lo, hi)) {
+                    rimEvents++;
+                    rimThis++;
+                    if (dustAt.getOrDefault(e.tick + ":" + e.x + ":" + e.y, 0) < 1) {
+                        noPartner++;
+                    }
+                }
+            }
+            if (dustAt.values().stream().mapToInt(Integer::intValue).sum() != rimThis) {
+                orphanDust++;
+            }
+            List<Event> cl = RiftFx.closing(RiftShape.generate(s));
+            int cDust = 0;
+            for (Event e : cl) {
+                if (e.kind == Kind.PARTICLE && e.key.equals("rim_dust")) {
+                    cDust++;
+                }
+            }
+            if (cDust != dustThis) {
+                closingMismatch++;
+            }
+            if (RiftFx.peakParticles(cl) > RiftRules.BUDGET_PER_TICK) {
+                closingPeakOver++;
+            }
+        }
+        check("rim: every rim event (each electric_spark, each flare end_rod) has a rim_dust at the same tick and cell, all " + SEEDS + " seeds", rimEvents > 0 && noPartner == 0, "rim events " + rimEvents + ", without a partner " + noPartner);
+        check("rim: no rim_dust exists without a rim event (counts match per shape)", orphanDust == 0, "shapes with a mismatch " + orphanDust);
+        check("rim: every rim_dust carries RiftFx.RIM_DUST (read from the constant)", dustTotal > 0 && wrongColour == 0, "dust " + dustTotal + ", wrong colour " + wrongColour);
+        check("rim: every rim_dust uses DENSITY_RIM_DUST", wrongCount == 0, "wrong " + wrongCount);
+        int r = (RiftFx.RIM_DUST >> 16) & 255, g = (RiftFx.RIM_DUST >> 8) & 255, b = RiftFx.RIM_DUST & 255;
+        check("rim: RIM_DUST is warm white-orange (red > green > blue, red high, blue clearly lowest, not grey or pink)", r >= 0xE0 && r > g && g > b && r - b >= 0x40 && g - b >= 0x20, String.format("%06X", RiftFx.RIM_DUST));
+        check("rim: the new layer adds at most 25% to the particle count of the schedule without it (cap, all seeds)", allParticles * 4 <= baseParticles * 5, "base " + baseParticles + " with dust " + allParticles + String.format(" (+%.1f%%)", 100.0 * (allParticles - baseParticles) / baseParticles));
+        check("rim: the new layer adds something (a mutant that removes it must not pass)", allParticles > baseParticles, "");
+        check("rim: the closing show carries exactly the same number of rim_dust events as the opening (it is built from it)", closingMismatch == 0, "shapes differing " + closingMismatch);
+        check("rim: the closing show stays inside the per-tick budget with the dust", closingPeakOver == 0, "shapes over " + closingPeakOver);
     }
 
     static boolean noEntityWords() {

@@ -87,12 +87,21 @@ public final class RiftFx {
     public static final int DENSITY_DUST = 24;
     public static final int DENSITY_FILL = 2;
     public static final int DENSITY_SATELLITE = 4;
+    /**
+     * Warm dust under each rim particle. {@code end_rod}, {@code electric_spark} and {@code dust_plume} are vanilla particles that carry NO colour
+     * (measured: 87% of the opening's particles), so the warm rim colour was silently dropped and the rim showed plain white. A dust particle does
+     * take a colour, so one thin dust layer under each rim particle gives the rim its warm tint while the white streak above it is unchanged.
+     * PROPOSAL: 1 per rim cell per beat. At seeds 0..4 this adds 274 particles to 1212, which is +22.6%, inside the +25% cap Koda set.
+     */
+    public static final int DENSITY_RIM_DUST = 1;
 
     // Colours, 0xRRGGBB. PROPOSAL, from the picture's pink-lilac fill and warm white-orange rim.
     public static final int RIM_WARM = 0xFFB070;
     public static final int RIM_HOT = 0xFFE9C8;
     public static final int FILL_LILAC = 0xC79BFF;
     public static final int FILL_PINK = 0xFF9BD0;
+    /** The warm white-orange of the rim dust, 0xRRGGBB. The design asks for a warm white-orange rim (RIFT_EXPEDITION.md); it reuses RIM_WARM, so the rim has ONE warm colour. */
+    public static final int RIM_DUST = RIM_WARM;
 
     /**
      * The opening, for a shape: every event from tick 0 to {@link #OPEN_TICK}, sorted by tick. Deterministic: the same shape gives the
@@ -124,6 +133,7 @@ public final class RiftFx {
             int tick = T_CRACK_START + (int) ((long) i * (T_CRACK_END - T_CRACK_START) / n);
             int[] r = rim.get(i);
             out.add(new Event(tick, Kind.PARTICLE, "electric_spark", r[0], r[1], RIM_WARM, 0, DENSITY_CRACK));
+            out.add(new Event(tick, Kind.PARTICLE, "rim_dust", r[0], r[1], RIM_DUST, 0, DENSITY_RIM_DUST));
             if (i % 4 == 0) {
                 out.add(new Event(tick, Kind.SOUND, "rift_crackle", r[0], r[1], 0.5f, 1.0f + (i % 3) * 0.15f));
             }
@@ -136,6 +146,7 @@ public final class RiftFx {
             int[] r = rim.get(i);
             int tick = T_FLARE + (int) ((long) i * FLARE_SPREAD / n);
             out.add(new Event(tick, Kind.PARTICLE, "end_rod", r[0], r[1], RIM_HOT, 0, DENSITY_FLARE));
+            out.add(new Event(tick, Kind.PARTICLE, "rim_dust", r[0], r[1], RIM_DUST, 0, DENSITY_RIM_DUST));
         }
         out.add(new Event(T_FLARE, Kind.SOUND, "rift_boom", c[0], c[1], 1.0f, 0.5f));
         out.add(new Event(T_FLARE, Kind.PARTICLE, "dust_ring", c[0], 0, RIM_WARM, 0, DENSITY_DUST));

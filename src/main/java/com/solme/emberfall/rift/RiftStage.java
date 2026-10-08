@@ -130,6 +130,9 @@ public final class RiftStage {
         }
     }
 
+    /** Dust size for the rim's warm layer: smaller than the fill's 1.1 so it sits under the white streak as a tint, not as a second shape. PROPOSAL. */
+    static final float RIM_DUST_SIZE = 0.8F;
+
     /** Maps the schedule's plain keys onto real vanilla particles. Colour-carrying keys use dust so the pink and lilac show. */
     static ParticleOptions particle(RiftFx.Event e) {
         return switch (e.key) {
@@ -137,6 +140,7 @@ public final class RiftStage {
             case "electric_spark" -> ParticleTypes.ELECTRIC_SPARK;
             case "dust_ring" -> ParticleTypes.DUST_PLUME;
             case "glow" -> new DustParticleOptions((int) e.a & 0xFFFFFF, 1.1F);
+            case "rim_dust" -> new DustParticleOptions((int) e.a & 0xFFFFFF, RIM_DUST_SIZE);
             default -> ParticleTypes.END_ROD;
         };
     }
