@@ -84,11 +84,27 @@ public final class EmberfallCommands {
                                 ctx.getSource().sendSuccess(() -> Component.literal("RIFT cleared"), false);
                                 return 1;
                             }))
+                            .then(Commands.literal("natural").executes(ctx -> {
+                                var pl = ctx.getSource().getPlayer();
+                                if (pl == null) { ctx.getSource().sendFailure(Component.literal("Run this as a player.")); return 0; }
+                                var r = com.solme.emberfall.rift.RiftManager.tryOpenNear(pl);
+                                ctx.getSource().sendSuccess(() -> Component.literal(r == null ? "RIFT natural refused" : "RIFT natural opened"), false);
+                                return r == null ? 0 : 1;
+                            }))
+                            .then(Commands.literal("closeall").executes(ctx -> {
+                                for (var r : com.solme.emberfall.rift.RiftManager.all()) { com.solme.emberfall.rift.RiftManager.close(r); }
+                                ctx.getSource().sendSuccess(() -> Component.literal("RIFT closing all"), false);
+                                return 1;
+                            }))
                             .then(Commands.literal("state").executes(ctx -> {
                                 int ents = 0;
                                 for (var e : ctx.getSource().getLevel().getAllEntities()) { ents++; }
                                 final int n = ents;
-                                ctx.getSource().sendSuccess(() -> Component.literal("RIFT active=" + com.solme.emberfall.rift.RiftStage.activeCount() + " entities=" + n), false);
+                                var all = com.solme.emberfall.rift.RiftManager.all();
+                                StringBuilder sb = new StringBuilder();
+                                long now = ctx.getSource().getLevel().getGameTime();
+                                for (var r : all) { sb.append(String.format(" [%.0f,%.0f,%.0f f%d open=%b age=%d]", r.x, r.y, r.z, r.facing, r.isOpen(now), now - r.openedAt)); }
+                                ctx.getSource().sendSuccess(() -> Component.literal("RIFT active=" + com.solme.emberfall.rift.RiftStage.activeCount() + " entities=" + n + " rifts=" + all.size() + sb), false);
                                 return 1;
                             })))
                     .then(Commands.literal("teardown")
@@ -750,15 +766,23 @@ public final class EmberfallCommands {
             source.sendFailure(Component.literal("Run this as a player."));
             return 0;
         }
+        if (closing) {
+            int n = 0;
+            int ev = 0;
+            for (var r : com.solme.emberfall.rift.RiftManager.all()) { com.solme.emberfall.rift.RiftManager.close(r); n++; ev = r.showEvents; }
+            final int closed = n;
+            final int events = ev;
+            source.sendSuccess(() -> Component.literal("RIFT closing events=" + events + " rifts=" + closed), false);
+            return 1;
+        }
         var look = player.getLookAngle();
         double x = player.getX() + look.x * 6.0;
         double z = player.getZ() + look.z * 6.0;
         double y = player.getY() + 5.0;
-        // The Rift faces the player: its normal must point back at them. Pick the facing whose normal opposes the look direction.
-        int facing = Math.abs(look.x) > Math.abs(look.z) ? (look.x > 0 ? 1 : 3) : (look.z > 0 ? 2 : 0);
-        int events = com.solme.emberfall.rift.RiftStage.start(source.getLevel(), x, y, z, facing, source.getLevel().getGameTime(), closing);
-        source.sendSuccess(() -> Component.literal("RIFT " + (closing ? "closing" : "opening") + " events=" + events), false);
-        return 1;
+        int facing = com.solme.emberfall.rift.RiftSpot.facingToward(player.getX() - x, player.getZ() - z);
+        var res = com.solme.emberfall.rift.RiftManager.open(source.getLevel(), x, y, z, facing, source.getLevel().getGameTime());
+        source.sendSuccess(() -> Component.literal(res.ok() ? "RIFT opening events=" + res.rift().showEvents : "RIFT refused: " + res.refusal()), false);
+        return res.ok() ? 1 : 0;
     }
 
     private static int teardown(CommandSourceStack source, int slot) {

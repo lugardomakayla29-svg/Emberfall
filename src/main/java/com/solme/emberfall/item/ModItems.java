@@ -46,6 +46,7 @@ public final class ModItems {
     public static Item GUARDIAN_SUMMONER;
     public static Item DEVOURER_SUMMONER;
     public static Item MERCHANT_SUMMONER;
+    public static Item RIFT_SHARD;
     public static Item EMBER_TESTER_EGG;
 
     /** Mob id to its creative-tab egg, in tab order. */
@@ -60,6 +61,9 @@ public final class ModItems {
         GUARDIAN_SUMMONER = registerSummoner("ember_guardian_summoner", BossSummonerItem.Boss.GUARDIAN);
         DEVOURER_SUMMONER = registerSummoner("devourer_summoner", BossSummonerItem.Boss.DEVOURER);
         MERCHANT_SUMMONER = registerSummoner("merchant_summoner", BossSummonerItem.Boss.MERCHANT);
+        ResourceKey<Item> riftShardKey = ResourceKey.create(Registries.ITEM, EmberfallMod.id("rift_shard"));
+        RIFT_SHARD = Registry.register(BuiltInRegistries.ITEM, riftShardKey,
+                new RiftShardItem(new Item.Properties().setId(riftShardKey).rarity(Rarity.RARE)));
         ResourceKey<Item> botEggKey = ResourceKey.create(Registries.ITEM, EmberfallMod.id("ember_tester_egg"));
         EMBER_TESTER_EGG = Registry.register(BuiltInRegistries.ITEM, botEggKey,
                 new BotEggItem(new Item.Properties().setId(botEggKey).stacksTo(1).rarity(Rarity.EPIC)));
