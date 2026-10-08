@@ -1,6 +1,8 @@
 package com.solme.emberfall.client;
 
+import com.solme.emberfall.network.HudStatePayload;
 import com.solme.emberfall.network.RunHudPayload;
+import com.solme.emberfall.relic.HudLayout;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -60,12 +62,13 @@ public final class RunHud implements HudElement {
         if (s == null || mc.options.hideGui || mc.player == null) {
             return;
         }
-        drawTimer(g, mc, s);
-        int below = drawCounters(g, mc, s);
-        drawRelics(g, mc, s, below);
+        HudLayout.Box timer = drawTimer(g, mc, s);
+        HudLayout.Box stats = drawCounters(g, mc, s);
+        drawWeaponBox(g, mc, stats, timer);
+        drawRelics(g, mc, s, stats.bottom() + HudLayout.GAP);
     }
 
-    private static void drawTimer(GuiGraphics g, Minecraft mc, RunHudPayload s) {
+    private static HudLayout.Box drawTimer(GuiGraphics g, Minecraft mc, RunHudPayload s) {
         String text = formatClock(clockSeconds(s, System.currentTimeMillis(), receivedAtMillis));
         float scale = 1.5F;
         int textW = Math.round(mc.font.width(text) * scale);
@@ -83,10 +86,11 @@ public final class RunHud implements HudElement {
         pose.scale(scale, scale);
         g.drawString(mc.font, text, 0, 0, 0xFFFFFFFF, true);
         pose.popMatrix();
+        return new HudLayout.Box(x, y, w, h);
     }
 
-    /** Draws the resource column and returns the y just under it, where the relic list starts. */
-    private static int drawCounters(GuiGraphics g, Minecraft mc, RunHudPayload s) {
+    /** Draws the resource column and returns its box; the weapon box sits to its right and the relic list under it. */
+    private static HudLayout.Box drawCounters(GuiGraphics g, Minecraft mc, RunHudPayload s) {
         boolean canAfford = s.gold() >= s.chestPrice();
         String[] labels = {"LV " + s.level(), "Gold", "Chest", "Silver", "Kills"};
         String[] values = {s.xpPercent() + "%", Long.toString(s.gold()), Integer.toString(s.chestPrice()), Long.toString(s.silver()), Long.toString(s.kills())};
@@ -119,7 +123,50 @@ public final class RunHud implements HudElement {
         g.fill(x + padding, barY, x + w - padding, barY + 1, 0xFF303030);
         int filled = (int) ((w - padding * 2) * (s.xpPercent() / 100.0));
         g.fill(x + padding, barY, x + padding + filled, barY + 1, XP_GREEN);
-        return y + h + 4;
+        return new HudLayout.Box(x, y, w, h);
+    }
+
+    /**
+     * The weapon levels, in a box of their own right of the stats panel: a gold square, the weapon name and "Lv N". Plain fills and text like the rest
+     * of the HUD. At most {@link HudLayout#MAX_WEAPON_ROWS} rows, and it is skipped (not drawn over anything) when there is no room before the timer plate.
+     * The numbers come from the loadout state the bottom-left panel already receives, so there is no new packet.
+     */
+    private static void drawWeaponBox(GuiGraphics g, Minecraft mc, HudLayout.Box stats, HudLayout.Box timer) {
+        HudStatePayload hud = LoadoutHud.current();
+        if (hud == null || hud.weapons().isEmpty()) {
+            return;
+        }
+        int rows = Math.min(hud.weapons().size(), HudLayout.MAX_WEAPON_ROWS);
+        int rowH = mc.font.lineHeight + 2;
+        int padding = 5;
+        int dot = 5;
+        String[] names = new String[rows];
+        String[] badges = new String[rows];
+        int nameW = mc.font.width("Weapons");
+        int badgeW = 0;
+        for (int i = 0; i < rows; i++) {
+            HudStatePayload.WeaponEntry w = hud.weapons().get(i);
+            names[i] = w.name();
+            badges[i] = "Lv" + w.level();
+            nameW = Math.max(nameW, mc.font.width(names[i]));
+            badgeW = Math.max(badgeW, mc.font.width(badges[i]));
+        }
+        int widest = dot + 4 + nameW + 8 + badgeW;
+        HudLayout.Box box = HudLayout.weaponBox(stats, widest, rows, rowH, padding);
+        if (!HudLayout.weaponBoxFits(stats, box, timer) || box.right() > g.guiWidth() - HudLayout.MARGIN) {
+            return;
+        }
+        panel(g, box.x(), box.y(), box.w(), box.h());
+        g.drawString(mc.font, "Weapons", box.x() + padding, box.y() + padding + 1, LABEL, true);
+        for (int i = 0; i < rows; i++) {
+            HudStatePayload.WeaponEntry w = hud.weapons().get(i);
+            boolean top = w.level() >= com.solme.emberfall.item.WeaponGrowth.MAX_LEVEL;
+            int colour = top ? GOLD : SILVER;
+            int ry = box.y() + padding + rowH * (i + 1);
+            g.fill(box.x() + padding, ry + 2, box.x() + padding + dot, ry + 2 + dot, colour);
+            g.drawString(mc.font, names[i], box.x() + padding + dot + 4, ry + 1, 0xFFFFFFFF, true);
+            g.drawString(mc.font, badges[i], box.right() - padding - mc.font.width(badges[i]), ry + 1, colour, true);
+        }
     }
 
     /** Most relic rows drawn before the rest fold into "+N more"; keeps the list clear of the hotbar on small screens. */
@@ -136,9 +183,10 @@ public final class RunHud implements HudElement {
             return;
         }
         var pool = com.solme.emberfall.relic.RelicPool.all();
-        int rows = Math.min(count, MAX_RELIC_ROWS);
-        int hidden = count - rows;
         int rowH = mc.font.lineHeight + 2;
+        // The list stops above the loadout panel at the bottom left, so a long relic list cannot run into it on a small GUI.
+        int rows = HudLayout.relicRowsFit(count, MAX_RELIC_ROWS, top, HudLayout.loadoutTop(g.guiWidth(), g.guiHeight()), rowH, 5);
+        int hidden = count - rows;
         String[] names = new String[rows];
         String[] stacks = new String[rows];
         int[] rgb = new int[rows];
@@ -163,8 +211,8 @@ public final class RunHud implements HudElement {
         int padding = 5;
         int dot = 5;
         int w = padding + dot + 4 + nameW + (stackW > 0 ? 8 + stackW : 0) + padding;
-        int h = padding * 2 + rowH * (rows + 1) - 2 + (hidden > 0 ? rowH : 0);
-        int x = 6;
+        int h = HudLayout.relicBoxHeight(count, rows, rowH, padding);
+        int x = HudLayout.MARGIN;
         panel(g, x, top, w, h);
         g.drawString(mc.font, "Relics", x + padding, top + padding, LABEL, true);
         for (int i = 0; i < rows; i++) {
