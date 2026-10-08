@@ -16,7 +16,11 @@ bot.once('spawn', async () => {
   await sleep(6500);
   await ask('/kill @e[type=!player]', 600); await ask('/kill @e[type=minecraft:item_display]', 600); await sleep(1500);
   await ask('/gamemode survival'); await ask('/effect give @s minecraft:resistance 999 4 true', 300); await ask('/effect give @s minecraft:regeneration 999 4 true', 300);
-  await ask('/character select juggernaut', 600); await ask('/expedition', 1500); await sleep(1500);
+  await ask('/character select juggernaut', 600); await ask('/expedition', 1500);
+  // The map builds async (about 32 s). Poll the dimension so the checks below run in the RUN, not in the hub, and assert it (R0).
+  let inRun = false; for (let i = 0; i < 80 && !inRun; i++) { await sleep(1500); inRun = /expedition/.test(await ask('/data get entity @s Dimension', 400)); }
+  await sleep(1500);
+  check('R0 the bot is inside a run (nothing below means anything in the hub)', inRun, `inRun=${inRun}`);
   const HEADSEL = '@e[type=minecraft:item_display,nbt={item:{id:"minecraft:player_head"}}]';
   const baseHeads = await countR(HEADSEL); console.log('baseline player-head displays in the run BEFORE the boss:', baseHeads);
   console.log('boss:', (await ask('/emberfall bossdevourer 0', 1200)).slice(0, 100)); await sleep(2500);
