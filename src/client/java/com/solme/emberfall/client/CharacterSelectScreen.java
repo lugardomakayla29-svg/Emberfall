@@ -24,11 +24,31 @@ public class CharacterSelectScreen extends Screen {
 
     private final String currentId;
     private final List<OpenCharacterSelectPayload.Entry> characters;
+    /** 0 = the Character Table (no Rift party behind it). Otherwise the phase id the server issued; echoed back if the screen is closed unpicked. */
+    private final int selectId;
+    private final long openedAtMs = System.currentTimeMillis();
+    private final int secondsAtOpen;
+    /** True once a pick was sent, so closing the screen afterwards does not also send a "closed without picking". */
+    private boolean answered;
 
     public CharacterSelectScreen(String currentId, List<OpenCharacterSelectPayload.Entry> characters) {
+        this(currentId, characters, OpenCharacterSelectPayload.NO_PHASE, 0);
+    }
+
+    public CharacterSelectScreen(String currentId, List<OpenCharacterSelectPayload.Entry> characters, int selectId, int secondsLeft) {
         super(Component.literal("Choose Your Character"));
         this.currentId = currentId;
         this.characters = characters;
+        this.selectId = selectId;
+        this.secondsAtOpen = secondsLeft;
+    }
+
+    private boolean riftParty() {
+        return selectId != OpenCharacterSelectPayload.NO_PHASE;
+    }
+
+    private int secondsLeft() {
+        return Math.max(0, secondsAtOpen - (int) ((System.currentTimeMillis() - openedAtMs) / 1000L));
     }
 
     @Override
@@ -42,9 +62,9 @@ public class CharacterSelectScreen extends Screen {
             boolean current = e.id().equals(currentId);
             int x = startX + (i % COLUMNS) * (BUTTON_W + GAP);
             int y = startY + (i / COLUMNS) * (BUTTON_H + GAP);
-            Component label = Component.literal((current ? "\u25B6 " : "") + e.name());
+            Component label = Component.literal((current ? (riftParty() ? "\u25B6 Keep " : "\u25B6 ") : "") + e.name());
             Button button = Button.builder(label, b -> choose(e.id())).bounds(x, y, BUTTON_W, BUTTON_H).build();
-            button.active = !current;
+            button.active = riftParty() || !current;
             button.setTooltip(Tooltip.create(Component.literal(
                     e.name() + "\n" + e.lore() + "\n\nWeapon: " + e.weapon() + "\n" + e.stats()
                             + (current ? "\n\nCurrently selected" : ""))));
@@ -55,8 +75,19 @@ public class CharacterSelectScreen extends Screen {
     }
 
     private void choose(String id) {
+        answered = true;
         ClientPlayNetworking.send(new ChooseCharacterPayload(id));
         this.minecraft.setScreen(null);
+    }
+
+    /** Closing (Close button or Escape) without a pick tells the server so the party is not held up; "keep what I have". */
+    @Override
+    public void removed() {
+        if (riftParty() && !answered) {
+            answered = true;
+            ClientPlayNetworking.send(new com.solme.emberfall.network.CloseCharacterSelectPayload(selectId));
+        }
+        super.removed();
     }
 
     @Override
@@ -64,7 +95,9 @@ public class CharacterSelectScreen extends Screen {
         this.renderTransparentBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, this.height / 2 - 62, 0xFFFFFFFF);
-        guiGraphics.drawCenteredString(this.font, "Hover a character to read their story", this.width / 2,
+        guiGraphics.drawCenteredString(this.font, riftParty()
+                        ? "Hover a character to read their story. The run starts in " + secondsLeft() + " s, or when everyone has chosen."
+                        : "Hover a character to read their story", this.width / 2,
                 this.height / 2 - 50, 0xFFAAAAAA);
     }
 
