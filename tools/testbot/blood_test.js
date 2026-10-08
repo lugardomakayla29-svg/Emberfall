@@ -21,6 +21,9 @@ bot.once('spawn', async () => {
   await sleep(4000);
   await ask('/gamemode survival'); await ask('/effect clear @s');
   await ask('/character select juggernaut', 500); await ask('/expedition leave', 800); await ask('/expedition', 3500);
+  // The map builds async (about 32 s). Poll the dimension so the checks below run in the RUN, not in the hub, and assert it (R0).
+  let inRun = false; for (let i = 0; i < 80 && !inRun; i++) { await sleep(1500); inRun = /expedition/.test(await ask('/data get entity @s Dimension', 400)); }
+  R('R0 the bot is inside a run (nothing below means anything in the hub)', inRun, `inRun=${inRun}`);
   await ask('/effect give @s minecraft:resistance 999 4 true'); await ask('/effect give @s minecraft:regeneration 999 4 true');
   await ask('/emberfall wavestop 0', 300);
   await ask('/kill @e[type=!player,distance=..90]', 900);
