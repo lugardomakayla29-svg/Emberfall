@@ -8,7 +8,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const lines = []; bot.on('message', m => lines.push(m.toString())); bot.on('error', e => console.log('ERR', e.message));
 const seen = [];
 const POOL_SRC = require('fs').readFileSync(process.env.RELICPOOL || require('path').join(__dirname, '..', '..', 'src', 'main', 'java', 'com', 'solme', 'emberfall', 'relic', 'RelicPool.java'), 'utf8');
-const NAMES = {}; for (const m of POOL_SRC.matchAll(/add\("([a-z_]+)",\s*"([^"]+)"/g)) NAMES[m[1]] = m[2];
+const NAMES = {}; for (const m of POOL_SRC.matchAll(/\b(?:add|gated)\("([a-z_]+)",\s*"([^"]+)"/g)) NAMES[m[1]] = m[2];
 function varint(b, o) { let v = 0, s = 0, x; do { x = b[o.i++]; v |= (x & 0x7f) << s; s += 7; } while (x & 0x80); return v; }
 function utf(b, o) { const n = varint(b, o); const t = b.slice(o.i, o.i + n).toString('utf8'); o.i += n; return t; }
 bot._client.on('packet', (d, meta) => {
