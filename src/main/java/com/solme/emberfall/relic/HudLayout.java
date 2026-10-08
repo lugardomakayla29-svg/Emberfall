@@ -109,4 +109,24 @@ public final class HudLayout {
         }
         return Math.max(0, Math.min(rows, owned));
     }
+
+    /**
+     * The stats panel's marker column: wide enough for the widest icon glyph, and never narrower than {@code minWidth} (the old square), so a panel
+     * with no usable glyph keeps exactly its old width. {@code glyphWidths} are font advances measured by the client; entries below 0 count as 0.
+     */
+    public static int markerColumn(int minWidth, int... glyphWidths) {
+        int w = Math.max(0, minWidth);
+        for (int g : glyphWidths) {
+            w = Math.max(w, g);
+        }
+        return w;
+    }
+
+    /**
+     * How far right of the column's left edge a glyph of {@code glyphWidth} starts so it sits centred in a column of {@code column}. Rounds down, so
+     * an odd leftover leans left; never negative, and a glyph wider than the column starts at 0 rather than outside it.
+     */
+    public static int markerOffset(int column, int glyphWidth) {
+        return Math.max(0, (column - Math.max(0, glyphWidth)) / 2);
+    }
 }

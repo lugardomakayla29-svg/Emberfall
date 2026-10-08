@@ -206,6 +206,42 @@ public class HudLayoutCheck {
         check("B4 a box inside another overlaps", b1.overlaps(new Box(2, 2, 3, 3)));
         check("B5 far apart boxes do not overlap", !b1.overlaps(new Box(50, 50, 5, 5)));
 
+        // I: the stats panel's icon column. Expected values are written by hand from the design: column = max(5, widest glyph advance),
+        // offset = floor((column - glyph) / 2), never negative. The glyph advances are the measured ones: star 8, diamond 6, envelope 8, hollow 6, skull 8.
+        check("I1 the real five glyphs (8, 6, 8, 6, 8) give an 8 wide column", HudLayout.markerColumn(5, 8, 6, 8, 6, 8) == 8);
+        check("I2 no glyphs at all keeps the old 5 px square", HudLayout.markerColumn(5) == 5);
+        check("I3 glyphs narrower than the square never shrink the column", HudLayout.markerColumn(5, 3, 4, 2) == 5);
+        check("I4 a glyph exactly as wide as the square leaves it at 5", HudLayout.markerColumn(5, 5) == 5);
+        check("I5 one pixel wider than the square grows it to 6", HudLayout.markerColumn(5, 6) == 6);
+        check("I6 a negative width counts as nothing", HudLayout.markerColumn(5, -4, 6) == 6);
+        check("I7 a negative minimum counts as 0", HudLayout.markerColumn(-3, 4) == 4 && HudLayout.markerColumn(-3) == 0);
+        check("I6b a negative width counts as nothing even when its size is larger than every real one (-9 beside 6)", HudLayout.markerColumn(5, -9, 6) == 6 && HudLayout.markerColumn(5, 6, -9) == 6);
+        check("I8 the column is the widest of many, in any order", HudLayout.markerColumn(5, 6, 8, 6) == 8 && HudLayout.markerColumn(5, 8, 6, 6) == 8);
+        check("I9 offset: a 6 wide glyph in an 8 column starts 1 in", HudLayout.markerOffset(8, 6) == 1);
+        check("I10 offset: an 8 wide glyph in an 8 column starts at 0", HudLayout.markerOffset(8, 8) == 0);
+        check("I11 offset: an odd leftover leans left (5 in 8 gives 1, not 2)", HudLayout.markerOffset(8, 5) == 1);
+        check("I11b offset depends on the column: 7 in 11 starts 2 in, 3 in 5 starts 1 in, 4 in 4 starts 0", HudLayout.markerOffset(11, 7) == 2 && HudLayout.markerOffset(5, 3) == 1 && HudLayout.markerOffset(4, 4) == 0);
+        check("I12 offset: a glyph wider than the column starts at 0, never negative", HudLayout.markerOffset(5, 9) == 0);
+        check("I13 offset: a negative glyph width is treated as 0 (centres nothing)", HudLayout.markerOffset(8, -2) == 4);
+        check("I14 every real glyph fits inside the 8 column: offset + width <= 8",
+                HudLayout.markerOffset(8, 8) + 8 <= 8 && HudLayout.markerOffset(8, 6) + 6 <= 8);
+        // The panel width the client builds: padding + column + 4 + labelW + 8 + valueW + padding. With the real glyphs the column is 8, so the
+        // panel is 3 px wider than the old 5 px square gave, and the weapon box moves right by exactly that much and still clears the timer or hides.
+        Box oldSt = stats(36, 30);
+        int iconCol = HudLayout.markerColumn(5, 8, 6, 8, 6, 8);
+        int newW = PAD + iconCol + 4 + 36 + 8 + 30 + PAD;
+        check("I15 the panel with the 8 column is exactly 3 px wider than with the old 5 px square", newW - oldSt.w() == 3);
+        boolean iconClear = true;
+        for (int[] win : new int[][] {{427, 240}, {480, 270}, {512, 282}, {640, 360}, {854, 480}, {1920, 1080}}) {
+            Box stI = new Box(HudLayout.MARGIN, HudLayout.MARGIN, newW, oldSt.h());
+            Box tm = HudLayout.timerBox(win[0], 56, 21);
+            Box wbI = HudLayout.weaponBox(stI, 80, HudLayout.MAX_WEAPON_ROWS, RELIC_ROW, PAD);
+            Box rbI = HudLayout.relicBox(stI, 100, 30);
+            if (HudLayout.weaponBoxFits(stI, wbI, tm) && (wbI.overlaps(stI) || wbI.overlaps(tm) || wbI.overlaps(rbI))) iconClear = false;
+            if (stI.overlaps(rbI)) iconClear = false;
+        }
+        check("I16 with the wider icon column the stats panel, weapon box, timer and relic list still share no pixel at six window sizes", iconClear);
+
         System.out.println();
         if (fail == 0) {
             System.out.println("ALL PASS (" + pass + " checks)");
