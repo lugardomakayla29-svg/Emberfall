@@ -1,5 +1,5 @@
-// WARNING (2026-10-08): this test calls /expedition and waits only 3.5 s, but the map builds asynchronously (about 32 s measured), so it
-// runs in the HUB, not in a run. Its stall numbers are for a free Tiki. Use tiki_chase_inrun.js, which waits for Dimension=expedition.
+// In-run Tiki chase: waits for Dimension=expedition (the map takes about 32 s to build) before spawning. Measured 2026-10-08: 6 of 6 veterans chase,
+// 143 of 144 server trace samples have a target. Edit DIST / ONLY below for other tiers (fodder, veteran, elite, corrupted).
 // Tiki lineup end to end, inside a real run: each case starts DIST blocks away. It must (A) close the distance to a
 // pinned player. Facing and target are judged from the server trace TIKI_FACE afterwards (hasTarget, head vs bearing).
 const mineflayer = require('mineflayer');
@@ -8,14 +8,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const lines = []; bot.on('message', m => lines.push(m.toString()));
 const ask = async (x, w = 600) => { const n = lines.length; bot.chat(x); await sleep(w); return lines.slice(n).join(' | '); };
 const pos = s => { const m = /\[(-?[\d.]+)d, (-?[\d.]+)d, (-?[\d.]+)d\]/.exec(s); return m ? [+m[1], +m[2], +m[3]] : null; };
-const DIST = parseInt(process.argv[2] || '26', 10);
-const ONLY = (process.argv[3] || 'fodder,veteran,elite,corrupted,pink_slime').split(',');
+const DIST = parseInt('26', 10);
+const ONLY = ('veteran').split(',');
 const CASES = { fodder: 'summon emberfall:tiki_magma ~ ~ ~ {Tags:["probe"],PersistenceRequired:1b}',
   veteran: 'emberfall spawnveteran tiki_magma', elite: 'emberfall spawnelite tiki_magma',
   corrupted: 'emberfall spawnelite tiki_magma_corrupted', pink_slime: 'emberfall spawnelite pink_slime' };
 bot.once('spawn', async () => {
   await sleep(6000);
-  await ask('/gamemode survival'); await ask('/character select vanguard', 700); await ask('/expedition leave', 800); await ask('/expedition', 3500);
+  await ask('/gamemode survival'); await ask('/character select vanguard', 700); await ask('/expedition leave', 800); await ask('/expedition', 1500);
+  { const t0 = Date.now(); let inRun = false;
+    for (let i = 0; i < 80; i++) { await sleep(1500); if (/expedition/.test(await ask('/data get entity @s Dimension', 400))) { inRun = true; break; } }
+    console.log('INRUN', inRun, 'after', ((Date.now() - t0) / 1000).toFixed(1), 's'); if (!inRun) { console.log('RESULT NOT IN A RUN'); bot.quit(); setTimeout(() => process.exit(0), 300); return; }
+    await sleep(2500); }
   await ask('/effect give @s minecraft:resistance 900 4 true', 300); await ask('/effect give @s minecraft:regeneration 900 4 true', 300);
   await ask('/emberfall wavestop 0', 500);
   await ask('/kill @e[type=!player]', 800);
