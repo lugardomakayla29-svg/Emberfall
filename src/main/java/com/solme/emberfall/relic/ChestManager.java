@@ -274,6 +274,39 @@ public final class ChestManager {
         }
     }
 
+    /** The open slot-machine reveals, one per player. The screen is only a SHOW: the relic is already granted when this is opened. */
+    private static final ChestRevealSessions REVEALS = new ChestRevealSessions();
+
+    /** Sends the slot-machine screen for an already-decided result and remembers it, so only a matching close is honoured later. */
+    private static void sendRevealScreen(ServerPlayer player, ServerLevel level, Relic relic, RelicRarity rarity) {
+        long now = level.getServer().getTickCount();
+        ChestRevealSessions.Open open = REVEALS.open(player.getUUID(), rarity.label(), relic.name(), level.getRandom().nextLong(), now);
+        if (TEST_MODE) {
+            com.solme.emberfall.EmberfallMod.LOGGER.info("REVEAL_TEST sent id={} tier={} item={} seed={}", open.id(), open.tier(), open.item(), open.seed());
+        }
+        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player,
+                new com.solme.emberfall.network.OpenChestRevealPayload(open.id(), open.tier(), open.item(), open.seed()));
+    }
+
+    /** C2S close. Acts only when the id is the one this player was shown, once, before it expired. It changes nothing but the session. */
+    public static void onRevealClosed(ServerPlayer player, com.solme.emberfall.network.CloseChestRevealPayload payload) {
+        boolean honoured = REVEALS.close(player.getUUID(), payload.revealId(), player.level().getServer().getTickCount());
+        if (TEST_MODE) {
+            com.solme.emberfall.EmberfallMod.LOGGER.info("REVEAL_TEST close id={} honoured={}", payload.revealId(), honoured);
+        }
+    }
+
+    /** Every tick: drops reveals that were never closed (a client that crashed or never answered). */
+    public static void tickReveals(net.minecraft.server.MinecraftServer server) {
+        if (server.getTickCount() % 20 == 0) {
+            REVEALS.sweep(server.getTickCount());
+        }
+    }
+
+    public static void forgetReveal(ServerPlayer player) {
+        REVEALS.forget(player.getUUID());
+    }
+
     private static void reveal(ServerPlayer player, ServerLevel level, BlockPos pos, ChestOpening.Outcome out, ChestOpening.Kind kind) {
         Relic relic = out.relic();
         RelicRarity rarity = relic.rarity();
@@ -294,5 +327,6 @@ public final class ChestManager {
         if (out.goldCost() > 0) {
             player.sendSystemMessage(Component.literal("-" + out.goldCost() + " Gold").withStyle(net.minecraft.ChatFormatting.GOLD), true);
         }
+        sendRevealScreen(player, level, relic, rarity);
     }
 }
