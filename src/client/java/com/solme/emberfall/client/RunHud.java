@@ -28,6 +28,8 @@ public final class RunHud implements HudElement {
     private static final int XP_GREEN = 0xFF7CE04A;
     private static final int KILL_RED = 0xFFE0563C;
     private static final int LABEL = 0xFFB8B8B8;
+    /** Level, Gold, Chest, Silver, Kills: star, diamond, envelope, hollow diamond, skull. All are in the game's bitmap font, 7 rows tall or less. */
+    private static final String[] STAT_ICONS = {"\u2605", "\u2666", "\u2709", "\u2662", "\u2620"};
 
     public static void set(RunHudPayload payload) {
         if (!payload.active()) {
@@ -104,7 +106,13 @@ public final class RunHud implements HudElement {
             valueW = Math.max(valueW, mc.font.width(values[i]));
         }
         int padding = 5;
-        int dot = 5;
+        // One icon glyph per row from the game's own font (see docs/UI_GLYPHS.md), in the row's colour. The column is as wide as the widest glyph and
+        // never narrower than the old 5 px square, so every label starts at the same x and the panel only grows if a glyph is wider.
+        int[] glyphW = new int[STAT_ICONS.length];
+        for (int i = 0; i < STAT_ICONS.length; i++) {
+            glyphW[i] = mc.font.width(STAT_ICONS[i]);
+        }
+        int dot = HudLayout.markerColumn(5, glyphW);
         int w = padding + dot + 4 + labelW + 8 + valueW + padding;
         int h = rowH * labels.length + padding * 2 - 4 + 2;
         // Top LEFT: the top right is where vanilla draws the potion effect icons, which this panel used to cover.
@@ -113,8 +121,8 @@ public final class RunHud implements HudElement {
         panel(g, x, y, w, h);
         for (int i = 0; i < labels.length; i++) {
             int ry = y + padding + i * rowH;
-            // A small coloured square marks each currency, so the rows read at a glance.
-            g.fill(x + padding, ry + 2, x + padding + dot, ry + 2 + dot, colours[i]);
+            // A small glyph in the row's colour marks each stat, so the rows read at a glance.
+            g.drawString(mc.font, STAT_ICONS[i], x + padding + HudLayout.markerOffset(dot, glyphW[i]), ry + 1, colours[i], true);
             g.drawString(mc.font, labels[i], x + padding + dot + 4, ry + 1, LABEL, true);
             g.drawString(mc.font, values[i], x + w - padding - mc.font.width(values[i]), ry + 1, colours[i], true);
         }
