@@ -20,7 +20,8 @@ bot.once('spawn', async () => {
   R('I1 the bot is inside a running expedition', inRun, '');
   await sleep(2000);
   const during = await ask('/emberfall rift open', 700); const s = await state();
-  R('I2 inside the run a Rift is refused and none exists', /refused/.test(during) && s.rifts === 0, during.slice(0, 80) + ' ' + s.raw.slice(-30));
+  // The command prints "RIFT refused: <reason>" (EmberfallCommands, via sendSuccess, a plain chat line). READ FROM HANDLER, NOT SEEN ARRIVING.
+  R('I2 inside the run a Rift is refused FOR THE RUN (the expedition map is a run arena) and none exists', /RIFT refused: the expedition map is a run arena/.test(during) && s.rifts === 0, during.slice(0, 100) + ' ' + s.raw.slice(-30));
   const nat = await ask('/emberfall rift natural', 900); const s2 = await state();
   R('I3 inside the run the natural opening is refused too', /natural refused/.test(nat) && s2.rifts === 0, nat.slice(0, 60));
   console.log(fails === 0 ? `ALL PASS (${total})` : `FAILED ${fails} of ${total}`); bot.quit(); process.exit(fails ? 1 : 0);
