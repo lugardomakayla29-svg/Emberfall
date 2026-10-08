@@ -86,33 +86,11 @@ public final class LoadoutHud implements HudElement {
     }
 
     /**
-     * The weapon's name and level. The cell is shared with the meter bar, so there are two layouts and the one that fits is chosen:
-     * ROOMY (room for a full text line between the name and the bar): the name on top, "Lv N" on its own line beneath it, right aligned.
-     * TIGHT (any smaller cell): one line only, the name shortened so "Lv N" fits after it. Nothing ever overlaps the name or the bar.
+     * The weapon's name, centred in the upper part of the cell. The weapon LEVEL is not drawn here any more: it has its own box beside the stats
+     * panel at the top left ({@code RunHud}), so this cell only carries the name and the meter bar and nothing in it can overlap.
      */
     private static void drawWeaponLabel(GuiGraphics g, Minecraft mc, HudStatePayload.WeaponEntry w, int x, int y, int size) {
-        int lineH = mc.font.lineHeight;
-        int nameBottom = 3 + lineH;
-        int meterTop = size - 2 - METER_HEIGHT;
-        boolean top = w.level() >= com.solme.emberfall.item.WeaponGrowth.MAX_LEVEL;
-        int badgeColour = top ? 0xFFFFD84A : 0xFFCFCFCF;
-        String badge = "Lv" + w.level();
-        if (meterTop - nameBottom >= lineH + 1) {
-            drawTag(g, mc, w.name(), x, y, size, 0xFFFFFFFF);
-            int bw = mc.font.width(badge);
-            g.drawString(mc.font, badge, x + size - bw - 2, nameBottom + 1, badgeColour, true);
-        } else {
-            int badgeW = mc.font.width(badge);
-            String shown = w.name();
-            int room = size - 4 - badgeW - 2;
-            while (shown.length() > 1 && mc.font.width(shown) > room) {
-                shown = shown.substring(0, shown.length() - 1);
-            }
-            int total = mc.font.width(shown) + 2 + badgeW;
-            int startX = x + (size - total) / 2;
-            g.drawString(mc.font, shown, startX, y + 3, 0xFFFFFFFF, true);
-            g.drawString(mc.font, badge, startX + mc.font.width(shown) + 2, y + 3, badgeColour, true);
-        }
+        drawTag(g, mc, w.name(), x, y, size, w.level() >= com.solme.emberfall.item.WeaponGrowth.MAX_LEVEL ? 0xFFFFD84A : 0xFFFFFFFF);
     }
 
     /**
