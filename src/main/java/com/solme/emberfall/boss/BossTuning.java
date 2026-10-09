@@ -18,9 +18,15 @@ public final class BossTuning {
     /** The Devourer's health before the boost: its original value, kept so the boost is a visible multiplication of a known number. */
     public static final double DEVOURER_BASE_HEALTH = 260.0;
 
-    /** The Devourer's max health with the boost, rounded to a whole point so the boss bar shows a clean number. */
+    /**
+     * The Devourer's max health. OWNER DECISION 2026-10-09: 666, a chosen number, NOT 260 x BASE_BOOST (that would be 351).
+     * Its speed and damage still use BASE_BOOST; only health is set by hand.
+     */
+    public static final double DEVOURER_HEALTH = 666.0;
+
+    /** The Devourer's max health: {@link #DEVOURER_HEALTH}, a whole number so the boss bar reads cleanly. */
     public static double devourerHealth() {
-        return Math.round(DEVOURER_BASE_HEALTH * BASE_BOOST);
+        return DEVOURER_HEALTH;
     }
 
     /** Broodtide's stats BEFORE the boost. They are the numbers of the Ember Guardian it replaced (600 HP, speed 0.22, 10 contact damage); that class is gone. */

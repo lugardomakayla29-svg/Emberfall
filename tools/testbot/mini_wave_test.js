@@ -25,7 +25,7 @@ bot.once('spawn', async () => {
   const baseHeads = await countR(HEADSEL); console.log('baseline player-head displays in the run BEFORE the boss:', baseHeads);
   console.log('boss:', (await ask('/emberfall bossdevourer 0', 1200)).slice(0, 100)); await sleep(2500);
   await ask('/emberfall wavestop 0', 400); await ask('/kill @e[type=!player,type=!emberfall:devourer_brain,type=!emberfall:devourer_spawn,type=!minecraft:item_display]', 600);   // boss stays; wave mobs and their auto-weapon prey go
-  const mx = 351;   // BossTuning.devourerHealth() = 260 x 1.35, read from the source (the attribute query does not work through /data)
+  const mx = 666;   // BossTuning.devourerHealth() = 666 (owner choice), read from the source (the attribute query does not work through /data)
   const heads = async () => countR('@e[type=minecraft:item_display,nbt={item:{id:"minecraft:player_head"}}]');
   const minis = async () => countR('@e[type=emberfall:devourer_spawn]');
   const hp1 = async () => { const r = await ask('/data get entity @e[type=emberfall:devourer_brain,limit=1] Health', 500); const m = /: ([\d.]+)f/.exec(r); return m ? +m[1] : NaN; };

@@ -1,6 +1,6 @@
 // Boss Curse on the DEVOURER (the Guardian is covered by shrine_test S17). Curse IV goes through the real C2S shrine packet.
-// Judge = server replies only: max health 351 x 1.5 = 526.5 (351 = 260 x the 35% base boost, BossTuning.BASE_BOOST), and the phase 2 wave is 3 minis (base 2 x 1.5 = 3.0, no dice involved).
-// usage: node devourer_curse_test.js <tier 0..4>   (tier 0 = control run, must show 351 health and exactly 2 minis)
+// Judge = server replies only: max health 666 x 1.5 = 999 (666 is BossTuning.DEVOURER_HEALTH, an owner-chosen number), and the phase 2 wave is 3 minis (base 2 x 1.5 = 3.0, no dice involved).
+// usage: node devourer_curse_test.js <tier 0..4>   (tier 0 = control run, must show 666 health and exactly 2 minis)
 const mineflayer = require('mineflayer'); const fs = require('fs');
 const TIER = +(process.argv[2] || 4);
 const D = JSON.parse(fs.readFileSync('../mod/src/main/resources/data/emberfall/map/expedition_map.json', 'utf8'));
@@ -30,7 +30,7 @@ bot.once('spawn', async () => {
   const st = await ask('/emberfall shrinestate 0', 700); console.log('state:', st.slice(0, 140));
   const m = /curse=(\d+).*?stat=([\d.]+) spawn=([\d.]+)/.exec(st);
   check(`C0 shrine state shows curse tier ${TIER}`, m && +m[1] === TIER, st.slice(0, 100));
-  const BASE_HP = 351;   // BossTuning.devourerHealth() = 260 x 1.35; the Boss Curse multiplies THIS, not the old 260
+  const BASE_HP = 666;   // BossTuning.devourerHealth() = 666 (owner choice); the Boss Curse multiplies THIS, not the old 260
   const wantHp = BASE_HP * (TIER === 0 ? 1 : 1.1 + 0.1 * TIER), wantMinis = { 0: 2, 1: null, 2: null, 3: null, 4: 3 }[TIER];
   console.log('boss:', (await ask('/emberfall bossdevourer 0', 1200)).slice(0, 90)); await sleep(2500);
   await ask('/emberfall wavestop 0', 400); await ask('/kill @e[type=!player,type=!emberfall:devourer_brain,type=!emberfall:devourer_spawn,type=!minecraft:item_display]', 600);
