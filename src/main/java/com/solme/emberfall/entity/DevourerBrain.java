@@ -115,7 +115,7 @@ public class DevourerBrain extends Silverfish {
     private static final double DASH_SPEED = 0.85; // blocks/tick horizontal
     private static final double DASH_HIT_RADIUS = 1.4;
     /** Boss Curse: attack damage multiplier and add-spawn multiplier. Both 1.0 with no curse. Set once by {@link #applyCurse}. */
-    private float damageScale = 1.0F;
+    private float damageScale = com.solme.emberfall.boss.BossTuning.devourerDamageScale();   // the base boss boost; the Boss Curse multiplies on top
     /** Party scaling: the share of each hit that lands, below 1.0 only when the pool is bigger than the max_health attribute can hold. */
     private float partyDamageFactor = 1.0F;
 
@@ -131,7 +131,7 @@ public class DevourerBrain extends Silverfish {
         if (statMultiplier <= 1.0) {
             return;
         }
-        this.damageScale = (float) statMultiplier;
+        this.damageScale = (float) com.solme.emberfall.boss.BossTuning.withCurse(statMultiplier);
         net.minecraft.world.entity.ai.attributes.AttributeInstance hp = this.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
             hp.setBaseValue(hp.getBaseValue() * statMultiplier);
@@ -229,7 +229,7 @@ public class DevourerBrain extends Silverfish {
 
     public static AttributeSupplier.Builder createBossAttributes() {
         return Silverfish.createAttributes()
-                .add(Attributes.MAX_HEALTH, 260.0)
+                .add(Attributes.MAX_HEALTH, com.solme.emberfall.boss.BossTuning.devourerHealth())
                 .add(Attributes.MOVEMENT_SPEED, 0.32);
     }
 
