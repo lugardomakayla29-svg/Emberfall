@@ -698,10 +698,22 @@ public class EmberGuardian extends Silverfish {
             Vec3 flat = new Vec3(to.x, 0.0, to.z);
             double dist = flat.length();
             if (dist > FAN_RANGE || dist < 0.001) {
+                if (TEST_MODE) {
+                    EmberfallMod.LOGGER.info("ATKDBG fan player={} hit=false why=range dist={}", p.getName().getString(), String.format("%.2f", dist));
+                }
                 continue;
             }
-            if (fanDir.dot(flat.scale(1.0 / dist)) < FAN_COS) {
+            double fanDot = fanDir.dot(flat.scale(1.0 / dist));
+            if (fanDot < FAN_COS) {
+                if (TEST_MODE) { // sandbox test server only: attack_test judges the cone from these lines, never from hp
+                    EmberfallMod.LOGGER.info("ATKDBG fan player={} hit=false why=angle dist={} angle={}", p.getName().getString(),
+                            String.format("%.2f", dist), String.format("%.1f", Math.toDegrees(Math.acos(Math.min(1.0, fanDot)))));
+                }
                 continue;
+            }
+            if (TEST_MODE) {
+                EmberfallMod.LOGGER.info("ATKDBG fan player={} hit=true why=cone dist={} angle={}", p.getName().getString(),
+                        String.format("%.2f", dist), String.format("%.1f", Math.toDegrees(Math.acos(Math.min(1.0, fanDot)))));
             }
             p.hurtServer(level, this.damageSources().mobAttack(this), FAN_DAMAGE * damageScale);
             p.setDeltaMovement(fanDir.x * FAN_KNOCKBACK, 0.35, fanDir.z * FAN_KNOCKBACK);
