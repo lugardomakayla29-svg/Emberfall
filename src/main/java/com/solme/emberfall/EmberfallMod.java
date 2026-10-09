@@ -102,6 +102,7 @@ public class EmberfallMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.wave.SwarmPortal::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.hub.GateManager::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftGate::tickAll);
+		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftGate::tickSelections);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.network.SwarmHudSync::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(ShrineManager::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(WeaponChoiceManager::tickAll);

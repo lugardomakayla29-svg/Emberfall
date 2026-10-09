@@ -13,7 +13,15 @@ import java.util.List;
  * {@link OpenWeaponChoicePayload}: the client only displays what it is told. Carries the id of the character the
  * player has selected right now so the screen can mark it.
  */
-public record OpenCharacterSelectPayload(String currentId, List<Entry> characters) implements CustomPacketPayload {
+public record OpenCharacterSelectPayload(String currentId, List<Entry> characters, int selectId, int secondsLeft) implements CustomPacketPayload {
+    /** {@code selectId} of the old Character Table flow: no phase, no countdown, the screen behaves exactly as before. */
+    public static final int NO_PHASE = 0;
+
+    /** The table flow: no Rift phase behind it. */
+    public OpenCharacterSelectPayload(String currentId, List<Entry> characters) {
+        this(currentId, characters, NO_PHASE, 0);
+    }
+
     public static final Type<OpenCharacterSelectPayload> TYPE = new Type<>(EmberfallMod.id("open_character_select"));
 
     /** One selectable character. {@code stats} is one ready-to-print line (health, speed, passive). */
@@ -25,6 +33,8 @@ public record OpenCharacterSelectPayload(String currentId, List<Entry> character
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenCharacterSelectPayload> STREAM_CODEC = CustomPacketPayload.codec(
             (payload, buf) -> {
                 buf.writeUtf(payload.currentId);
+                buf.writeVarInt(payload.selectId);
+                buf.writeVarInt(payload.secondsLeft);
                 buf.writeVarInt(payload.characters.size());
                 for (Entry e : payload.characters) {
                     buf.writeUtf(e.id());
@@ -36,12 +46,14 @@ public record OpenCharacterSelectPayload(String currentId, List<Entry> character
             },
             buf -> {
                 String current = buf.readUtf();
+                int selectId = buf.readVarInt();
+                int secondsLeft = buf.readVarInt();
                 int count = Math.min(buf.readVarInt(), MAX_ENTRIES);
                 List<Entry> list = new ArrayList<>(count);
                 for (int i = 0; i < count; i++) {
                     list.add(new Entry(buf.readUtf(), buf.readUtf(), buf.readUtf(512), buf.readUtf(), buf.readUtf(512)));
                 }
-                return new OpenCharacterSelectPayload(current, list);
+                return new OpenCharacterSelectPayload(current, list, selectId, secondsLeft);
             }
     );
 

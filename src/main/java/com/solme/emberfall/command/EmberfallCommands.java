@@ -96,6 +96,10 @@ public final class EmberfallCommands {
                                 ctx.getSource().sendSuccess(() -> Component.literal("RIFT closing all"), false);
                                 return 1;
                             }))
+                            .then(Commands.literal("selectstate").executes(ctx -> {
+                                ctx.getSource().sendSuccess(() -> Component.literal(com.solme.emberfall.rift.RiftGate.selectState()), false);
+                                return 1;
+                            }))
                             .then(Commands.literal("state").executes(ctx -> {
                                 int ents = 0;
                                 for (var e : ctx.getSource().getLevel().getAllEntities()) { ents++; }
