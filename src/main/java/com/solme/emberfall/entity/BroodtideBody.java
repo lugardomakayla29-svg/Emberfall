@@ -33,6 +33,8 @@ public class BroodtideBody extends Slime {
     public static final int BODY_SIZE = 6;
 
     private long fightTick = 0;
+    /** The Grab and the phase latch. Created when the fight starts (the slot is known), null for a body loaded without a fight. */
+    private com.solme.emberfall.boss.BroodtideGrabber grabber;
     private boolean defeated = false;
     private double curseMultiplier = 1.0;
     /** Party scaling's damage correction (PartyHealth.applyBoss): below 1.0 only when a big party's health would pass the attribute ceiling. */
@@ -123,6 +125,18 @@ public class BroodtideBody extends Slime {
             this.setDeltaMovement(com.solme.emberfall.boss.BroodtideRules.rootedHorizontal(v.x), v.y, com.solme.emberfall.boss.BroodtideRules.rootedHorizontal(v.z));
         }
         this.setTarget(this.getTarget());   // keep vanilla targeting; the boss only needs a target for contact damage
+        if (grabber != null) {
+            grabber.tick(level, this, fightTick, this.getMaxHealth() > 0 ? this.getHealth() / this.getMaxHealth() : 1.0);
+        }
+    }
+
+    /** Binds this body to a run slot and starts its Grab. Called once by the fight wrapper right after the spawn. */
+    public void startFight(int slot) {
+        this.grabber = new com.solme.emberfall.boss.BroodtideGrabber(slot);
+    }
+
+    public com.solme.emberfall.boss.BroodtideGrabber grabber() {
+        return grabber;
     }
 
     /** How many ticks the fight has run: the Tide's clock. */
@@ -163,6 +177,9 @@ public class BroodtideBody extends Slime {
     /** Vanilla splits a dying slime of size above 1 into copies of its own type; that would spawn smaller bosses, so the size drops to 1 first. */
     @Override
     public void remove(Entity.RemovalReason reason) {
+        if (grabber != null && this.level() instanceof ServerLevel sl) {
+            grabber.clearAll(sl);   // no player keeps Slowness / Mining Fatigue from a boss that is gone
+        }
         if (!this.level().isClientSide() && this.getSize() > 1) {
             super.setSize(1, false);
         }

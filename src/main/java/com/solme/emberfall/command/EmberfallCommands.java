@@ -902,8 +902,10 @@ public final class EmberfallCommands {
             return 0;
         }
         var b = bodies.get(0);
+        var gr = b.grabber();
         source.sendSuccess(() -> Component.literal("BROODTIDE tick=" + b.fightTick() + " tide=" + b.tide()
-                + " armour=" + com.solme.emberfall.boss.TideClock.armourAt(b.fightTick())), false);
+                + " armour=" + com.solme.emberfall.boss.TideClock.armourAt(b.fightTick())
+                + (gr == null ? "" : " phase=" + gr.phase() + " grabs=" + gr.grabsStarted() + " impulses=" + gr.impulsesApplied() + " active=" + gr.activeGrabs())), false);
         return 1;
     }
 

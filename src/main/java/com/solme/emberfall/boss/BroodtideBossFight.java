@@ -48,6 +48,7 @@ public final class BroodtideBossFight {
         }
         brain.setPartyDamageFactor(com.solme.emberfall.wave.PartyHealth.applyBoss(brain, com.solme.emberfall.world.RunManager.partySize(instance.slot())));
         brain.rememberPartyScaling();                      // so a later phase resize keeps the party's health instead of erasing it
+        brain.startFight(instance.slot());
         level.addFreshEntity(brain);
 
         // The Broodtide fights on the map as it is: no dais or moat is carved (the expedition map is unbreakable).
