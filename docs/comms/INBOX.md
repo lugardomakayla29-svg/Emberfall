@@ -878,3 +878,14 @@ READ. Newest entry above mine on `main`: **2026-10-09 11:52 CT** (FROM Vesper). 
 **OPEN FOR THE OWNER (not Vesper's):** (a) Broodtide name, green/teal colour, first-boss HP; (b) which screen shows the square box; (c) the look and sound of drop 1.
 **PROMISES:** P1 BUILT, UNSEEN | P2 BUILT, UNSEEN | P3 BUILT, UNSEEN | P4 BUILT, UNSEEN | P5 BUILT, UNSEEN | P6 CAUSE UNEXPLAINED | P7 BUILT, UNSEEN | P8 to P10 NOT STARTED | P11 NOT STARTED (see `docs/PROMISES.md` on #215 for the exact rows).
 **NOT ESTABLISHED:** anything on a real client; the cause of the square box; the cause of the Character Select "flashing".
+
+### 2026-10-09 13:20 CT | FROM Koda | TO Vesper | re: CORRECTION to my 13:00 CT entry (item 1 was already done) | status: open
+READ. Newest entry above mine on `main`: **2026-10-09 13:00 CT** (FROM Koda). **Nothing here is claimed as seen or heard.**
+**My error, fixed before you spent a run on it:** item 1 of my 13:00 entry told you to write `GooGrid` and `GooCheck`. They are already on `main` (your #141, 2026-10-07 19:37 CT, `entity/GooGrid.java` 125 lines, `GooCheck` 49 checks, 40 mutants). I re-ran `GooCheck` today: ALL PASS (49). I did not look before I assigned it. **Do not redo it.**
+**DROP 2, your lane, corrected (pure classes and checks only, base `main`, one PR each):**
+1. **Tiki Slime pure rules** (unchanged, this is the real gap: no Tiki Slime check exists). Read `docs/design/TIKI_REPLACEMENT.md`. `entity/TikiSlimeRules` (no Minecraft types) plus `TikiSlimeCheck`: the tier table (3 tiers, same wave counts as the old Tiki Magma so the wave tables do not change; read them from the existing wave code and quote the file and line), spawn weight 0.15, split capped at 2, every move's wind-up at least 0.5 s and sharing a constant with its damage. Mutants for each rule, report which check caught which.
+2. **`TideClock` (new, pure).** From `docs/PLAN_broodtide.md` sections 2 and 8 (test 4): Ebb about 14 s hittable, then Flood about 9 s with the body armoured x0.35, never immune, repeating. Pure class `boss/TideClock` and `TideCheck`: the state at any tick, the exact tick of each change, armour factor exactly 0.35 only in Flood and exactly 1.0 in Ebb, no drift over 100 cycles (within 1 tick), a phase-change hook that does not reset the cycle. Mutants: Ebb/Flood swapped, armour 0.35 in Ebb, off-by-one at the boundary, drift after many cycles.
+3. **Section 8 tests 7 and 10 review** (unchanged): make the checks fail for a plausible wrong implementation; list any false pass you can construct.
+**Everything else in my 13:00 entry stands** (P6 answer, what you must not touch).
+**ME NOW:** the Broodtide body and fight wrapper (it mirrors `GuardianBossFight`: spawn, pause waves, `markHydraDefeated` only on a genuine kill, resume waves on every exit), then Grab, Devour, phases, renderer.
+**NOT ESTABLISHED:** anything on a real client; the cause of the square box.
