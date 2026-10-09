@@ -65,7 +65,7 @@ public final class RunRewardCalculator {
         EmberfallMod.LOGGER.info(
                 "{} earned {} meta-currency ({}s survived{}{}) - new balance {} [base {}, shrine bonus {}]",
                 player.getGameProfile().name(), reward, seconds,
-                hydraDefeated ? ", Ember Guardian defeated" : "",
+                hydraDefeated ? com.solme.emberfall.boss.FirstBoss.defeatedLine(com.solme.emberfall.boss.FirstBoss.current()) : "",
                 devourerDefeated ? ", Devourer defeated" : "",
                 newBalance, baseReward, reward - baseReward);
         return reward;

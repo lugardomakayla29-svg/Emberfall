@@ -267,15 +267,20 @@ public final class WaveDirector {
         return boss.isEmpty() ? instance.origin() : boss.get(0);
     }
 
-    /** Manually triggers the Ember Guardian (the tier-1 boss, formerly the Hydra) immediately, skipping the time-mark wait. For testing/debug commands. */
+    /** Manually triggers the tier-1 boss (the Broodtide, or the Ember Guardian behind -Demberfall.legacyGuardian=true; formerly the Hydra) immediately, skipping the time-mark wait. For testing/debug commands. */
     public void triggerBossNow(ServerLevel level) {
         if (bossActive) {
             return;
         }
         hydraSpawned = true;
+        com.solme.emberfall.boss.FirstBoss.Kind first = com.solme.emberfall.boss.FirstBoss.current();
         RunManager.broadcastToSlot(level.getServer(), instance.slot(),
-                Component.literal("§c§lThe Ember Guardian awakens."));
-        GuardianBossFight.spawn(level, instance);
+                Component.literal(com.solme.emberfall.boss.FirstBoss.awakenLine(first)));
+        if (first == com.solme.emberfall.boss.FirstBoss.Kind.BROODTIDE) {
+            com.solme.emberfall.boss.BroodtideBossFight.spawn(level, instance);
+        } else {
+            GuardianBossFight.spawn(level, instance);   // legacy, behind -Demberfall.legacyGuardian=true
+        }
         bossActive = true;
     }
 

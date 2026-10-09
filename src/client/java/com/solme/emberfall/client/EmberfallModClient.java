@@ -55,6 +55,7 @@ public class EmberfallModClient implements ClientModInitializer {
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.CINDERBRAND_REAVER, VindicatorRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.UMBRAL_MAGUS, WitchRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.PINK_SLIME, PinkSlimeRenderer::new);
+		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.BROODTIDE, BroodtideRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.TIKI_MAGMA, MagmaCubeRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.TIKI_CUBE, MagmaCubeRenderer::new);
 		// Invisible rig parts (ArmorStand-based): the visible model is an item/block display rider, so

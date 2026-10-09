@@ -222,6 +222,9 @@ public final class EmberfallCommands {
                                         ctx.getSource().sendSuccess(() -> Component.literal(out), false);
                                         return 1;
                                     })))
+                    .then(Commands.literal("bosstide")
+                            .then(Commands.argument("slot", IntegerArgumentType.integer())
+                                    .executes(ctx -> broodtideTideState(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "slot")))))
                     .then(Commands.literal("bossdevourer")
                             .then(Commands.argument("slot", IntegerArgumentType.integer())
                                     .executes(ctx -> devourerBossTest(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "slot")))))
@@ -881,7 +884,26 @@ public final class EmberfallCommands {
         var arena = com.solme.emberfall.world.RunManager.getActive(slot);
         ServerLevel level = arena != null ? arena.level() : source.getServer().getLevel(com.solme.emberfall.world.Dimensions.EXPEDITION);
         director.triggerBossNow(level);
-        source.sendSuccess(() -> Component.literal("Ember Guardian boss triggered for slot " + slot), true);
+        source.sendSuccess(() -> Component.literal(com.solme.emberfall.boss.FirstBoss.displayName(com.solme.emberfall.boss.FirstBoss.current()) + " boss triggered for slot " + slot), true);
+        return 1;
+    }
+
+    /** Read-only test hook: the Broodtide's fight tick, Tide state and the armour factor right now, so a live test can compare damage dealt with what the clock says. */
+    private static int broodtideTideState(CommandSourceStack source, int slot) {
+        var arena = com.solme.emberfall.world.RunManager.getActive(slot);
+        if (arena == null) {
+            source.sendFailure(Component.literal("No active run for slot " + slot));
+            return 0;
+        }
+        var bodies = arena.level().getEntitiesOfClass(com.solme.emberfall.entity.BroodtideBody.class,
+                new net.minecraft.world.phys.AABB(-30000000, -64, -30000000, 30000000, 400, 30000000));
+        if (bodies.isEmpty()) {
+            source.sendFailure(Component.literal("No Broodtide in slot " + slot));
+            return 0;
+        }
+        var b = bodies.get(0);
+        source.sendSuccess(() -> Component.literal("BROODTIDE tick=" + b.fightTick() + " tide=" + b.tide()
+                + " armour=" + com.solme.emberfall.boss.TideClock.armourAt(b.fightTick())), false);
         return 1;
     }
 

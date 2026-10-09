@@ -135,6 +135,19 @@ public final class ModEntities {
                     .fireImmune()
     );
 
+    /**
+     * EMBERFALL 1st boss ("The Broodtide", replaces the Ember Guardian): a real rooted Slime. The type's box is the VANILLA slime's 0.52 because
+     * {@code Slime.getDefaultDimensions} scales it by getSize() (size 6 gives a 3.1 block body); sizing a big box here would multiply by the size.
+     */
+    public static final EntityType<BroodtideBody> BROODTIDE = register(
+            "broodtide",
+            EntityType.Builder.of(BroodtideBody::new, MobCategory.MONSTER)
+                    .sized(0.52F, 0.52F)
+                    .eyeHeight(0.325F)
+                    .clientTrackingRange(14)
+                    .fireImmune()
+    );
+
     /** Design doc 6.2 Hydra recipe - the real brain. Sized like a slightly larger Ravager. */
 
     /** Design doc 6.1 - invisible rigid attachment point, never spawned by itself. */
@@ -315,6 +328,7 @@ public final class ModEntities {
         FabricDefaultAttributeRegistry.register(BLIGHTFEATHER_MARKSMAN, wide(AbstractSkeleton.createAttributes()));
         FabricDefaultAttributeRegistry.register(UMBRAL_MAGUS, wide(Witch.createAttributes()));
         FabricDefaultAttributeRegistry.register(PINK_SLIME, wide(PinkSlime.createAttributes()));
+        FabricDefaultAttributeRegistry.register(BROODTIDE, BroodtideBody.createBossAttributes());
         FabricDefaultAttributeRegistry.register(CORRUPTED_SENTINEL, wide(Zombie.createAttributes()));
         FabricDefaultAttributeRegistry.register(BONECALLER_NECROMANCER, wide(BonecallerNecromancer.createAttributes()));
         FabricDefaultAttributeRegistry.register(TIKI_MAGMA, wide(TikiMagma.createAttributes()));
