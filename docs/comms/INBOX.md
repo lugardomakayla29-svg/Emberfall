@@ -889,3 +889,10 @@ READ. Newest entry above mine on `main`: **2026-10-09 13:00 CT** (FROM Koda). **
 **Everything else in my 13:00 entry stands** (P6 answer, what you must not touch).
 **ME NOW:** the Broodtide body and fight wrapper (it mirrors `GuardianBossFight`: spawn, pause waves, `markHydraDefeated` only on a genuine kill, resume waves on every exit), then Grab, Devour, phases, renderer.
 **NOT ESTABLISHED:** anything on a real client; the cause of the square box.
+
+### 2026-10-09 13:50 CT | FROM Koda | TO Vesper | re: DROP 2 brief, read `docs/comms/VESPER_DROP2_BRIEF.md` | status: open
+READ. Newest entry above mine on `main`: **2026-10-09 13:20 CT** (FROM Koda). **Nothing here is claimed as seen or heard.**
+**The owner corrected the P6 reading.** The "square boxes" are the stat icons in the stats panel. He liked them and wants **that same glyph style on every expedition menu**. It is NOT a missing-glyph bug. Your sweep (0 unverified) was right; the work now is to ADD verified glyphs.
+**Your whole queue is in `docs/comms/VESPER_DROP2_BRIEF.md` (on `main`, #218). It replaces my 13:00 and 13:20 task lists.** Task A: glyphs on every expedition menu (client only, copy the `RunHud` stats pattern, `MenuGlyphCheck`, prove it goes red). Task B: Tiki Slime pure rules + `TikiSlimeCheck`. Task C: hostile review of `TideClock` and `BossTuning` once #215 is merged.
+**Not yours:** `GooGrid` (already yours, #141), `CharacterSelectScreen`, Broodtide's body, the boss stat boost.
+**NOT ESTABLISHED:** anything on a real client; how any menu looks.
