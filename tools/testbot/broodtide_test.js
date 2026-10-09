@@ -1,5 +1,5 @@
 // Broodtide live test (slice 2: body, tide armour, rooted, kill). Judge = SERVER REPLIES only (/data, /execute). Nothing here is claimed as seen.
-// Needs a server started with -Demberfall.testMode=true. The default first boss is the Broodtide (FirstBoss), so /emberfall boss 0 spawns it.
+// Needs a server started with -Demberfall.testMode=true. The first boss is the Broodtide (the Ember Guardian was removed), so /emberfall boss 0 spawns it.
 const mineflayer = require('mineflayer');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
@@ -23,8 +23,8 @@ bot.once('spawn', async () => {
   await ask('/emberfall wavestop 0', 400);
   const n = await countR('@e[type=emberfall:broodtide]');
   check('B1 exactly one Broodtide exists', n === 1, `count=${n}`);
-  const noGuardian = await countR('@e[type=emberfall:ember_guardian]');
-  check('B2 no Ember Guardian spawned (the default first boss is the Broodtide)', noGuardian === 0, `guardians=${noGuardian}`);
+  const noDevourer = await countR('@e[type=emberfall:devourer_brain]');
+  check('B2 the first-boss command spawned only the Broodtide (no Devourer brain beside it)', noDevourer === 0, `devourer brains=${noDevourer}`);
   const maxHp = await num('attributes[{id:"minecraft:max_health"}].base');
   check('B3 max health is 810 (600 x 1.35, BossTuning)', Math.abs(maxHp - 810) < 1, `max=${maxHp}`);
   const spd = await num('attributes[{id:"minecraft:movement_speed"}].base');

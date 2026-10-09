@@ -1,7 +1,7 @@
 #!/bin/bash
 # Regression after the free chest work: run each suite on a fresh world, keep verdict lines.
 : > /tmp/reg_free.txt
-for s in chest_test runhud_test relic_test guardian_test; do
+for s in chest_test runhud_test relic_test; do
   rm -f /tmp/one_$s.txt
   bash one_suite.sh $s 260 > /dev/null 2>&1
   echo "== $s" >> /tmp/reg_free.txt

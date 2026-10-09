@@ -41,7 +41,7 @@ UNVERIFIED and prototype FIRST: hide a mob and bring it back with its AI, aggro 
 v1 (build): Tide, Spread, rooted Slime body with a custom renderer, 3 phases, Grab (effects + one impulse), Devour with Zombie and Spitter Brood-Kin,
 clean island, phase beats, death = puddle with no split, party scaling through the existing party-damage path.
 CUT from v1 (after a playtest): arms as separately hittable targets, sever and regrow, Whirlpool, Cyst adds, Undertow, the other four Brood-Kin types.
-KEEP the Ember Guardian, `CinderPylon` and their tests behind a flag until Broodtide is playtested; `/emberfall boss` and the summoner item must keep working.
+OWNER OVERRULED 2026-10-09: the Ember Guardian, `CinderPylon` and their tests are DELETED, not kept behind a flag. `/emberfall boss` and the (renamed) Broodtide Summoner item spawn the Broodtide.
 
 ## 5. Facts the build must respect (VERIFIED unless noted)
 - `Slime.setSize` clamps 1..127 and overwrites max health, speed and damage: one `applySize` that re-applies boss stats and keeps the HP fraction.
