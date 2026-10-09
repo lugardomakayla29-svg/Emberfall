@@ -63,7 +63,7 @@ public final class RiftFx {
             this(tick, kind, key, x, y, a, b, 0);
         }
 
-        Event(int tick, Kind kind, String key, int x, int y, float a, float b, int count) {
+        public Event(int tick, Kind kind, String key, int x, int y, float a, float b, int count) {
             this.tick = tick;
             this.kind = kind;
             this.key = key;

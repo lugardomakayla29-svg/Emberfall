@@ -118,7 +118,7 @@ public final class RiftIdle {
      * Never more than {@link #BUDGET} particles in one tick. Streaks and satellites are the rare, MOVING parts, so they are kept first; the
      * rim and fill (which are everywhere) give way to them. Order inside each group is unchanged, so the result is deterministic.
      */
-    static List<RiftFx.Event> clamp(List<RiftFx.Event> events) {
+    public static List<RiftFx.Event> clamp(List<RiftFx.Event> events) {
         List<RiftFx.Event> rare = new ArrayList<>();
         List<RiftFx.Event> common = new ArrayList<>();
         for (RiftFx.Event e : events) {

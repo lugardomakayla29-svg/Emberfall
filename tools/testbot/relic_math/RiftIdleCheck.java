@@ -134,6 +134,17 @@ public class RiftIdleCheck {
         // The tick number wraps: a huge tick still works, and a negative one does not crash.
         Shape sh = RiftShape.generate(7);
         check("I13 a huge tick number still draws", !RiftIdle.at(sh, Integer.MAX_VALUE - 3).isEmpty() || !RiftIdle.at(sh, 1_000_000).isEmpty(), "ok");
+        // The budget guard cannot be reached by real shapes (peak 56 of 70), so prove it directly with an oversized list.
+        java.util.List<Event> big = new java.util.ArrayList<>();
+        for (int i = 0; i < 40; i++) {
+            big.add(new Event(0, Kind.PARTICLE, i % 5 == 0 ? RiftIdle.STREAK : RiftIdle.FILL_DUST, i % 15, i % 13, 0, 0, 3));
+        }
+        java.util.List<Event> cut = RiftIdle.clamp(big);
+        int cutN = RiftIdle.particleCount(cut);
+        long streaksIn = big.stream().filter(e -> RiftIdle.STREAK.equals(e.key)).count();
+        long streaksOut = cut.stream().filter(e -> RiftIdle.STREAK.equals(e.key)).count();
+        check("I14 an oversized list (120 particles) is cut to the budget", cutN <= RiftIdle.BUDGET && cutN > RiftIdle.BUDGET - 3, "kept " + cutN + " of 120");
+        check("I15 when cutting, the rare MOVING streaks are kept before the common fill", streaksOut == streaksIn, "streaks " + streaksOut + " of " + streaksIn);
         System.out.println();
         System.out.println(fails == 0 ? "ALL PASS (" + total + ")" : fails + " FAIL of " + total);
         System.exit(fails == 0 ? 0 : 1);
