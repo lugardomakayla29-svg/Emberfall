@@ -50,8 +50,6 @@ public class EmberfallModClient implements ClientModInitializer {
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.BROODMOTHER_STALKER, SpiderRenderer::new);
 		// Others
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.DEVOURER_BRAIN, SilverfishRenderer::new);
-		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.EMBER_GUARDIAN, SilverfishRenderer::new);
-		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.CINDER_PYLON, SilverfishRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.CINDERBRAND_REAVER, VindicatorRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.UMBRAL_MAGUS, WitchRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.PINK_SLIME, PinkSlimeRenderer::new);

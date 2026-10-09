@@ -2,7 +2,6 @@ package com.solme.emberfall.wave;
 
 import com.solme.emberfall.EmberfallMod;
 import com.solme.emberfall.boss.DevourerBossFight;
-import com.solme.emberfall.boss.GuardianBossFight;
 import com.solme.emberfall.entity.BlightfeatherMarksman;
 import com.solme.emberfall.entity.BoilRiddenMarksman;
 import com.solme.emberfall.entity.BonecallerNecromancer;
@@ -236,7 +235,7 @@ public final class WaveDirector {
     }
 
     /**
-     * Called by {@link GuardianBossFight#tickAll} exactly once, the moment
+     * Called by {@link com.solme.emberfall.boss.BroodtideBossFight#tickAll} exactly once, the moment
      * Hydra's brain confirms a genuine kill (not a rig discarded early by
      * run teardown) - escalates this run to tier 2. Idempotent guard against
      * {@code tier >= 2} even though Hydra is already a one-shot spawn
@@ -267,20 +266,15 @@ public final class WaveDirector {
         return boss.isEmpty() ? instance.origin() : boss.get(0);
     }
 
-    /** Manually triggers the tier-1 boss (the Broodtide, or the Ember Guardian behind -Demberfall.legacyGuardian=true; formerly the Hydra) immediately, skipping the time-mark wait. For testing/debug commands. */
+    /** Manually triggers the tier-1 boss (the Broodtide; formerly the Ember Guardian and, before that, the Hydra) immediately, skipping the time-mark wait. For testing/debug commands. */
     public void triggerBossNow(ServerLevel level) {
         if (bossActive) {
             return;
         }
         hydraSpawned = true;
-        com.solme.emberfall.boss.FirstBoss.Kind first = com.solme.emberfall.boss.FirstBoss.current();
         RunManager.broadcastToSlot(level.getServer(), instance.slot(),
-                Component.literal(com.solme.emberfall.boss.FirstBoss.awakenLine(first)));
-        if (first == com.solme.emberfall.boss.FirstBoss.Kind.BROODTIDE) {
-            com.solme.emberfall.boss.BroodtideBossFight.spawn(level, instance);
-        } else {
-            GuardianBossFight.spawn(level, instance);   // legacy, behind -Demberfall.legacyGuardian=true
-        }
+                Component.literal(com.solme.emberfall.boss.FirstBoss.awakenLine()));
+        com.solme.emberfall.boss.BroodtideBossFight.spawn(level, instance);
         bossActive = true;
     }
 

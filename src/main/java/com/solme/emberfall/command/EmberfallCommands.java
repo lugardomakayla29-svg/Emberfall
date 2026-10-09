@@ -884,7 +884,7 @@ public final class EmberfallCommands {
         var arena = com.solme.emberfall.world.RunManager.getActive(slot);
         ServerLevel level = arena != null ? arena.level() : source.getServer().getLevel(com.solme.emberfall.world.Dimensions.EXPEDITION);
         director.triggerBossNow(level);
-        source.sendSuccess(() -> Component.literal(com.solme.emberfall.boss.FirstBoss.displayName(com.solme.emberfall.boss.FirstBoss.current()) + " boss triggered for slot " + slot), true);
+        source.sendSuccess(() -> Component.literal(com.solme.emberfall.boss.FirstBoss.NAME + " boss triggered for slot " + slot), true);
         return 1;
     }
 

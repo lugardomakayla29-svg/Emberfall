@@ -11,7 +11,6 @@ import net.fabricmc.fabric.api.event.registry.RegistryAttributeHolder;
 import com.solme.emberfall.block.ModBlockEntities;
 import com.solme.emberfall.block.ModBlocks;
 import com.solme.emberfall.boss.DevourerBossFight;
-import com.solme.emberfall.boss.GuardianBossFight;
 import com.solme.emberfall.combat.CompositeParts;
 import com.solme.emberfall.command.EmberfallCommands;
 import com.solme.emberfall.command.CharacterCommand;
@@ -75,7 +74,6 @@ public class EmberfallMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.bot.BotBrain::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.bot.BotPilot::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.music.RunMusic::tick);
-		ServerTickEvents.END_SERVER_TICK.register(GuardianBossFight::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.boss.BroodtideBossFight::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftStage::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftManager::tickAll);

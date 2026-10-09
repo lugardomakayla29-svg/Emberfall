@@ -23,7 +23,7 @@ public final class BossTuning {
         return Math.round(DEVOURER_BASE_HEALTH * BASE_BOOST);
     }
 
-    /** Broodtide's stats BEFORE the boost: the Ember Guardian it replaces (EmberGuardian.createBossAttributes: 600 HP, speed 0.22, 10 contact damage). */
+    /** Broodtide's stats BEFORE the boost. They are the numbers of the Ember Guardian it replaced (600 HP, speed 0.22, 10 contact damage); that class is gone. */
     public static final double BROODTIDE_BASE_HEALTH = 600.0;
     public static final double BROODTIDE_BASE_SPEED = 0.22;
     public static final double BROODTIDE_BASE_DAMAGE = 10.0;

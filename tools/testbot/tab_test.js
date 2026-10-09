@@ -30,7 +30,7 @@ let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' :
   check('C5 a real non-operator cannot run /emberfall (the command does not even resolve)', /Unknown or incomplete command/.test(who), who.slice(0, 90) || '(no reply)');
   const r2 = await say(pl, '/give @s emberfall:broodtide_summoner', 700);
   check('C5b and cannot /give themselves a summoner', !/Gave 1/.test(r2) && /Unknown or incomplete command/.test(r2), r2.slice(0, 80) || '(no reply)');
-  const r3 = await say(pl, '/emberfall relic summoner NoPermGuest guardian', 700);
+  const r3 = await say(pl, '/emberfall relic summoner NoPermGuest broodtide', 700);
   check('C5c and cannot drive the summoner test hook', /Unknown or incomplete command/.test(r3), r3.slice(0, 80) || '(no reply)');
   console.log(fails === 0 ? 'ALL PASS' : 'SOME FAIL ' + fails);
   pl.quit(); op.quit(); setTimeout(() => process.exit(0), 400);

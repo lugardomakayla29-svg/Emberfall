@@ -117,23 +117,7 @@ public final class ModEntities {
                     .clientTrackingRange(8)
     );
 
-    /** One of the Ember Guardian's lit pylons: a real, breakable, invisible Silverfish with a lit-magma display rider. */
-    public static final EntityType<CinderPylon> CINDER_PYLON = register(
-            "cinder_pylon",
-            EntityType.Builder.of(CinderPylon::new, MobCategory.MONSTER)
-                    .sized(0.9F, 1.6F)
-                    .clientTrackingRange(12)
-                    .fireImmune()
-    );
 
-    /** EMBERFALL 1st boss ("The Ember Guardian", replaces the Hydra) - a fully invisible Silverfish hitbox with display parts. */
-    public static final EntityType<EmberGuardian> EMBER_GUARDIAN = register(
-            "ember_guardian",
-            EntityType.Builder.of(EmberGuardian::new, MobCategory.MONSTER)
-                    .sized(2.4F, 4.4F)
-                    .clientTrackingRange(14)
-                    .fireImmune()
-    );
 
     /**
      * EMBERFALL 1st boss ("The Broodtide", replaces the Ember Guardian): a real rooted Slime. The type's box is the VANILLA slime's 0.52 because
@@ -320,8 +304,6 @@ public final class ModEntities {
         FabricDefaultAttributeRegistry.register(HORDE_BOMBER, wide(HordeBomber.createBomberAttributes()));
         FabricDefaultAttributeRegistry.register(HORDE_WITCH, wide(net.minecraft.world.entity.monster.Witch.createAttributes()));
         FabricDefaultAttributeRegistry.register(BROODLING, wide(Spider.createAttributes()));
-        FabricDefaultAttributeRegistry.register(EMBER_GUARDIAN, EmberGuardian.createBossAttributes());
-        FabricDefaultAttributeRegistry.register(CINDER_PYLON, CinderPylon.createPylonAttributes());
         FabricDefaultAttributeRegistry.register(DEVOURER_BRAIN, DevourerBrain.createBossAttributes());
         FabricDefaultAttributeRegistry.register(DEVOURER_SPAWN, wide(DevourerSpawn.createAttributes()));
         FabricDefaultAttributeRegistry.register(CINDERBRAND_REAVER, wide(Vindicator.createAttributes()));
