@@ -13,7 +13,7 @@ Every delivery note MUST list this table with the current statuses. A promised i
 | P4 | Chest roll plays a sound while rolling for a relic | NOT STARTED | Vesper | 1 |
 | P5 | Expedition dimension: no day/night, permanent noon | BUILT, UNSEEN (emberfall:noon timeline; headless probes could not see the sky, fallback is fixed_time) | Koda | 1 |
 | P6 | Every GUI uses the provided glyphs, no square missing-glyph box (docs/UI_GLYPHS.md) | NOT STARTED (only the stats panel) | Vesper | 1 |
-| P7 | Rift Character Select looks better (not flashing, better looking) | NOT STARTED | Koda | 1 |
+| P7 | Rift Character Select looks nicer (not flashing) | BUILT, UNSEEN (framed panel, 8 cards with badge, name and weapon, detail pane, draining time bar, keyboard focus; layout fits down to 320x240; the cause of the 'flashing' you saw is NOT known, the old screen had no animation) |
 | P8 | Broodtide replaces the Ember Guardian as boss 1 (slime kraken, Tide, Devour, Brood-Kin) | NOT STARTED (plan only) | Koda | 2 |
 | P9 | Sickly slime + sickly mob skins from Emberfall-SicklySlimeSicklySkins.zip used on Broodtide, Brood-Kin, slimes | NOT STARTED | Koda | 2 |
 | P10 | Tiki Magma removed; Tiki Slimes (slime version of Tiki, no ice) tied to Broodtide | NOT STARTED | Koda | 2 |
