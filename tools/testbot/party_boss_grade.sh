@@ -13,7 +13,11 @@ chk "G1 solo hit landed" "$(awk -v t="$ts" 'BEGIN{print (t>0)?1:0}')" "taken=$ts
 chk "G2 party hit landed" "$(awk -v t="$tp" 'BEGIN{print (t>0)?1:0}')" "taken=$tp"
 chk "G3 party logged an effective pool" "$([ -n "$eff" ] && echo 1 || echo 0)" "no PARTYBOSS line"
 chk "G4 the party hit took factor x the solo hit" "$(awk -v s="$ts" -v p="$tp" -v f="$fac" 'BEGIN{r=(s>0&&f>0)?p/(s*f):0; print (r>0.97&&r<1.03)?1:0}')" "solo=$ts party=$tp factor=$fac"
-solo_pool=$(grep -o "before=[0-9.]*" "$SO" | head -1 | cut -d= -f2)
+# The solo pool is the boss's BASE max health as the server logged it (PARTYHP base=), not the bot's before= read: a fight-ready boss can
+# already have lost a few HP when the bot reads it (Devourer: server base 260, bot read 254), which skewed the ratio to 4.09 and failed
+# a correct 4.00x. The bot's before= is only the fallback when the party log has no PARTYHP line for this boss.
+solo_pool=$(grep "PARTYHP type=emberfall:$B " "$PL" | head -1 | grep -o " base=[0-9.]*" | head -1 | cut -d= -f2)
+[ -n "$solo_pool" ] || solo_pool=$(grep -o "before=[0-9.]*" "$SO" | head -1 | cut -d= -f2)
 chk "G5 effective pool is 4.0x the solo pool" "$(awk -v e="$eff" -v b="$solo_pool" 'BEGIN{r=(b>0)?e/b:0; print (r>3.97&&r<4.03)?1:0}')" "effective=$eff solo_pool=$solo_pool"
 echo "EXPECTED 5, ran $ran"
 if [ "$fails" = "0" ] && [ "$ran" = "5" ]; then echo "RESULT: ALL PASSED ($ran checks)"; exit 0; fi
