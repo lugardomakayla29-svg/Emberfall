@@ -1,5 +1,5 @@
 import com.solme.emberfall.rift.RiftRules;
-import com.solme.emberfall.hub.GateRules;
+import com.solme.emberfall.rift.GateRules;
 public class RiftRulesCheck {
     static int fails = 0;
     static void check(String l, boolean ok, String e) { System.out.println((ok ? "PASS " : "FAIL ") + l + "  " + e); if (!ok) fails++; }

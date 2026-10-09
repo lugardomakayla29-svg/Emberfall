@@ -43,6 +43,7 @@ public class EmberfallMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		com.solme.emberfall.rift.RiftGate.register();
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
@@ -63,8 +64,6 @@ public class EmberfallMod implements ModInitializer {
 		CharacterCommand.register();
 		EmberfallNetworking.registerCommon();
 		RunEndHandler.register();
-		com.solme.emberfall.hub.HubSiteSearch.register();
-		com.solme.emberfall.hub.HubInteractions.register();
 		com.solme.emberfall.world.RunManager.registerRunEntityTagger();
 		com.solme.emberfall.combat.MobPresentation.register();
 		com.solme.emberfall.pickup.KillRewards.register();
@@ -100,7 +99,6 @@ public class EmberfallMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.relic.RelicRegenSystem::tick);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.relic.MerchantManager::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.wave.SwarmPortal::tickAll);
-		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.hub.GateManager::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftGate::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftGate::tickSelections);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.network.SwarmHudSync::tickAll);

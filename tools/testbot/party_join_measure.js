@@ -21,7 +21,6 @@ const parse = s => { const g = k => { const m = new RegExp(k + '=([^ ]+)').exec(
   const op = await mk('EmberTester'), A = await mk('PartyA'), B = await mk('PartyB');
   await sleep(6000);
   const state = async n => parse(await ask(op, '/emberfall relic state ' + n, 700));
-  await ask(op, '/emberfall hubactivate -29 76 -2', 3500);
   const started = await ask(op, '/expedition', 2500);
   ctrl('the operator started a run', /Expedition started/.test(started), started.slice(0, 80));
   await sleep(45000);                                   // map build

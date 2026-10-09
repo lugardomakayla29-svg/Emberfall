@@ -1,6 +1,6 @@
 #!/bin/bash
 rm -f /tmp/regress_guardian.txt
-for s in guardian_test gate_test gate_noterrain_test gate_weapon_test move_test ledge_test attack_test attack_gate_test beam_test ring_phase3_test ring_tower_test cinder_still_test calm_test; do
+for s in guardian_test gate_noterrain_test gate_weapon_test move_test ledge_test attack_test attack_gate_test beam_test ring_phase3_test ring_tower_test cinder_still_test calm_test; do
   rm -f /tmp/one_$s.txt
   PREBUILD=1 bash one_suite.sh $s 300 >/dev/null 2>&1
   echo "=== $s" >> /tmp/regress_guardian.txt

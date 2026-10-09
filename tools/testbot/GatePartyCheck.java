@@ -1,4 +1,4 @@
-import com.solme.emberfall.hub.*;
+import com.solme.emberfall.rift.GateRules;
 import com.solme.emberfall.world.PartyScaling;
 public class GatePartyCheck {
     static int fails = 0, ran = 0;
@@ -17,11 +17,7 @@ public class GatePartyCheck {
         boolean mono = true; for (int m = 1; m < 10; m++) if (!GateRules.canJoin(m, 10)) mono = false;
         check("every size from 1 to 9 can take one more", mono, "");
         check("huge member counts never throw or allow", !GateRules.canJoin(Integer.MAX_VALUE, 10) && !GateRules.canJoin(Integer.MIN_VALUE, 10), "");
-        check("standing on the gate cell is NOT a safe own spot", !GateRules.ownSpotIsSafe(0, 0), "");
-        check("0.5 blocks from the gate is not safe", !GateRules.ownSpotIsSafe(0.5, 0.5), "");
-        check("1.19 blocks is not safe, 1.2 is", !GateRules.ownSpotIsSafe(1.19, 0) && GateRules.ownSpotIsSafe(1.2, 0), "");
-        check("3 blocks away is safe in any direction", GateRules.ownSpotIsSafe(3, 0) && GateRules.ownSpotIsSafe(0, -3) && GateRules.ownSpotIsSafe(-2, 2), "");
-        System.out.println(fails == 0 && ran == 16 ? "RESULT: ALL PASSED (" + ran + " checks)" : "RESULT: " + fails + " FAILED (ran " + ran + " of 16)");
-        System.exit(fails == 0 && ran == 16 ? 0 : 1);
+        System.out.println(fails == 0 && ran == 12 ? "RESULT: ALL PASSED (" + ran + " checks)" : "RESULT: " + fails + " FAILED (ran " + ran + " of 12)");
+        System.exit(fails == 0 && ran == 12 ? 0 : 1);
     }
 }

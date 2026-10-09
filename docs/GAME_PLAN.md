@@ -30,7 +30,7 @@ NOT BUILT (grep finds no class): RiftShape, Broodtide body, GooGrid, chest slot-
 | 2.4 | Rift wiring: shard item + recipe, creative tab, /emberfall rift, natural event | Koda | opens on uneven ground, ground byte-identical after |
 | 2.5 | Character Select screen + packet, shop tab; retarget the gate to the Rift | Koda | gate_test, party tests, boundary_test green |
 | 2.6 | Chest slot-machine reveal (client screen: tier first, then item) | Vesper (isolated screen), Koda wires the packet | screen opens, tier-then-item order proven by packet |
-| 2.7 | Remove the Hearth and hub code (last, only after 2.4 and 2.5 are proven) | Koda | full regression, 0 exceptions |
+| 2.7 | Remove the Hearth and hub code (last, only after 2.4 and 2.5 are proven) | Koda | DONE on branch koda/hearth-removal: hub building, plate, recipe, GateManager removed; thin Hearth kept for old worlds |
 
 ## Phase 3: Vesper's small items (any time, no hotspots)
 Sound audit: list the silent things, then fill gaps. Patch notes (`docs/WHATS_NEW.md`) and credits. Chest respawn tuning check. Anything the owner reports.

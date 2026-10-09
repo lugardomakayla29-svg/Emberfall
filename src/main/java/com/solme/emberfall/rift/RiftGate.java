@@ -1,7 +1,6 @@
 package com.solme.emberfall.rift;
 
 import com.solme.emberfall.command.RunCommand;
-import com.solme.emberfall.hub.GateRules;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,10 +21,42 @@ import java.util.UUID;
  * the Rift refuses that player for {@link RiftRules#LOCKOUT_TICKS}, so a stray click can never restart a run at once.
  *
  * Every rule is a pure predicate in {@link RiftRules}, {@link RiftEntry} and {@code GateRules}; this class supplies the facts (who clicked,
- * where they stand) and keeps the departures. It mirrors {@code GateManager}, which is proven live; the difference is the key (a Rift, not a block).
+ * where they stand) and keeps the departures. The key is a Rift, not a block.
  */
 public final class RiftGate {
     private RiftGate() {}
+
+    /**
+     * Routes a right click on a Rift's click target (a vanilla Interaction tagged {@link RiftEntry#TAG}) to {@link #click}. Called once at startup.
+     * Every other entity passes through untouched.
+     */
+    public static void register() {
+        net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.register((player, level, hand, entity, hit) -> {
+            if (!(entity instanceof net.minecraft.world.entity.Interaction) || !entity.getTags().contains(RiftEntry.TAG)) {
+                return net.minecraft.world.InteractionResult.PASS;
+            }
+            return riftClick(player, level, hand, entity);
+        });
+    }
+
+    /**
+     * A right click on a Rift's click target. The off-hand click is swallowed so one click never starts two countdowns, and a refusal is shown to
+     * the player as a plain chat line.
+     */
+    private static net.minecraft.world.InteractionResult riftClick(net.minecraft.world.entity.player.Player player, net.minecraft.world.level.Level level,
+                                                                   net.minecraft.world.InteractionHand hand, Entity entity) {
+        if (hand != net.minecraft.world.InteractionHand.MAIN_HAND) {
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+        if (level.isClientSide() || !(player instanceof ServerPlayer sp)) {
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+        String refusal = click(sp, entity, level.getServer().getTickCount());
+        if (refusal != null) {
+            sp.sendSystemMessage(Component.literal("\u00A7c" + (refusal.isEmpty() ? refusal : Character.toUpperCase(refusal.charAt(0)) + refusal.substring(1)) + "."));
+        }
+        return net.minecraft.world.InteractionResult.SUCCESS_SERVER;
+    }
 
     /** One member's wait: where they stood when they clicked (their cancel anchor and their return spot). */
     private record Member(UUID id, double x, double y, double z) {}
