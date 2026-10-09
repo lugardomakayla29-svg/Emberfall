@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minecraft:item/magma_cube_spawn_egg"
+    "layer0": "minecraft:item/slime_spawn_egg"
   }
 }

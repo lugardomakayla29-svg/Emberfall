@@ -16,7 +16,7 @@ import net.minecraft.world.item.context.UseOnContext;
  * Final Swarm, rather than starting a half-working fight.
  */
 public final class BossSummonerItem extends Item {
-    public enum Boss { GUARDIAN, DEVOURER, MERCHANT }
+    public enum Boss { BROODTIDE, DEVOURER, MERCHANT }
 
     private final Boss boss;
 
@@ -58,7 +58,7 @@ public final class BossSummonerItem extends Item {
             return InteractionResult.FAIL;
         }
         ServerLevel arenaLevel = (ServerLevel) sp.level();
-        if (boss == Boss.GUARDIAN) {
+        if (boss == Boss.BROODTIDE) {
             director.triggerBossNow(arenaLevel);
         } else {
             director.triggerDevourerNow(arenaLevel);

@@ -6,6 +6,7 @@ const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'Em
 const lines = []; bot.on('message', m => lines.push(m.toString())); bot.on('error', e => console.log('ERR', e.message));
 const ask = async (x, w = 500) => { const n = lines.length; bot.chat(x); await sleep(w); return lines.slice(n).join(' | '); };
 let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + n + ' ' + note); if (!ok) fails++; };
+const vel = []; bot._client.on('packet', (d, m) => { if (m.name === 'entity_velocity' && bot.entity && d.entityId === bot.entity.id) vel.push({ t: Date.now(), v: d.velocity || [d.velocityX, d.velocityY, d.velocityZ] }); });
 const SEL = '@e[type=emberfall:broodtide,limit=1]';
 const st = async () => { for (let k = 0; k < 4; k++) { const r = await ask('/emberfall bosstide 0', 450); const m = /tick=(\d+) tide=(EBB|FLOOD) .*grabs=(\d+) impulses=(\d+) active=(\d+)/.exec(r); if (m) return { tick: +m[1], tide: m[2], grabs: +m[3], impulses: +m[4], active: +m[5] }; } return null; };
 const pos = async who => { for (let k = 0; k < 3; k++) { const r = await ask(`/data get entity ${who} Pos`, 450); const m = /\[(-?[\d.]+)d, (-?[\d.]+)d, (-?[\d.]+)d\]/.exec(r); if (m) return { x: +m[1], y: +m[2], z: +m[3] }; } return null; };
@@ -36,6 +37,8 @@ bot.once('spawn', async () => {
   for (let i = 0; i < 12; i++) { const p = await pos('EmberTester'); if (p) { dMin = Math.min(dMin, Math.hypot(p.x - b.x, p.z - b.z)); minY = Math.min(minY, p.y); } await sleep(150); }
   const pEnd = await pos('EmberTester'); const dEnd = Math.hypot(pEnd.x - b.x, pEnd.z - b.z);
   console.log(`start ${d0.toFixed(2)}  closest ${dMin.toFixed(2)}  end ${dEnd.toFixed(2)}  minY ${minY.toFixed(2)} (start y ${p0.y})`);
+  console.log('velocity packets received: ' + JSON.stringify(vel.slice(0, 4)));
+  check('P1b the server SENT a velocity packet to the player', vel.length >= 1, 'count=' + vel.length);
   check('P2 the pull moved the player TOWARD the boss (closest < start - 0.8)', dMin < d0 - 0.8, `start=${d0.toFixed(2)} closest=${dMin.toFixed(2)}`);
   check('P3 it never carried the player inside the stop radius (closest >= 4.5 - 0.3)', dMin >= 4.5 - 0.3, `closest=${dMin.toFixed(2)}`);
   check('P4 it never drove the player below where it stood (minY >= start y - 0.6)', minY >= p0.y - 0.6, `minY=${minY.toFixed(2)} start=${p0.y}`);

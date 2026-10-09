@@ -42,7 +42,7 @@ public final class ModCreativeTab {
                     for (Item egg : ModItems.MOB_EGGS.values()) {
                         output.accept(egg);
                     }
-                    output.accept(ModItems.GUARDIAN_SUMMONER);
+                    output.accept(ModItems.BROODTIDE_SUMMONER);
                     output.accept(ModItems.DEVOURER_SUMMONER);
                     output.accept(ModItems.MERCHANT_SUMMONER);
                     output.accept(ModItems.RIFT_SHARD);

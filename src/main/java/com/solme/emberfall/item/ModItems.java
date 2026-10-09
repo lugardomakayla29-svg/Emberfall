@@ -43,7 +43,7 @@ public final class ModItems {
 
     /** Particle-only item: its texture is the Pink Slime's own pink, so break particles made from it are pink, not slime green. */
     public static Item PINK_SLIME_GLOB;
-    public static Item GUARDIAN_SUMMONER;
+    public static Item BROODTIDE_SUMMONER;
     public static Item DEVOURER_SUMMONER;
     public static Item MERCHANT_SUMMONER;
     public static Item RIFT_SHARD;
@@ -58,7 +58,7 @@ public final class ModItems {
         }
         ResourceKey<Item> globKey = ResourceKey.create(Registries.ITEM, EmberfallMod.id("pink_slime_glob"));
         PINK_SLIME_GLOB = Registry.register(BuiltInRegistries.ITEM, globKey, new Item(new Item.Properties().setId(globKey)));
-        GUARDIAN_SUMMONER = registerSummoner("ember_guardian_summoner", BossSummonerItem.Boss.GUARDIAN);
+        BROODTIDE_SUMMONER = registerSummoner("broodtide_summoner", BossSummonerItem.Boss.BROODTIDE);
         DEVOURER_SUMMONER = registerSummoner("devourer_summoner", BossSummonerItem.Boss.DEVOURER);
         MERCHANT_SUMMONER = registerSummoner("merchant_summoner", BossSummonerItem.Boss.MERCHANT);
         ResourceKey<Item> riftShardKey = ResourceKey.create(Registries.ITEM, EmberfallMod.id("rift_shard"));
