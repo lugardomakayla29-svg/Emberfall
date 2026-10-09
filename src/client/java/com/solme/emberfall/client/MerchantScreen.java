@@ -5,6 +5,7 @@ import com.solme.emberfall.network.OpenMerchantPayload;
 import com.solme.emberfall.relic.Relic;
 import com.solme.emberfall.relic.RelicPool;
 import com.solme.emberfall.relic.RelicRarity;
+import com.solme.emberfall.relic.MenuGlyphs;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -20,6 +21,7 @@ import java.util.List;
  * -1, so the Testificate can look disappointed. Card text goes through {@link CardText}, so it can never overlap a neighbour.
  */
 public class MerchantScreen extends Screen {
+    private final java.util.List<Button> buyButtons = new java.util.ArrayList<>();
     private static final int CARD_W = 118;
     private static final int CARD_H = 132;
     private static final int GAP = 10;
@@ -68,6 +70,7 @@ public class MerchantScreen extends Screen {
                     .bounds(x + 10, top() + CARD_H - 26, CARD_W - 20, 20).build();
             buy.active = it.affordable();
             addRenderableWidget(buy);
+            buyButtons.add(buy);
         }
     }
 
@@ -78,12 +81,16 @@ public class MerchantScreen extends Screen {
         int secs = Math.max(0, data.secondsLeft() - (int) ((System.currentTimeMillis() - openedAtMs) / 1000L));
         g.drawCenteredString(this.font, Component.literal(tier.label() + " Testificate").withStyle(s -> s.withColor(tier.rgb()).withBold(true)),
                 this.width / 2, top() - 30, 0xFFFFFFFF);
-        g.drawCenteredString(this.font, Component.literal("Pick one.  Leaves in " + secs + "s   |   Your gold: " + data.gold()),
-                this.width / 2, top() - 17, 0xFFAAAAAA);
+        MenuGlyphDraw.centredWithGlyph(g, this.font, MenuGlyphs.glyph(MenuGlyphs.MERCHANT, "time"), "Pick one.  Leaves in " + secs + "s   |   Your gold: " + data.gold(),
+                this.width / 2, top() - 17, 0xFFD5DCE4, 0xFFAAAAAA);
         for (int i = 0; i < data.items().size(); i++) {
             drawCard(g, i, mouseX, mouseY);
         }
         super.render(g, mouseX, mouseY, partialTick);
+        String gold = MenuGlyphs.glyph(MenuGlyphs.MERCHANT, "gold");
+        for (Button b : buyButtons) {
+            MenuGlyphDraw.onButton(g, this.font, gold, b.getX(), b.getY(), b.getHeight(), b.active, 0xFFFFD84A);
+        }
     }
 
     private void drawCard(GuiGraphics g, int i, int mouseX, int mouseY) {
@@ -98,7 +105,9 @@ public class MerchantScreen extends Screen {
         int rgb = 0xFF000000 | relic.rarity().rgb();
         g.fill(x, y, x + CARD_W, y + 4, rgb); // rarity bar across the top
         g.fill(x, y + CARD_H - 1, x + CARD_W, y + CARD_H, rgb);
-        g.drawString(this.font, Component.literal(relic.name()).withStyle(s -> s.withColor(relic.rarity().rgb()).withBold(true)), x + 6, y + 9, 0xFFFFFFFF);
+        int glyphCol = MenuGlyphDraw.column(this.font, MenuGlyphs.glyph(MenuGlyphs.MERCHANT, "relic"));
+        MenuGlyphDraw.at(g, this.font, MenuGlyphs.glyph(MenuGlyphs.MERCHANT, "relic"), x + 6, y + 9, rgb);
+        g.drawString(this.font, Component.literal(relic.name()).withStyle(s -> s.withColor(relic.rarity().rgb()).withBold(true)), x + 6 + glyphCol + MenuGlyphDraw.GAP, y + 9, 0xFFFFFFFF);
         g.drawString(this.font, relic.rarity().label(), x + 6, y + 21, 0xFF888888);
         CardText.draw(g, this.font, CardText.summary(relic.description()), x + 6, y + 36, CARD_W - 12, 0xFFCCCCCC);
         CardText.tooltipIfOver(g, relic.description(), mouseX, mouseY, x, y, CARD_W, CARD_H - 28);

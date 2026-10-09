@@ -7,6 +7,7 @@ import com.solme.emberfall.relic.ChestRevealClock;
 import com.solme.emberfall.relic.ChestRevealView;
 import com.solme.emberfall.relic.ChestRollSound;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.solme.emberfall.relic.MenuGlyphs;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -85,9 +86,11 @@ public class ChestRevealScreen extends Screen {
 
         g.drawCenteredString(this.font, "Ember Chest", cx, top + 10, 0xFFAAAAAA);
         if (tierText != null) {
+            MenuGlyphDraw.beforeCentred(g, this.font, MenuGlyphs.glyph(MenuGlyphs.CHEST, "chest"), this.font.width(tierText), cx, top + 30, 0xFF000000 | tierRgb);
             g.drawCenteredString(this.font, Component.literal(tierText).withStyle(s -> s.withColor(tierRgb).withBold(tierDone)), cx, top + 30, 0xFFFFFFFF);
         }
         if (itemText != null) {
+            MenuGlyphDraw.beforeCentred(g, this.font, MenuGlyphs.glyph(MenuGlyphs.CHEST, "relic"), this.font.width(itemText), cx, top + 50, 0xFF000000 | itemRgb);
             g.drawCenteredString(this.font, Component.literal(itemText).withStyle(s -> s.withColor(itemRgb).withBold(itemDone)), cx, top + 50, 0xFFFFFFFF);
         }
         String hint = ChestRevealClock.finished(this.screenTicks) ? "Click to close" : (this.screenTicks >= ChestRevealClock.MIN_WATCH_TICKS ? "Click to skip" : "");
