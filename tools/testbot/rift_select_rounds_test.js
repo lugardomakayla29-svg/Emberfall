@@ -41,7 +41,14 @@ const waitFor = async (fn, ms, step = 250) => { const end = Date.now() + ms; whi
   const A = await mk('EmberTester'); let B = await mk('EmberTester2'); const C = await mk('EmberTester3'); OP = A; await sleep(4000);
   const bots = () => [A, B, C];
   await say(A, '/gamemode creative', 400); await say(A, '/emberfall rift clear', 200); await say(A, '/emberfall rift closeall', 200);
-  await say(A, '/fill 94 199 94 106 199 106 minecraft:stone', 900); await say(A, '/fill 94 200 94 106 235 106 minecraft:air', 900);
+  // The platform MUST exist before anyone is teleported onto it: a run where the fills were swallowed had no floor, every bot fell and the
+  // test failed with A=0 B=0 (no Rift was ever clicked). Retry the fill until a block read-back says stone, and stop loudly if it never does.
+  let floor = false;
+  for (let k = 0; k < 6 && !floor; k++) {
+    await say(A, '/fill 94 199 94 106 199 106 minecraft:stone', 900); await say(A, '/fill 94 200 94 106 235 106 minecraft:air', 900);
+    floor = /FLOOR_OK/.test(await say(A, '/execute if block 100 199 100 minecraft:stone run say FLOOR_OK', 500));
+  }
+  if (!floor) { console.log('FAIL SETUP the stone platform never appeared, so nothing below can be trusted'); process.exit(1); }
   for (const b of bots()) { await say(A, `/gamemode survival ${b.username}`, 300); await say(A, `/effect give ${b.username} minecraft:resistance 999 4 true`, 300); await say(A, `/clear ${b.username}`, 300); }
   // C is the STRANGER: it never goes near the Rift, so it is never in a party.
   await say(A, '/tp EmberTester3 60.5 200 60.5', 400);
