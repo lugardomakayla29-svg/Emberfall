@@ -1,4 +1,4 @@
-// V2 live: after the first boss (Ember Guardian) is killed, the player is warned once and the run moves to tier 2.
+// V2 live: after the first boss (the Broodtide) is killed, the player is warned once and the run moves to tier 2.
 // The spawn-interval and sound proof come from the server log line AFTERBOSS1, graded by afterboss1_grade.py.
 const mineflayer = require('mineflayer');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -22,9 +22,9 @@ bot.once('spawn', async () => {
   check('A1 the run is alive and at tier 1 before any boss falls', before.tier === 1, JSON.stringify(before));
   check('A1b no AFTER-BOSS warning has been shown yet', !lines.some(l => WARN.test(l)));
   await ask('/emberfall boss 0', 3500);
-  check('A2 the Ember Guardian was spawned (awakens line seen)', lines.some(l => /Ember Guardian awakens/.test(l)));
-  const killed = await ask('/kill @e[type=emberfall:ember_guardian]', 1500);
-  check('A3 the kill command hit the Guardian (not "No entity was found")', !/No entity was found/.test(killed), killed.slice(0, 90));
+  check('A2 the Broodtide was spawned (rises line seen)', lines.some(l => /Broodtide rises/.test(l)));
+  const killed = await ask('/kill @e[type=emberfall:broodtide]', 1500);
+  check('A3 the kill command hit the Broodtide (not "No entity was found")', !/No entity was found/.test(killed), killed.slice(0, 90));
   await sleep(3500);
   const after = await status();
   check('A4 the run moved to tier 2 after the genuine kill', after.tier === 2, JSON.stringify(after));

@@ -98,8 +98,10 @@ bot.once('spawn', async () => {
   // --- boss really is cursed ---
   await ask('/kill @e[type=!player,type=!minecraft:item_display,type=!minecraft:interaction]', 500);
   await ask('/emberfall boss 0', 1500); await sleep(2500);
-  const hp = await ask('/data get entity @e[type=emberfall:ember_guardian,limit=1] Health', 700); console.log('guardian hp reply:', hp.slice(0, 120));
+  const hp = await ask('/data get entity @e[type=emberfall:broodtide,limit=1] Health', 700); console.log('boss hp reply:', hp.slice(0, 120));
   const hm = /: ([\d.]+)f/.exec(hp);
-  check('S17 the Guardian spawned with 900 health (600 x 1.5)', hm && Math.abs(+hm[1] - 900) < 25, hm ? hm[1] : hp.slice(0, 80));
+  // Broodtide base 600 x 1.35 owner boost = 810, then the top Boss Curse tier x1.5 = 1215 (BossTuning.BASE_BOOST, RunModifiers curse).
+  const EXPECT_HP = 600 * 1.35 * 1.5;
+  check('S17 the Broodtide spawned cursed: 600 x 1.35 boost x 1.5 curse = ' + EXPECT_HP, hm && Math.abs(+hm[1] - EXPECT_HP) < 25, hm ? hm[1] : hp.slice(0, 80));
   console.log(fails === 0 ? 'ALL PASS' : 'SOME FAIL ' + fails); bot.quit(); setTimeout(() => process.exit(0), 400);
 });
