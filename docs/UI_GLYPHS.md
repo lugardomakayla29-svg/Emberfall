@@ -200,8 +200,46 @@ Method: a script walked every `.java` and `.json` under `src/client` and `src/ma
 - **Unverified (Unifont) glyphs in the source: 0.** Nothing to replace.
 - `U+00A7` (section sign) appears 116 times in 18 files (literal characters, counted by script). It is the colour-code prefix, consumed by the game and never drawn, so it is not a glyph. One use, `EmberfallCommands.java:450`, is `replaceAll("§.", "")`, a regex that STRIPS codes; it is never drawn.
 - `lang/en_us.json` has no non-ASCII character. No font override (`withFont`) exists anywhere.
-- Seven screens draw NO non-ASCII glyph at all: Shop, Tome, Weapon, Merchant, Shrine, RunEnd, ChestReveal. On those, a square box cannot come from a glyph in our strings.
+- (Superseded, see "Menu glyphs" below.) Seven screens drew NO non-ASCII glyph at all: Shop, Tome, Weapon, Merchant, Shrine, RunEnd, ChestReveal. On those, a square box cannot come from a glyph in our strings.
 
 **Not established:** why the owner sees a square on those screens. It is not an unverified glyph in the source. Either he means those screens should now USE glyphs (the P6 wording), or the box has another cause that a headless check cannot see. See the INBOX question.
 
 **Guard:** `tools/testbot/relic_math/GlyphGuardCheck.java` (13 checks, runs in the existing `math-checks` CI job). It fails on any glyph outside the verified 64 and on any section sign not followed by a colour-code character. Shown red on the real tree by injecting an airplane (U+2708) into `ShrineScreen` and a stray section sign into `RunEndScreen`: both caught with file and line, exit 1.
+
+## Menu glyphs (Vesper, Drop 2 Task A, 2026-10-09 CT): one icon per row on every expedition menu
+**Tested headless, look unverified.** The owner's "square boxes" are the stat icons in the stats panel (`RunHud.STAT_ICONS`); he liked them and wants the same style on every expedition menu. This is not a missing-glyph bug (the P6 sweep above stands: 0 unverified glyphs). So each menu row now gets one verified glyph, drawn like the stats panel: measured with `font.width`, centred in a marker column from `HudLayout.markerColumn/markerOffset`, in a fixed colour.
+
+**One table.** The glyph of every row lives in `relic/MenuGlyphs` (pure, no Minecraft types). The screens call `MenuGlyphs.glyph(menu, "meaning")` and hold no glyph of their own; `tools/testbot/relic_math/MenuGlyphCheck.java` reads the same table, so it cannot test a copy.
+
+**Rules.** (1) Only the 64 bitmap glyphs above, never the Unifont section. (2) A glyph must end on row 7 or above (the text line), so nothing hangs below it: `U+2611` and the other rows 2..10 glyphs are out. (3) A glyph the stats panel already uses keeps that meaning and is used for nothing else: star = level, diamond = gold, envelope = chest, white diamond = silver, skull = kills. (4) Glyphs are chosen by the KIND of row, never by an item's name, because weapon, upgrade, tome and relic names are open-ended data. (5) Vanilla buttons keep their widget type; the glyph is drawn on top at a fixed left inset (Koda, 2026-10-09 13:17 CT).
+
+**Shared glyph, accepted:** crossed swords U+2694 means weapon, challenge shrine and bosses defeated (all "fighting things"). Koda accepted this on 2026-10-09 13:17 CT.
+
+| Screen | Row (meaning) | Glyph | Code | Width | Rows | Why | Status |
+|---|---|---|---|---|---|---|---|
+| ShopScreen | weapon | ⚔ | U+2694 | 7 | 0..6 | crossed swords: a weapon row | VERIFIED glyph |
+| ShopScreen | upgrade | ♯ | U+266F | 5 | 0..6 | sharp: raised a level; no verified glyph says upgrade | PROPOSAL |
+| ShopScreen | silver | ♢ | U+2662 | 5 | 1..6 | white diamond: the shop is priced in Silver, same glyph as the stats panel | VERIFIED glyph |
+| TomeChoiceScreen | tome | ✎ | U+270E | 7 | 0..6 | pencil: a tome is written knowledge | VERIFIED glyph |
+| TomeChoiceScreen | banish | ✂ | U+2702 | 7 | 0..6 | scissors: cut the offer away | VERIFIED glyph |
+| TomeChoiceScreen | reroll | ↔ | U+2194 | 8 | 1..5 | left-right arrow: swap for another set | VERIFIED glyph |
+| WeaponChoiceScreen | weapon | ⚔ | U+2694 | 7 | 0..6 | crossed swords: a weapon card | VERIFIED glyph |
+| MerchantScreen | relic | ♥ | U+2665 | 5 | 1..6 | heart suit: a relic is something prized; no verified glyph says relic | PROPOSAL |
+| MerchantScreen | gold | ♦ | U+2666 | 5 | 1..6 | diamond: prices and your balance are gold, same glyph as the stats panel | VERIFIED glyph |
+| MerchantScreen | time | ⌛ | U+231B | 7 | 0..6 | hourglass: the merchant leaves in N seconds | VERIFIED glyph |
+| ShrineScreen | challenge | ⚔ | U+2694 | 7 | 0..6 | crossed swords: a trial to fight | VERIFIED glyph |
+| ShrineScreen | curse | ☄ | U+2604 | 7 | 0..6 | comet: a curse falling on the boss; no verified glyph says curse | PROPOSAL |
+| ShrineScreen | greed | ♣ | U+2663 | 5 | 1..6 | club suit: greed; no verified glyph says greed | PROPOSAL |
+| RunEndScreen | time | ⌛ | U+231B | 7 | 0..6 | hourglass: time survived | VERIFIED glyph |
+| RunEndScreen | level | ★ | U+2605 | 7 | 0..6 | star: level reached, the stats panel level glyph | VERIFIED glyph |
+| RunEndScreen | kills | ☠ | U+2620 | 7 | 0..6 | skull: enemies defeated, the stats panel kills glyph | VERIFIED glyph |
+| RunEndScreen | gold | ♦ | U+2666 | 5 | 1..6 | diamond: gold collected, the stats panel gold glyph | VERIFIED glyph |
+| RunEndScreen | bosses | ⚔ | U+2694 | 7 | 0..6 | crossed swords: bosses defeated | VERIFIED glyph |
+| RunEndScreen | silver | ♢ | U+2662 | 5 | 1..6 | white diamond: silver earned, the stats panel silver glyph | VERIFIED glyph |
+| ChestRevealScreen | chest | ✉ | U+2709 | 7 | 1..6 | envelope: the chest, the stats panel chest glyph | VERIFIED glyph |
+| ChestRevealScreen | relic | ♥ | U+2665 | 5 | 1..6 | heart suit: the relic that dropped, same glyph as the merchant's relic row | PROPOSAL |
+
+**PROPOSAL picks (no verified glyph clearly means these; a taste call for the owner, not a fact):** upgrade = sharp, relic = heart suit, curse = comet, greed = club suit.
+
+**What the check proves (VERIFIED, headless):** every glyph is in the verified set and none is from the Unifont section (G1, G2); none hangs below the text line (G3); none is wider than 9 px (G4); one meaning per glyph inside a menu (G7); the five stats-panel glyphs keep their meaning (G8, G9, G10); every one of the seven screens draws from the table, every meaning a screen asks for exists, and no screen holds a glyph of its own (G11 to G13); and a button's label starts clear of its glyph, using per-character widths measured from the client jar's `ascii.png` (G14).
+**What it does NOT prove (UNSEEN):** how any menu looks; whether 4 px between the glyph and the label on the 70 px Banish button reads as cramped; whether the colours read well; whether a glyph over a disabled button looks right.

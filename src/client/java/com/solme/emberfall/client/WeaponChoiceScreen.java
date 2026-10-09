@@ -2,6 +2,7 @@ package com.solme.emberfall.client;
 
 import com.solme.emberfall.network.ChooseWeaponPayload;
 import com.solme.emberfall.network.OpenWeaponChoicePayload;
+import com.solme.emberfall.relic.MenuGlyphs;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -85,7 +86,8 @@ public class WeaponChoiceScreen extends Screen {
                 // A gold frame around the chosen card, so it is obvious what Confirm will take.
                 guiGraphics.renderOutline(x - 2, y - 2, CARD_W + 4, CARD_H + 4, 0xFFFFD84A);
             }
-            guiGraphics.drawCenteredString(this.font, offer.displayName(), x + CARD_W / 2, y + 6, i == selected ? 0xFFFFD84A : 0xFFFFFFFF);
+            MenuGlyphDraw.centredWithGlyph(guiGraphics, this.font, MenuGlyphs.glyph(MenuGlyphs.WEAPON, "weapon"), offer.displayName(), x + CARD_W / 2, y + 6,
+                    0xFFD5DCE4, i == selected ? 0xFFFFD84A : 0xFFFFFFFF);
             CardText.draw(guiGraphics, this.font, CardText.summary(offer.description()), x + PAD, y + this.font.lineHeight + 14, CARD_W - 2 * PAD, 0xFFCCCCCC);
             CardText.tooltipIfOver(guiGraphics, offer.description(), mouseX, mouseY, x, y, CARD_W, CARD_H);
         }

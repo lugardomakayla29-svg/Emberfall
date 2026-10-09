@@ -2,6 +2,7 @@ package com.solme.emberfall.client;
 
 import com.solme.emberfall.network.ChooseShrinePayload;
 import com.solme.emberfall.network.OpenShrinePayload;
+import com.solme.emberfall.relic.MenuGlyphs;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -22,6 +23,7 @@ public class ShrineScreen extends Screen {
     private static final int GAP = 6;
 
     private final String shrineType;
+    private final java.util.List<Button> optionButtons = new java.util.ArrayList<>();
     private final String lore;
     private final List<OpenShrinePayload.Option> options;
 
@@ -44,6 +46,7 @@ public class ShrineScreen extends Screen {
             button.active = o.enabled();
             button.setTooltip(Tooltip.create(Component.literal(o.tooltip())));
             addRenderableWidget(button);
+            optionButtons.add(button);
         }
         addRenderableWidget(Button.builder(Component.literal("Close"), b -> onClose())
                 .bounds(this.width / 2 - 40, startY + total + 4, 80, 20).build());
@@ -59,7 +62,17 @@ public class ShrineScreen extends Screen {
         this.renderTransparentBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         int top = this.height / 2 - (options.size() * (BUTTON_H + GAP)) / 2 - 24;
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top, 0xFFFFFFFF);
+        // The shrine kind is one of three known strings; each is looked up by a literal so a misspelt one cannot hide behind a variable.
+        String kind = switch (shrineType) {
+            case "challenge" -> MenuGlyphs.glyph(MenuGlyphs.SHRINE, "challenge");
+            case "curse" -> MenuGlyphs.glyph(MenuGlyphs.SHRINE, "curse");
+            case "greed" -> MenuGlyphs.glyph(MenuGlyphs.SHRINE, "greed");
+            default -> "";
+        };
+        for (Button b : optionButtons) {
+            MenuGlyphDraw.onButton(guiGraphics, this.font, kind, b.getX(), b.getY(), b.getHeight(), b.active, 0xFFD5DCE4);
+        }
+        MenuGlyphDraw.centredWithGlyph(guiGraphics, this.font, kind, this.title.getString(), this.width / 2, top, 0xFFD5DCE4, 0xFFFFFFFF);
         guiGraphics.drawCenteredString(this.font, lore, this.width / 2, top + 12, 0xFFAAAAAA);
     }
 
