@@ -94,6 +94,12 @@ public final class RiftStage {
             for (RiftFx.Event e : RiftFx.at(a.events, a.tick)) {
                 play(a, e);
             }
+            // The opening is three bursts with near-empty stretches between them (measured: ticks 50..80 averaged 3 particles, 80..100 none),
+            // which is why the owner could barely see it. While it OPENS, the steady swirl of the open Rift plays under the bursts, so the
+            // tear is never dark. It is a separate layer: the proven schedule above is unchanged. Closing keeps only its own schedule.
+            if (!a.closing && a.tick >= RiftFx.T_CRACK_START && a.tick < RiftFx.OPEN_TICK) {
+                drawIdle(a.level, a.x, a.y, a.z, a.facing, a.shape, a.tick);
+            }
             a.tick++;
             if (a.tick > a.lastTick()) {
                 it.remove();

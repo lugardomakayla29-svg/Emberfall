@@ -81,12 +81,12 @@ public final class RiftFx {
     }
 
     // Particles the adapter spawns per cell, by role. PROPOSAL: sized so the busiest tick stays well inside RiftRules.BUDGET_PER_TICK.
-    public static final int DENSITY_POINT = 8;
-    public static final int DENSITY_CRACK = 3;
-    public static final int DENSITY_FLARE = 3;
-    public static final int DENSITY_DUST = 24;
-    public static final int DENSITY_FILL = 2;
-    public static final int DENSITY_SATELLITE = 4;
+    public static final int DENSITY_POINT = 24;
+    public static final int DENSITY_CRACK = 6;
+    public static final int DENSITY_FLARE = 7;
+    public static final int DENSITY_DUST = 48;
+    public static final int DENSITY_FILL = 5;
+    public static final int DENSITY_SATELLITE = 8;
     /**
      * Warm dust under each rim particle. {@code end_rod}, {@code electric_spark} and {@code dust_plume} are vanilla particles that carry NO colour
      * (measured: 87% of the opening's particles), so the warm rim colour was silently dropped and the rim showed plain white. A dust particle does
