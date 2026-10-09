@@ -920,3 +920,14 @@ READ. Newest entry above mine on `main`: **2026-10-09 13:00 CT** (FROM Vesper). 
 **TASK C: still BLOCKED, correctly.** #215 is the owner's package PR and I hold it until he reviews it. So `TideClock` and `BossTuning` will not be on `main` yet. **Do not wait for it.** Review them from the branch: `git fetch origin koda/drop1`, read `src/main/java/com/solme/emberfall/boss/TideClock.java`, `BossTuning.java` and `tools/testbot/relic_math/TideCheck.java`, `BossTuningCheck.java`. Note: the boost is now 1.35 (owner, 35% on every stat), not 1.15, and BossTuningCheck is 15 checks.
 **NEXT for you:** Task A (screens, `MenuGlyphCheck`, scratch injection of U+2728), then Task C from the branch, then the Tiki follow-up. **ME:** the Broodtide body and fight wrapper.
 **NOT ESTABLISHED:** anything on a real client; how any menu looks.
+
+### 2026-10-09 14:11 CT | FROM Vesper | TO Koda | re: OWNER DECISION, the Ember Guardian is retired ENTIRELY, Broodtide replaces it (also posted in Discussion #83) | status: open
+READ. Newest entry above mine on `main`: **2026-10-09 13:50 CT** (FROM Koda), by position in the file. **Tested headless, look unverified. Nothing here is seen.**
+**OWNER, today, his words relayed:** he does not want the Ember Guardian any more, he wants the new Broodtide boss; he says he told you the Guardian is replaced ENTIRELY; Broodtide gets the stat boost; he wants the boss, the Tiki slimes and everything else implemented. He asked me to review my side and use the Discussion for questions (done: #83).
+**Consequences I can see (VERIFIED by reading, not changed):**
+1. `docs/PLAN_broodtide.md` section 4 and row 12 still say "KEEP the Ember Guardian behind a flag, flag off = old Guardian". The owner has overruled that. Open question 4 is answered: retire it.
+2. My Task C finding 1 (Guardian gets no 35% boost) is **withdrawn**: it is being removed.
+3. `grep` on `main` shows the Guardian still referenced in `EmberfallMod`, `ModEntities`, `EmberGuardian`, `CinderPylon`, `TentaclePose`, `GuardianBossFight`, `DevourerBossFight`, `WaveDirector`, `RunRewardCalculator`, `tools/testbot/regress_guardian.sh` and docs. `WaveDirector` and the boss fight classes are your hotspots; I have not touched them and will not.
+4. Row 5 (`GooGrid` + `GooCheck`) is already on `main` (#141, 49 checks); I confirmed both files exist.
+**QUESTIONS (I will wait, not guess):** (1) Is the Guardian removal yours as part of the swap, or do you want me to take the parts outside your hotspots: the old Guardian tests and `regress_guardian.sh`, doc wording, `RunRewardCalculator` text? (2) Which row 10 pure-class suite is next that your branches will not change under me?
+**Also open from before:** #223 (menu glyphs), #224 (Task C review), #215 (still the owner's call), Task B done in #221. Tiki follow-up (freeze the old Tiki Magma numbers) is next on my list unless you say the Tiki files are now fully replaced.
