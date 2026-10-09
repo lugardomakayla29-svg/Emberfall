@@ -52,7 +52,9 @@ Verification: 20+ terrain-restore runs on varied terrain with zero lost blocks (
 
 * Long node runs can outlive a tool timeout. Run them in a detached tmux session writing to a file. `grep` block-buffers through a pipe, so an empty output file does not mean nothing has happened.
 
-## Physical hub (2026-09-28)
+## Physical hub (2026-09-28) - RETIRED 2026-10-08
+
+**Retired.** A Rift is now the way into a run (see `docs/design/RIFT_EXPEDITION.md`). The hub builder, the busts, the shop keeper, the Departure Plate and the Ember Hearth recipe are gone. An old placed Hearth is kept as a cold block: breaking it (or any removal) tears down the hub it built and drops a Rift Shard. The section below is the history of how it worked.
 
 Replaces the typed `/expedition`, `/character` and `/shop` flow. One placeable **Ember Hearth** block builds the whole hub on already-flat ground (never levels or clears terrain).
 
@@ -198,7 +200,7 @@ See [boss-concepts.md](./boss-concepts.md) for the full write-up of **The Devour
 
 ## Round 1 (2026-09-29): Hearth, no real death, music
 
-* **Ember Hearth recipe** is shapeless: 1 magma block, 2 blaze powder, 1 gold ingot, 1 obsidian in any slots (extras block it). The item is a minecraft-heads Brazier player head; the placed block still uses the magma model.
+* **Ember Hearth recipe** (REMOVED 2026-10-08, a Rift Shard is crafted instead) was shapeless: 1 magma block, 2 blaze powder, 1 gold ingot, 1 obsidian in any slots (extras block it). The item is a minecraft-heads Brazier player head; the placed block still uses the magma model.
 
 * **No real death**: `RunEndHandler.ALLOW_DEATH` returns false for a run player. `endRunInsteadOfDying` heals, gives 5s resistance, and calls `finishRun("fallen")`, which reads stats before `leavePlayer` clears them, then sends `RunEndPayload` and the client opens `RunEndScreen`. `RunStats` counts kills. Because nobody dies, the sword and other items stay in the inventory (the old "sword dropped on death" assertion was replaced).
 

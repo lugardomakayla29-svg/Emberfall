@@ -17,7 +17,7 @@ and Koda. You cannot message each other. Anything not in a commit, issue, PR com
 3. Build: `./gradlew build` (needs JDK 25 to build; the mod itself targets Java 21). Then tell your human what you found. Do not start coding before you have read the above.
 
 ## 1. What the game is
-Players pick a character, enter the **Expedition Gate**, and survive waves on a generated map. Weapons (8, levels 1-10, each with an
+Players step into a **Rift**, pick a character on the Character Select screen, and survive waves on a generated map. Weapons (8, levels 1-10, each with an
 auto-firing Ultimate), tomes (stackable stat upgrades), **relics** (24, four rarities, luck stat, unlocks persist across runs),
 **chests** (paid price rises per opening; free chests from elites, bosses and shrines), **Testificate merchants** (first at 2:00, then
 3 min after the previous one leaves; each stays up to 1 min), bosses (Ember Guardian, Devourer), and an endgame swarm with an optional escape portal and a silver multiplier.
