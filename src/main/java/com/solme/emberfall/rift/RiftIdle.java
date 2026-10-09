@@ -37,6 +37,9 @@ public final class RiftIdle {
     /** The wave lights every body cell within this many rows of its current height, so it reads as a band, not a single row. */
     public static final int WAVE_BAND = 1;
 
+    /** 1 in this many body cells glows on every tick (a different set each tick). PROPOSAL, unseen. */
+    public static final int GLOW_SHARE = 5;
+
     public static final int DENSITY_RIM = 1;
     public static final int DENSITY_FILL = 1;
     public static final int DENSITY_STREAK = 3;
@@ -73,6 +76,17 @@ public final class RiftIdle {
             }
             if ((tick + i * 7) % RIM_PERIOD == 0) {
                 out.add(new RiftFx.Event(tick, RiftFx.Kind.PARTICLE, RIM_SPARK, r[0], r[1], RiftFx.RIM_HOT, 0, DENSITY_RIM));
+            }
+        }
+
+        // Base glow: EVERY tick a different sixth of the body cells light up, so the tear never drops to its rim alone between beats. Without
+        // it the picture pulsed (about 30 particles on the beat tick, 5 to 9 on the three ticks between), which reads as flicker, not as a living tear.
+        int glow = 0;
+        for (int i = 0; i < cells.size(); i++) {
+            int[] c = cells.get(i);
+            if (shape.isBody(c[0], c[1]) && (i + tick) % GLOW_SHARE == 0) {
+                out.add(new RiftFx.Event(tick, RiftFx.Kind.PARTICLE, FILL_DUST, c[0], c[1], ((i + tick) / GLOW_SHARE) % 2 == 0 ? RiftFx.FILL_PINK : RiftFx.FILL_LILAC, 0, DENSITY_FILL));
+                glow++;
             }
         }
 

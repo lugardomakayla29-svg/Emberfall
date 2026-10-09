@@ -145,6 +145,25 @@ public class RiftIdleCheck {
         long streaksOut = cut.stream().filter(e -> RiftIdle.STREAK.equals(e.key)).count();
         check("I14 an oversized list (120 particles) is cut to the budget", cutN <= RiftIdle.BUDGET && cutN > RiftIdle.BUDGET - 3, "kept " + cutN + " of 120");
         check("I15 when cutting, the rare MOVING streaks are kept before the common fill", streaksOut == streaksIn, "streaks " + streaksOut + " of " + streaksIn);
+        // The picture a player sees while it OPENS = the proven schedule + the swirl RiftStage plays under it (ticks T_CRACK_START..OPEN_TICK).
+        int quiet = 0, overBudget = 0, worst = 0, minShown = Integer.MAX_VALUE;
+        for (long sd = 0; sd < 200; sd++) {
+            Shape shp = RiftShape.generate(sd);
+            List<Event> sched = RiftFx.opening(shp);
+            for (int t = RiftFx.T_CRACK_START; t < RiftFx.OPEN_TICK; t++) {
+                int shown = RiftFx.particlesAt(sched, t) + RiftIdle.particleCount(RiftIdle.at(shp, t));
+                worst = Math.max(worst, shown);
+                minShown = Math.min(minShown, shown);
+                if (shown < 8) {
+                    quiet++;
+                }
+                if (shown > com.solme.emberfall.rift.RiftRules.BUDGET_PER_TICK) {
+                    overBudget++;
+                }
+            }
+        }
+        check("I16 while it opens, no tick from the first crack to the open is nearly empty (at least 8 particles)", quiet == 0, "quiet ticks " + quiet + ", quietest " + minShown);
+        check("I17 while it opens, schedule + swirl never pass the per-tick budget (" + com.solme.emberfall.rift.RiftRules.BUDGET_PER_TICK + ")", overBudget == 0, "worst " + worst + ", over " + overBudget);
         System.out.println();
         System.out.println(fails == 0 ? "ALL PASS (" + total + ")" : fails + " FAIL of " + total);
         System.exit(fails == 0 ? 0 : 1);
