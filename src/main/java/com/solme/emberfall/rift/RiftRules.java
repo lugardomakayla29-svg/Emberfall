@@ -1,6 +1,5 @@
 package com.solme.emberfall.rift;
 
-import com.solme.emberfall.hub.GateRules;
 
 /**
  * The Rift's rules as PURE numbers (no Minecraft types), so each one is provable without a server. The Rift replaces the Ember Hearth

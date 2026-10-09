@@ -1,11 +1,11 @@
-package com.solme.emberfall.hub;
+package com.solme.emberfall.rift;
 
 /**
- * The Expedition Gate's rules as PURE numbers, so each is provable without a server.
+ * The shared entry rules of a Rift (countdown, lockout, party window) as PURE numbers, so each is provable without a server.
  *
- * The gate replaces the old departure plate. Three rules together end the plate loop: (1) a run starts only on a deliberate
- * right click, never on stepping; (2) a returning player is put BESIDE the gate, never on it; (3) for a short time after a
- * run ends, starting another is refused, so even a stray click cannot restart at once.
+ * Two rules end the old plate loop: a run starts only on a deliberate click, never on stepping; and for a short time after a run
+ * ends, starting another is refused, so even a stray click cannot restart at once. {@link RiftRules} and {@link RiftGate} reuse
+ * these and never copy them.
  */
 public final class GateRules {
     private GateRules() {}
@@ -18,14 +18,6 @@ public final class GateRules {
     public static final double CANCEL_DISTANCE = 2.5;
     /** Max distance (blocks) a player may click the gate from. */
     public static final double REACH = 4.0;
-
-    /** The two floor cells beside the gate at (0,-1): (-1,-1) and (1,-1), each clear of every bust and the gate. */
-    public static HubLayout.Spot[] returnSpots() {
-        return new HubLayout.Spot[] {
-                new HubLayout.Spot(-1, -1, 0.0F),
-                new HubLayout.Spot(1, -1, 0.0F)
-        };
-    }
 
     /** True while a start must be refused: a run ended {@code sinceEndTicks} ago (negative = never ended). */
     public static boolean lockedOut(long sinceEndTicks) {
@@ -46,12 +38,6 @@ public final class GateRules {
         return dx * dx + dz * dz > CANCEL_DISTANCE * CANCEL_DISTANCE;
     }
 
-    /** The return spot a player lands on: alternates by a stable index so two players do not stack. */
-    public static HubLayout.Spot returnSpot(int playerIndex) {
-        HubLayout.Spot[] s = returnSpots();
-        return s[Math.floorMod(playerIndex, s.length)];
-    }
-
     /** Largest party one gate departure can carry; matches {@code PartyScaling.MAX_PARTY}. */
     public static final int MAX_PARTY = 10;
 
@@ -70,17 +56,5 @@ public final class GateRules {
      */
     public static boolean groupDeparts(long sinceFirstTicks) {
         return countdownDone(sinceFirstTicks);
-    }
-
-    /** A member who stood closer than this (blocks) to the gate returns beside it instead, never onto it. */
-    public static final double RETURN_CLEARANCE = 1.2;
-
-    /**
-     * True when {@code (dx, dz)} (offset of where a member stood from the gate's centre) is far enough from the gate to be a safe
-     * personal return spot. Closer than {@link #RETURN_CLEARANCE} and the member is sent to the standard beside-gate spots instead,
-     * so nobody ever lands on the gate, which is what looped runs on the old plate.
-     */
-    public static boolean ownSpotIsSafe(double dx, double dz) {
-        return dx * dx + dz * dz >= RETURN_CLEARANCE * RETURN_CLEARANCE;
     }
 }

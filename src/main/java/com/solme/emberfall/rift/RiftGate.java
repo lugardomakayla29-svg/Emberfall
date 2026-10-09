@@ -1,7 +1,6 @@
 package com.solme.emberfall.rift;
 
 import com.solme.emberfall.command.RunCommand;
-import com.solme.emberfall.hub.GateRules;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;

@@ -1,5 +1,7 @@
 package com.solme.emberfall.hub;
 
+import com.solme.emberfall.rift.GateRules;
+
 import com.solme.emberfall.command.RunCommand;
 import com.solme.emberfall.world.ReturnPoints;
 import net.minecraft.core.BlockPos;
