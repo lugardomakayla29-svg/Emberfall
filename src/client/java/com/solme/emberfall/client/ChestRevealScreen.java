@@ -5,13 +5,18 @@ import com.solme.emberfall.network.OpenChestRevealPayload;
 import com.solme.emberfall.relic.ChestReveal;
 import com.solme.emberfall.relic.ChestRevealClock;
 import com.solme.emberfall.relic.ChestRevealView;
+import com.solme.emberfall.relic.ChestRollSound;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 
 /**
  * The chest slot-machine: a tier reel stops first, then a relic-name reel, then the answer holds. It only DISPLAYS what the server sent. The relic was
@@ -27,6 +32,8 @@ public class ChestRevealScreen extends Screen {
     private final ChestReveal.Reveal reveal; // null: show the answer without the spin
     private int screenTicks;
     private boolean closeSent;
+    /** The screen tick the roll sounds were last worked out for, so a skip is told apart from a normal step. */
+    private int soundedTick;
 
     public ChestRevealScreen(OpenChestRevealPayload payload) {
         super(Component.literal("Chest"));
@@ -35,11 +42,13 @@ public class ChestRevealScreen extends Screen {
         if (this.reveal == null) {
             this.screenTicks = ChestReveal.TOTAL_TICKS; // no spin to show: straight to the held answer
         }
+        this.soundedTick = this.screenTicks; // nothing to sound for the ticks before the first one
     }
 
     @Override
     public void tick() {
         this.screenTicks++;
+        this.playRollSounds();
         if (ChestRevealClock.autoClose(this.screenTicks)) {
             this.onClose();
         }
@@ -88,9 +97,38 @@ public class ChestRevealScreen extends Screen {
         super.render(g, mouseX, mouseY, partialTick);
     }
 
+    /**
+     * Plays what {@link ChestRollSound#cues} says for the move from the last sounded tick to now. Vanilla sounds only, played as UI sounds (no position).
+     * PROPOSAL: nothing here was heard. Tick = NOTE_BLOCK_HAT, tier lands = NOTE_BLOCK_CHIME, item lands = NOTE_BLOCK_HARP (none is used elsewhere in the mod).
+     */
+    private void playRollSounds() {
+        ChestRollSound.Cues cues = ChestRollSound.cues(this.soundedTick, this.screenTicks);
+        this.soundedTick = Math.max(this.soundedTick, this.screenTicks);
+        if (this.reveal == null) {
+            return;
+        }
+        for (int i = 0; i < cues.ticks(); i++) {
+            ui(SoundEvents.NOTE_BLOCK_HAT.value(), 1.4F, 0.6F);
+        }
+        if (cues.tierLands()) {
+            ui(SoundEvents.NOTE_BLOCK_CHIME.value(), 1.0F, 0.9F);
+        }
+        if (cues.itemLands()) {
+            ui(SoundEvents.NOTE_BLOCK_HARP.value(), 1.3F, 1.0F);
+        }
+    }
+
+    /** One UI sound at (pitch, volume), the argument order of SimpleSoundInstance.forUI(event, pitch, volume) read from its bytecode. */
+    private static void ui(SoundEvent sound, float pitch, float volume) {
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound, pitch, volume));
+    }
+
     private void press() {
         switch (ChestRevealClock.onPress(this.screenTicks)) {
-            case SKIP -> this.screenTicks = ChestRevealClock.skipTarget();
+            case SKIP -> {
+                this.screenTicks = ChestRevealClock.skipTarget();
+                this.playRollSounds(); // the jump plays only the landings it crossed, no ticks (ChestRollSound)
+            }
             case CLOSE -> this.onClose();
             case NONE -> { }
         }
