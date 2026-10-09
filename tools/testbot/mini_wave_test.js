@@ -25,12 +25,12 @@ bot.once('spawn', async () => {
   const baseHeads = await countR(HEADSEL); console.log('baseline player-head displays in the run BEFORE the boss:', baseHeads);
   console.log('boss:', (await ask('/emberfall bossdevourer 0', 1200)).slice(0, 100)); await sleep(2500);
   await ask('/emberfall wavestop 0', 400); await ask('/kill @e[type=!player,type=!emberfall:devourer_brain,type=!emberfall:devourer_spawn,type=!minecraft:item_display]', 600);   // boss stays; wave mobs and their auto-weapon prey go
-  const mx = 260;   // DevourerBrain MAX_HEALTH, read from the source (the attribute query does not work through /data)
+  const mx = 351;   // BossTuning.devourerHealth() = 260 x 1.35, read from the source (the attribute query does not work through /data)
   const heads = async () => countR('@e[type=minecraft:item_display,nbt={item:{id:"minecraft:player_head"}}]');
   const minis = async () => countR('@e[type=emberfall:devourer_spawn]');
   const hp1 = async () => { const r = await ask('/data get entity @e[type=emberfall:devourer_brain,limit=1] Health', 500); const m = /: ([\d.]+)f/.exec(r); return m ? +m[1] : NaN; };
   const hp = async () => { for (let k = 0; k < 4; k++) { const v = await hp1(); if (!Number.isNaN(v)) return v; } return NaN; };
-  const h0 = await hp(); const m0 = await minis(); check('M0 brain alive at full health, no minis', h0 > 200 && m0 === 0, `hp=${h0} minis=${m0}`);
+  const h0 = await hp(); const m0 = await minis(); check('M0 brain alive at full health, no minis', h0 > 300 && m0 === 0, `hp=${h0} minis=${m0}`);
   const steps = [[0.60, 2, 'phase 2 at 66% spawns 2'], [0.30, 0, 'phase 3 at 33% adds none'], [0.15, 1, 'mini wave at 20% adds exactly 1'], [0.06, 1, 'mini wave at 10% adds exactly 1']];
   let i = 1, before = 0, clearedTo = 0;
   for (const [f, want, label] of steps) {

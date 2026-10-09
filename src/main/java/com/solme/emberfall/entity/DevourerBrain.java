@@ -230,7 +230,7 @@ public class DevourerBrain extends Silverfish {
     public static AttributeSupplier.Builder createBossAttributes() {
         return Silverfish.createAttributes()
                 .add(Attributes.MAX_HEALTH, com.solme.emberfall.boss.BossTuning.devourerHealth())
-                .add(Attributes.MOVEMENT_SPEED, 0.32);
+                .add(Attributes.MOVEMENT_SPEED, com.solme.emberfall.boss.BossTuning.devourerSpeed());
     }
 
     /** Body segment scale, tapering from 1.7 behind the head to 0.9 at the tail. */
