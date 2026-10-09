@@ -7,11 +7,11 @@ Every delivery note MUST list this table with the current statuses. A promised i
 
 | # | Promise (owner's words, short) | Status | Owner | Drop |
 |---|---|---|---|---|
-| P1 | Rift is visible after opening: animated, moving particles, jagged pink-lilac tear with warm rim | NOT STARTED (idle draw missing; RiftStage only plays the 5 s opening) | Koda | 1 |
+| P1 | Rift is visible after opening: animated, moving particles, jagged pink-lilac tear with warm rim | BUILT, UNSEEN (RiftIdle draws every tick after the opening; 15 pure checks, 7 mutants red; real look unknown) | Koda | 1 |
 | P2 | Rift opening animation clearly visible (heavier, larger) | NOT STARTED (current is faint) | Koda | 1 |
-| P3 | Chests use the Excalibur pack: iron=paid, copper=free, gold=gold; world, held, inventory; real lid animation | NOT STARTED (current model uses wrong UVs) | Koda | 1 |
+| P3 | Chests use the Excalibur pack: iron=paid, copper=free, gold=gold; world, held, inventory; real lid animation | BUILT, UNSEEN (6 models rebuilt from the pack's own UVs and display transforms; open lid swings up; every face samples painted texture; not a game render) | Koda | 1 |
 | P4 | Chest roll plays a sound while rolling for a relic | NOT STARTED | Vesper | 1 |
-| P5 | Expedition dimension: no day/night, permanent noon | NOT STARTED | Koda | 1 |
+| P5 | Expedition dimension: no day/night, permanent noon | BUILT, UNSEEN (emberfall:noon timeline; headless probes could not see the sky, fallback is fixed_time) | Koda | 1 |
 | P6 | Every GUI uses the provided glyphs, no square missing-glyph box (docs/UI_GLYPHS.md) | NOT STARTED (only the stats panel) | Vesper | 1 |
 | P7 | Rift Character Select looks better (not flashing, better looking) | NOT STARTED | Koda | 1 |
 | P8 | Broodtide replaces the Ember Guardian as boss 1 (slime kraken, Tide, Devour, Brood-Kin) | NOT STARTED (plan only) | Koda | 2 |
