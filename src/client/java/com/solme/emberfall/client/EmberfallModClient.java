@@ -99,7 +99,7 @@ public class EmberfallModClient implements ClientModInitializer {
 		// The Character Table: open the character-selection screen (lore on hover).
 		ClientPlayNetworking.registerGlobalReceiver(com.solme.emberfall.network.OpenCharacterSelectPayload.TYPE,
 				(payload, context) -> context.client().setScreen(
-						new CharacterSelectScreen(payload.currentId(), payload.characters())));
+						new CharacterSelectScreen(payload.currentId(), payload.characters(), payload.selectId(), payload.secondsLeft())));
 		// A shrine on the expedition map: left click opens its small window.
 		ClientPlayNetworking.registerGlobalReceiver(com.solme.emberfall.network.OpenShrinePayload.TYPE,
 				(payload, context) -> context.client().setScreen(new ShrineScreen(payload)));

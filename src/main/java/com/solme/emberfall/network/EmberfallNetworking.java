@@ -24,6 +24,7 @@ public final class EmberfallNetworking {
         PayloadTypeRegistry.playC2S().register(ChooseWeaponPayload.TYPE, ChooseWeaponPayload.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(OpenCharacterSelectPayload.TYPE, OpenCharacterSelectPayload.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(ChooseCharacterPayload.TYPE, ChooseCharacterPayload.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(CloseCharacterSelectPayload.TYPE, CloseCharacterSelectPayload.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(OpenShopPayload.TYPE, OpenShopPayload.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(HudStatePayload.TYPE, HudStatePayload.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(RunHudPayload.TYPE, RunHudPayload.STREAM_CODEC);
@@ -53,5 +54,7 @@ public final class EmberfallNetworking {
                 (payload, context) -> com.solme.emberfall.relic.ChestManager.onRevealClosed(context.player(), payload));
         ServerPlayNetworking.registerGlobalReceiver(ChooseCharacterPayload.TYPE,
                 (payload, context) -> com.solme.emberfall.character.CharacterSelectManager.onChoiceReceived(context.player(), payload));
+        ServerPlayNetworking.registerGlobalReceiver(CloseCharacterSelectPayload.TYPE,
+                (payload, context) -> com.solme.emberfall.rift.RiftGate.onSelectClosed(context.player(), payload.selectId()));
     }
 }

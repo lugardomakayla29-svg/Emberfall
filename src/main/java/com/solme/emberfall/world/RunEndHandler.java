@@ -79,8 +79,6 @@ public final class RunEndHandler {
             com.solme.emberfall.bot.BotRoster.remove(leaving.getUUID()); // a bot that left is a plain name again
             com.solme.emberfall.bot.BotBrain.forget(leaving.getUUID());
             com.solme.emberfall.bot.BotPilot.forget(leaving.getUUID());
-            com.solme.emberfall.hub.DepartureBlock.forget(leaving.getUUID());
-            com.solme.emberfall.hub.GateManager.forget(leaving.getUUID());
             com.solme.emberfall.rift.RiftGate.forget(leaving.getUUID());
             com.solme.emberfall.wave.SwarmPortal.forget(leaving.getUUID());
             com.solme.emberfall.network.SwarmHudSync.forget(leaving.getUUID());
@@ -170,8 +168,7 @@ public final class RunEndHandler {
         com.solme.emberfall.progression.DisplacedItems.restore(player); // weapons out, the player's own item back
         // A map run happens in the expedition dimension: move the player home BEFORE the arena is torn down under them.
         ReturnPoints.sendBack(player, server);
-        com.solme.emberfall.hub.GateManager.runEnded(player, server.getTickCount()); // the gate refuses for a few seconds
-        com.solme.emberfall.rift.RiftGate.runEnded(player, server.getTickCount());   // and so does the Rift
+        com.solme.emberfall.rift.RiftGate.runEnded(player, server.getTickCount());   // the Rift refuses for a few seconds
         if (!RunManager.hasAnyPlayers(slot)) {
             ArenaInstance instance = RunManager.getActive(slot);
             WaveDirector.stop(slot);

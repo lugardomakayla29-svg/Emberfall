@@ -39,8 +39,6 @@ public final class ModBlocks {
     public static final Block EMBER_HEARTH = registerHearth("ember_hearth");
     /** The Character Table: right-click to pick a character (lore on hover). Breakable and craftable. */
     public static final Block CHARACTER_TABLE = registerTable("character_table");
-    /** The hub's departure plate: stepping on it starts an expedition. */
-    public static final Block DEPARTURE_PLATE = registerDeparture("departure_plate");
 
     /**
      * The three chests (paid, free, gold). Unbreakable and loot-less: a chest can never be mined, carried off or duplicated.
@@ -75,26 +73,6 @@ public final class ModBlocks {
                 .noOcclusion()
                 .noCollision()
                 .strength(-1.0F, 3600000.0F)
-                .noLootTable());
-
-        Block registered = Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
-        Registry.register(
-                BuiltInRegistries.ITEM,
-                itemKey,
-                new BlockItem(registered, new Item.Properties().setId(itemKey))
-        );
-        return registered;
-    }
-
-    private static Block registerDeparture(String path) {
-        ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, EmberfallMod.id(path));
-        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, EmberfallMod.id(path));
-
-        Block block = new com.solme.emberfall.hub.DepartureBlock(BlockBehaviour.Properties.of()
-                .setId(blockKey)
-                .noOcclusion()
-                .strength(-1.0F, 3600000.0F)
-                .lightLevel(state -> 8)
                 .noLootTable());
 
         Block registered = Registry.register(BuiltInRegistries.BLOCK, blockKey, block);

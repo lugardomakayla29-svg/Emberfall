@@ -94,6 +94,12 @@ public final class RiftStage {
             for (RiftFx.Event e : RiftFx.at(a.events, a.tick)) {
                 play(a, e);
             }
+            // The opening is three bursts with near-empty stretches between them (measured: ticks 50..80 averaged 3 particles, 80..100 none),
+            // which is why the owner could barely see it. While it OPENS, the steady swirl of the open Rift plays under the bursts, so the
+            // tear is never dark. It is a separate layer: the proven schedule above is unchanged. Closing keeps only its own schedule.
+            if (!a.closing && a.tick >= RiftFx.T_CRACK_START && a.tick < RiftFx.OPEN_TICK) {
+                drawIdle(a.level, a.x, a.y, a.z, a.facing, a.shape, a.tick);
+            }
             a.tick++;
             if (a.tick > a.lastTick()) {
                 it.remove();
@@ -132,6 +138,23 @@ public final class RiftStage {
 
     /** Dust size for the rim's warm layer: smaller than the fill's 1.1 so it sits under the white streak as a tint, not as a second shape. PROPOSAL. */
     static final float RIM_DUST_SIZE = 0.8F;
+    /** Dust size of the OPEN Rift's pink and lilac fill. Larger than the opening's 1.1 so a standing Rift reads as a body, not a sprinkle. PROPOSAL, unseen. */
+    static final float FILL_DUST_SIZE = 1.7F;
+
+    /**
+     * Draws ONE tick of an OPEN Rift: the idle look from {@link RiftIdle}. Called by {@link RiftManager#tickAll} for every Rift that is open
+     * (after the 5 s opening, before it starts closing). Particles are sent with {@code force} semantics by {@code sendParticles} to players
+     * inside {@link #RENDER_RANGE}, so a Rift can be seen from far away.
+     */
+    public static int drawIdle(ServerLevel level, double x, double y, double z, int facing, RiftShape.Shape shape, int ticksOpen) {
+        int drawn = 0;
+        for (RiftFx.Event e : RiftIdle.at(shape, ticksOpen)) {
+            RiftPlacement.Pos p = RiftPlacement.cell(x, y, z, facing, shape.width, shape.height, e.x, e.y);
+            level.sendParticles(particle(e), p.x(), p.y(), p.z(), Math.max(1, e.count), 0.18, 0.22, 0.18, 0.012);
+            drawn += Math.max(1, e.count);
+        }
+        return drawn;
+    }
 
     /** Maps the schedule's plain keys onto real vanilla particles. Colour-carrying keys use dust so the pink and lilac show. */
     static ParticleOptions particle(RiftFx.Event e) {
@@ -141,6 +164,7 @@ public final class RiftStage {
             case "dust_ring" -> ParticleTypes.DUST_PLUME;
             case "glow" -> new DustParticleOptions((int) e.a & 0xFFFFFF, 1.1F);
             case "rim_dust" -> new DustParticleOptions((int) e.a & 0xFFFFFF, RIM_DUST_SIZE);
+            case "fill_dust" -> new DustParticleOptions((int) e.a & 0xFFFFFF, FILL_DUST_SIZE);
             default -> ParticleTypes.END_ROD;
         };
     }

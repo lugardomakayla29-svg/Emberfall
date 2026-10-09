@@ -7,7 +7,7 @@ let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' :
   const op = await mk('EmberTester'); await sleep(5000);
   const say = async (b, cmd, w = 900) => { b.chat_.length = 0; b.chat(cmd); await sleep(w); return b.chat_.join(' | '); };
   const sum = async k => (await say(op, `/emberfall relic summoner EmberTester ${k}`, 800)).replace(/.*RELIC /, '');
-  for (const id of ['ember_guardian_summoner', 'devourer_summoner', 'merchant_summoner', 'departure_plate']) {
+  for (const id of ['ember_guardian_summoner', 'devourer_summoner', 'merchant_summoner']) {
     const r = await say(op, `/give @s emberfall:${id}`, 500);
     check('C1 emberfall:' + id + ' exists', /Gave 1/.test(r) && !/Unknown|Incorrect/.test(r), r.slice(0, 70));
   }

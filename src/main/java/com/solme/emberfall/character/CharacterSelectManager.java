@@ -22,6 +22,14 @@ public final class CharacterSelectManager {
     private CharacterSelectManager() {}
 
     public static void open(ServerPlayer player) {
+        open(player, OpenCharacterSelectPayload.NO_PHASE, 0);
+    }
+
+    /**
+     * Opens the screen for a Rift party. {@code selectId} is the phase id the client must echo if it closes the screen without picking
+     * ({@code CloseCharacterSelectPayload}); {@code secondsLeft} is the time the party has left to decide.
+     */
+    public static void open(ServerPlayer player, int selectId, int secondsLeft) {
         String current = PlayerCharacterSelection.get(player.level().getServer())
                 .selectedOrFallback(player.getUUID()).id();
         List<OpenCharacterSelectPayload.Entry> entries = new ArrayList<>();
@@ -31,7 +39,7 @@ public final class CharacterSelectManager {
                     c.id(), c.displayName(), c.description(),
                     weapon != null ? weapon.displayName() : c.weaponId(), statsLine(c)));
         }
-        ServerPlayNetworking.send(player, new OpenCharacterSelectPayload(current, entries));
+        ServerPlayNetworking.send(player, new OpenCharacterSelectPayload(current, entries, selectId, secondsLeft));
     }
 
     public static void onChoiceReceived(ServerPlayer player, ChooseCharacterPayload payload) {
@@ -39,6 +47,8 @@ public final class CharacterSelectManager {
         if (error != null) {
             player.sendSystemMessage(net.minecraft.network.chat.Component.literal("\u00a7c" + error));
         }
+        // A pick from a Rift party also settles that player's wait, whether it was accepted or refused: either way they have answered.
+        com.solme.emberfall.rift.RiftGate.onSelectAnswered(player);
     }
 
     /** One line: health and speed bias as percentages, then the character's passive. */

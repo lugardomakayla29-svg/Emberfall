@@ -4,7 +4,7 @@
 - Weapons 1-10 levels + 8 ultimates, tomes, QoL (delivered as 0.1.2-ultimates)
 - Relic foundation (24 relics, unlocks persist across restarts)
 - Chests (paid + free: elite, boss, shrine), HUD, Testificate merchants
-- Expedition Gate (plate loop fixed, return beside the gate)
+- Rift entry (click, 3 s countdown, Character Select, run end lockout). The Ember Hearth hub and the Departure Plate are gone (2.7).
 - Endgame: Final Swarm + escape portal + silver multiplier; Expedition Gate party join (max 10, countdown 3 s)
 - Party scaling by party size (PartyScaling), EmberTester bot: shrine, merchant, shop and run-end answers, walks with a path scout
 - Creative tab with summoners, chests, Testificate and the EmberTester Egg; non-op test (`tab_test` C5)
@@ -28,7 +28,6 @@
 - Joining a player who already holds relics into a running run wipes their relics but keeps their gold (measured with two bots, PR #25). `/emberfall join` is an op-only debug command (the whole `/emberfall` tree needs permission level 2, read from source, not run as a non-op), and the gate path (`RunCommand.tryStartFrom`) always reserves a fresh map slot and starts a new instance, so it never joins an existing run (read from source, not run). The party plan must still enforce "no late join" in `tryStartFrom` and tests it.
 
 ## Not started
-- Rift Expedition hub and new character select (needs the owner's proposal text)
 - Tiki Magma replacement (owner: remove it entirely, a fresh polar-opposite mob)
 - Broodtide boss, Devourer overhaul, Ember Guardian rework, Excalibur chest textures
 - A bot that joins a run on its own, fills party slots up to 10 (the Egg is the manual version)

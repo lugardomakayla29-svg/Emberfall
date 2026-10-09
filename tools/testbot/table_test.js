@@ -16,9 +16,9 @@ bot._client.on('packet', (d, meta) => {
   const ch = d.channel || (d.payload && d.payload.channel) || '';
   if (!String(ch).includes('open_character_select')) return;
   const buf = Buffer.isBuffer(d.data) ? d.data : Buffer.from(d.data || d.payload || []);
-  const o = { i: 0 }; const cur = rdUtf(buf, o); const n = rdVar(buf, o); const list = [];
+  const o = { i: 0 }; const cur = rdUtf(buf, o); const selectId = rdVar(buf, o); const secondsLeft = rdVar(buf, o); const n = rdVar(buf, o); const list = [];
   for (let k = 0; k < n; k++) list.push({ id: rdUtf(buf, o), name: rdUtf(buf, o), lore: rdUtf(buf, o), weapon: rdUtf(buf, o), stats: rdUtf(buf, o) });
-  opened = { cur, list, consumed: o.i, total: buf.length };
+  opened = { cur, selectId, secondsLeft, list, consumed: o.i, total: buf.length };
 });
 const choose = id => bot._client.write('custom_payload', { channel: 'emberfall:choose_character', data: wrUtf(id) });
 const selected = async () => { const r = await ask('/character list', 900); const m = /> ([^(]*?) \S*\((\w+)\)/.exec(lines.slice(-12).join('\n')); return m ? m[2] : (/\u00a7a> .*?\((\w+)\)/.exec(r) || [])[1]; };
@@ -35,6 +35,7 @@ bot.once('spawn', async () => {
   await bot.activateBlock(blk); await sleep(1500);
   check('B2 right-click opened the screen payload', !!opened, opened ? `entries=${opened.list.length}` : 'nothing received');
   if (opened) {
+    check('B3b the table flow sends selectId 0 and no countdown (no Rift party behind it)', opened.selectId === 0 && opened.secondsLeft === 0, `selectId=${opened.selectId} secondsLeft=${opened.secondsLeft}`);
     check('B3 payload fully consumed (no stray bytes)', opened.consumed === opened.total, `consumed ${opened.consumed} of ${opened.total}`);
     const ids = opened.list.map(e => e.id).sort().join(',');
     check('B4 all 8 characters, real ids', opened.list.length === 8 && ids === 'battlemage,duelist,emberwarden,gravedigger,juggernaut,ranger,reaper,vanguard', ids);

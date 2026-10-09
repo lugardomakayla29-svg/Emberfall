@@ -194,8 +194,8 @@ Method: a script walked every `.java` and `.json` under `src/client` and `src/ma
 | RunHud (stats panel) | `RunHud.java:32` | STAT_ICONS[2] | ✉ | U+2709 | Y | 7 | 1..6 | none needed |
 | RunHud (stats panel) | `RunHud.java:32` | STAT_ICONS[3] | ♢ | U+2662 | Y | 5 | 1..6 | none needed |
 | RunHud (stats panel) | `RunHud.java:32` | STAT_ICONS[4] | ☠ | U+2620 | Y | 7 | 0..6 | none needed |
-| CharacterSelectScreen | `CharacterSelectScreen.java:45` | current-character marker `"\u25B6 "` | ▶ | U+25B6 | Y | 6 | 1..5 | none needed |
-| Hub bust sign (in world) | `HubBuilder.java:141` | `"§a▶ Right-click the bust to choose"` | ▶ | U+25B6 | Y | 6 | 1..5 | none needed |
+| CharacterSelectScreen | (removed) | the play marker was dropped when the screen was rebuilt as cards (no non-ASCII character is drawn now) | none | none | n/a | n/a | n/a | none needed |
+| Hub bust sign (in world) | (removed) | the hub was removed (the Rift replaces it) | none | none | n/a | n/a | n/a | none needed |
 
 - **Unverified (Unifont) glyphs in the source: 0.** Nothing to replace.
 - `U+00A7` (section sign) appears 116 times in 18 files (literal characters, counted by script). It is the colour-code prefix, consumed by the game and never drawn, so it is not a glyph. One use, `EmberfallCommands.java:450`, is `replaceAll("§.", "")`, a regex that STRIPS codes; it is never drawn.

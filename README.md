@@ -1,6 +1,6 @@
 # EMBERFALL
 
-A 3D roguelike for Minecraft (Fabric, Minecraft 1.21.11; compiles to Java 21 bytecode; building needs JDK 25). Pick a character, enter the Expedition Gate, survive waves,
+A 3D roguelike for Minecraft (Fabric, Minecraft 1.21.11; compiles to Java 21 bytecode; building needs JDK 25). Pick a character, step into a Rift, survive waves,
 collect tomes, weapons and relics, open chests, trade with Testificates, defeat the bosses, and choose when to cash out.
 
 ## Layout
