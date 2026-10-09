@@ -30,5 +30,37 @@
         "stream": true
       }
     ]
+  },
+  "music.flight_in_fantasia": {
+    "sounds": [
+      {
+        "name": "emberfall:music/flight_in_fantasia",
+        "stream": true
+      }
+    ]
+  },
+  "music.gamemode88": {
+    "sounds": [
+      {
+        "name": "emberfall:music/gamemode88",
+        "stream": true
+      }
+    ]
+  },
+  "music.icy_breeze": {
+    "sounds": [
+      {
+        "name": "emberfall:music/icy_breeze",
+        "stream": true
+      }
+    ]
+  },
+  "music.license_to_infinity": {
+    "sounds": [
+      {
+        "name": "emberfall:music/license_to_infinity",
+        "stream": true
+      }
+    ]
   }
 }
