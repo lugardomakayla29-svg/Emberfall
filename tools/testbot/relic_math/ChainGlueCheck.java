@@ -44,6 +44,12 @@ public class ChainGlueCheck {
         boolean grownGlued = true; double[] gs = ChainGlue.spacings(grown);
         for (int i = 0; i < gs.length; i++) if (ChainGlue.gap(grown[i], grown[i + 1], gs[i]) > 1e-9) grownGlued = false;
         check("G16 the grown chain is still glued at every link", grownGlued, "");
+        // The Broodtide head: two slimes stacked, one hitbox. The renderer lifts the upper slime by 0.5 * (1 - OVERLAP) per slime-height; the box is h * (2 - OVERLAP).
+        double slime = 0.52 * 6;
+        double lift = 0.5 * (1.0 - ChainGlue.OVERLAP) / 0.5 * slime;   // the renderer's lift, scaled back to blocks (one slime-height of lift is 0.5 in model space)
+        double column = slime * (2.0 - ChainGlue.OVERLAP);
+        check("G17 the hitbox column equals the lower slime plus the lifted upper slime (the box covers exactly what is drawn)", Math.abs(column - (slime + lift)) < 1e-9, "column=" + column + " drawn=" + (slime + lift));
+        check("G18 the column is taller than one slime and shorter than two (the slimes overlap, they are not apart)", column > slime && column < 2 * slime, "");
         System.out.println(fails == 0 ? "ALL PASS (" + total + " checks)" : "FAILED " + fails + " of " + total);
         System.exit(fails == 0 ? 0 : 1);
     }

@@ -115,6 +115,23 @@ public class BroodtideBody extends Slime {
         return (float) (BossTuning.broodtideDamage() * curseMultiplier);
     }
 
+    /**
+     * The hitbox is the whole two-slime column (owner, 2026-10-10: a lower slime facing away and an upper one facing the player), so a shot at the upper
+     * head lands. The vanilla box is {@code 0.52 x size} on every side; this keeps the width and stacks a second slime of height, less the glue overlap the
+     * renderer sinks it by ({@link ChainGlue#OVERLAP}). One entity, one hitbox, two drawn slimes.
+     */
+    @Override
+    public net.minecraft.world.entity.EntityDimensions getDefaultDimensions(net.minecraft.world.entity.Pose pose) {
+        net.minecraft.world.entity.EntityDimensions one = super.getDefaultDimensions(pose);
+        return net.minecraft.world.entity.EntityDimensions.scalable(one.width(), columnHeight(one.height()))
+                .withEyeHeight(columnHeight(one.height()) * 0.8F);
+    }
+
+    /** Height of the two-slime column given the height of one slime. Pure, so a check can pin it. */
+    public static float columnHeight(float oneSlime) {
+        return oneSlime * (2.0F - (float) ChainGlue.OVERLAP);
+    }
+
     /** A Slime picks its own jump delay and hops; a rooted body never does. */
     @Override
     protected int getJumpDelay() {
@@ -142,8 +159,42 @@ public class BroodtideBody extends Slime {
         if (devourer != null && grabber != null) {
             devourer.tick(level, this, fightTick, grabber.phase());
         }
+        if (com.solme.emberfall.boss.BroodtideMouth.redrawsAt(fightTick)) {
+            drawMouth(level);
+        }
         if (arms != null && grabber != null) {
             arms.tick(this.position(), grabber.phase(), TideClock.stateAt(fightTick), TideClock.ticksInto(fightTick));
+        }
+    }
+
+    /**
+     * The particle mouth on the upper slime's face (owner, 2026-10-10). Faces the nearest player, so it always looks at whoever the head is turned to; its
+     * shape changes every {@link com.solme.emberfall.boss.BroodtideMouth#HOLD_TICKS} ticks. A fixed {@link com.solme.emberfall.boss.BroodtideMouth#POINTS}
+     * particles per redraw, one redraw per {@link com.solme.emberfall.boss.BroodtideMouth#REDRAW_TICKS} ticks. UNSEEN: no one has looked at it on a real client.
+     */
+    private void drawMouth(ServerLevel level) {
+        net.minecraft.world.entity.player.Player nearest = level.getNearestPlayer(this, 64.0);
+        if (nearest == null) {
+            return;
+        }
+        double dx = nearest.getX() - this.getX();
+        double dz = nearest.getZ() - this.getZ();
+        double len = Math.hypot(dx, dz);
+        if (len < 1.0E-6) {
+            return;
+        }
+        double fx = dx / len, fz = dz / len;           // unit vector from the body toward the player
+        double rx = -fz, rz = fx;                      // the mouth's "right" as seen by the player looking at the body
+        double face = this.getBbWidth() * 0.5 + 0.35;   // just in front of the upper slime's face
+        double cy = this.getY() + this.getBbHeight() * 0.62;   // the upper slime's mouth height (below its eyes)
+        double radius = this.getBbWidth() * 0.16;
+        int shape = com.solme.emberfall.boss.BroodtideMouth.shapeAt(fightTick);
+        double phase = (fightTick % 40L) / 40.0;
+        double[][] pts = com.solme.emberfall.boss.BroodtideMouth.points(shape, phase);
+        for (double[] q : pts) {
+            double px = this.getX() + fx * face + rx * q[0] * radius;
+            double pz = this.getZ() + fz * face + rz * q[0] * radius;
+            level.sendParticles(net.minecraft.core.particles.ParticleTypes.ITEM_SLIME, px, cy + q[1] * radius, pz, 1, 0.0, 0.0, 0.0, 0.0);
         }
     }
 
