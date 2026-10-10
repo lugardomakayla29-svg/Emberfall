@@ -100,7 +100,9 @@ public final class BroodtideDevourer {
                 if (age < BroodtideDevour.WINDUP_TICKS) {
                     reachTelegraph(level, body, mob, age);
                 } else {
-                    swallow(level, body, mob, e, fightTick);
+                    if (!swallow(level, body, mob, e, fightTick)) {
+                        it.remove();   // a miss: remove through THIS iterator (removing from the list itself threw ConcurrentModificationException and crashed the server)
+                    }
                 }
             } else {
                 pullIn(body, mob, e, fightTick);
@@ -203,16 +205,15 @@ public final class BroodtideDevourer {
         }
     }
 
-    /** The arm lands: record what the mob was, then hide it. */
-    private void swallow(ServerLevel level, BroodtideBody body, Mob mob, Eaten e, long fightTick) {
+    /** The arm lands: record what the mob was, then hide it. @return true if the arm landed and the mob is now hidden; false if it was out of reach (a miss: the CALLER removes the entry, never this method). */
+    private boolean swallow(ServerLevel level, BroodtideBody body, Mob mob, Eaten e, long fightTick) {
         double dist = Math.hypot(mob.getX() - body.getX(), mob.getZ() - body.getZ());
         if (dist > BroodtideDevour.REACH + 1.0) {
             // It was out of reach by the time the arm landed (it ran, or was knocked back): the eat misses, the mob is simply left alone.
-            eaten.remove(e);
             if (body.arms() != null) {
                 body.arms().clearReach();
             }
-            return;
+            return false;
         }
         e.wasNoAi = mob.isNoAi();
         e.wasSilent = mob.isSilent();
@@ -228,6 +229,7 @@ public final class BroodtideDevourer {
         mob.setTarget(null);
         level.playSound(null, body.getX(), body.getY(), body.getZ(), SoundEvents.SLIME_ATTACK, SoundSource.HOSTILE, 1.6F, 0.6F);
         level.sendParticles(ParticleTypes.ITEM_SLIME, mob.getX(), mob.getY() + 0.8, mob.getZ(), 14, 0.3, 0.4, 0.3, 0.05);
+        return true;
     }
 
     /** While swallowed the mob slides to the body's centre and stays inside it (a position set each tick, no sustained velocity). */
