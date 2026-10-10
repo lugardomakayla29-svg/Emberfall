@@ -38,7 +38,7 @@ bot.once('spawn', async () => {
   check('V0 the Broodtide exists', b0 === 1, `count=${b0}`);
 
   // Subject: ONE horde zombie, tagged, placed 6 blocks from the boss (well inside the 14.3 reach).
-  await ask(`/execute at ${SEL} positioned ~6 ~ ~ run emberfall spawnveteran horde_zombie`, 1500);
+  await ask(`/execute at ${SEL} positioned ~30 ~ ~ run emberfall spawnveteran horde_zombie`, 1500);   // out of reach (14.3) while it is set up
   await ask(`/tag @e[type=emberfall:horde_zombie,limit=1,sort=nearest] add subj`, 300);
   const have = await count('@e[tag=subj]');
   check('V1 the subject exists (tagged)', have === 1, `count=${have}`);
@@ -48,32 +48,42 @@ bot.once('spawn', async () => {
   await ask('/effect give @e[tag=subj,limit=1] minecraft:instant_health 1 10 true', 300);
   const baseHp = num(await data('@e[tag=subj,limit=1]', 'Health'));
   const baseMax = 40;
+  const setBack = num(await data('@e[tag=subj,limit=1]', 'attributes[{id:"minecraft:max_health"}].base'));
+  check('V1c the subject really has max health 40 BEFORE it is brought into reach (read back, not assumed)', Math.abs(setBack - 40) < 0.01, `base=${setBack}`);
+  // Line the entry up with the Tide: wait for the START of an Ebb (tick within the first 3 s of the 23 s cycle). The Devourer eats in the Ebb and spits
+  // once a Flood has begun, so entering at the start of an Ebb leaves the longest possible hidden window to read in (the previous run's entry could land late in
+  // an Ebb and the mob was given back within ~1.5 s, faster than the test's own command round trips).
+  let aligned = null;
+  for (let i = 0; i < 80; i++) { const t = await tide(); if (t && t.state === 'EBB' && (t.tick % 460) <= 60) { aligned = t; break; } await sleep(250); }
+  check('V1e the subject enters at the START of an Ebb (so the hidden window is long enough to read)', !!aligned, aligned ? `tick=${aligned.tick} into-cycle=${aligned.tick % 460}` : 'never saw an Ebb start');
+  await ask(`/execute at ${SEL} run tp @e[tag=subj,limit=1] ~6 ~ ~`, 600);   // now into reach: the tp is relative to the BOSS (execute at), not the bot
+  const near = await ask(`/execute at ${SEL} if entity @e[tag=subj,distance=..8]`, 400);
+  check('V1d the subject is now within 8 blocks of the boss (inside the 14.3 reach)', /Test passed/.test(near), near.slice(-60));
 
   // Wait until the subject is swallowed (the swallowed tag appears) - the Devourer begins in the next Ebb with room for the wind-up.
   let swallowed = false, sawReach = false;
   for (let i = 0; i < 120 && !swallowed; i++) {
     await sleep(400);
-    if (i % 10 === 0) { const r = await ask('/attribute @e[tag=subj,limit=1] minecraft:max_health get', 400); console.log('DIAG pre-swallow max_health sample', i, r.slice(-40)); }
     if (await count(`@e[tag=subj,tag=${SW}]`) === 1) swallowed = true;
     if (!sawReach && (await count(ARM)) === 45) sawReach = true;
   }
   check('V2 the zombie is SWALLOWED within about 48 s (the tag appears)', swallowed);
   if (!swallowed) { console.log('FAILED (no swallow)'); bot.quit(); process.exit(1); }
 
-  // While hidden: every flag the plan promises.
-  const dump = await ask('/data get entity @e[tag=subj,limit=1]', 700);
-  check('V3 hidden: NoAI is set', /NoAI: 1b/.test(dump), (dump.match(/NoAI: \d/) || ['none'])[0]);
-  check('V4 hidden: Invulnerable is set', /Invulnerable: 1b/.test(dump), '');
-  check('V5 hidden: Silent is set', /Silent: 1b/.test(dump), '');
-  check('V6 hidden: it carries the invisibility effect', /invisibility/i.test(dump), '');
+  // While hidden: every flag the plan promises. Each is ONE selector the server resolves in a single tick together with the swallowed tag, so a spit
+  // between two commands cannot make the check read a mob that has already been given back (the earlier dump-then-check order did exactly that).
+  const atomic = async extra => count(`@e[tag=subj,tag=${SW}${extra}]`);
+  const hidden = await atomic('');
+  check('V2b the swallowed tag is still present when the flags are read', hidden === 1, `count=${hidden}`);
+  check('V3 hidden: NoAI is set', (await atomic(',nbt={NoAI:1b}')) === 1, '');
+  check('V4 hidden: Invulnerable is set', (await atomic(',nbt={Invulnerable:1b}')) === 1, '');
+  check('V5 hidden: Silent is set', (await atomic(',nbt={Silent:1b}')) === 1, '');
+  check('V6 hidden: it carries the invisibility effect', (await atomic(',nbt={active_effects:[{id:"minecraft:invisibility"}]}')) === 1, '');
   check('V7 hidden: it is NOT removed - still alive in the world', await count('@e[tag=subj]') === 1, '');
   check('V8 hidden: the wave cap still sees it (counted by the hostile test, not the targeting test)', await count('@e[tag=subj,type=emberfall:horde_zombie]') === 1, '');
-  const bp = await data(SEL, 'Pos'); const sp = await data('@e[tag=subj,limit=1]', 'Pos');
-  const mb = /\[(-?[\d.]+)d, (-?[\d.]+)d, (-?[\d.]+)d\]/.exec(bp), ms = /\[(-?[\d.]+)d, (-?[\d.]+)d, (-?[\d.]+)d\]/.exec(sp);
-  if (mb && ms) {
-    const d = Math.hypot(+mb[1] - +ms[1], +mb[3] - +ms[3]);
-    check('V9 hidden: it was pulled INTO the body (within 3 blocks of its centre)', d <= 3.0, `dist=${d.toFixed(2)}`);
-  } else check('V9 hidden: it was pulled INTO the body', false, 'no position');
+  // V9: one command, one tick: "swallowed subject within 3 blocks of the boss body". A two-step read (boss pos, then mob pos) could straddle the spit.
+  const pulled = await ask(`/execute at ${SEL} if entity @e[tag=subj,tag=${SW},distance=..3]`, 500);
+  check('V9 hidden: it was pulled INTO the body (within 3 blocks of its centre)', /Test passed/.test(pulled), pulled.slice(-60));
   check('V10 the arms are still exactly 45 displays (the reach reused them, no new entity)', await count(ARM) === 45, '');
 
   // The spit: waits for Flood.
