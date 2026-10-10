@@ -35,6 +35,8 @@ public class BroodtideBody extends Slime {
     private long fightTick = 0;
     /** The Grab and the phase latch. Created when the fight starts (the slot is known), null for a body loaded without a fight. */
     private com.solme.emberfall.boss.BroodtideGrabber grabber;
+    /** The Devour: reaches for a horde mob, hides it, spits it out as a Brood-Kin. Null for a body loaded without a fight. */
+    private com.solme.emberfall.boss.BroodtideDevourer devourer;
     /** The kraken's arms: 40 displays allocated once in {@link #startFight}, discarded on every exit path in {@link #remove}. Null for a body loaded without a fight. */
     private BroodtideArms arms;
     private boolean defeated = false;
@@ -137,6 +139,9 @@ public class BroodtideBody extends Slime {
         if (grabber != null) {
             grabber.tick(level, this, fightTick, this.getMaxHealth() > 0 ? this.getHealth() / this.getMaxHealth() : 1.0);
         }
+        if (devourer != null && grabber != null) {
+            devourer.tick(level, this, fightTick, grabber.phase());
+        }
         if (arms != null && grabber != null) {
             arms.tick(this.position(), grabber.phase(), TideClock.stateAt(fightTick), TideClock.ticksInto(fightTick));
         }
@@ -145,6 +150,7 @@ public class BroodtideBody extends Slime {
     /** Binds this body to a run slot and starts its Grab. Called once by the fight wrapper right after the spawn. */
     public void startFight(int slot) {
         this.grabber = new com.solme.emberfall.boss.BroodtideGrabber(slot);
+        this.devourer = new com.solme.emberfall.boss.BroodtideDevourer();
         if (this.level() instanceof ServerLevel sl) {
             this.arms = new BroodtideArms(sl, this.position());
         }
@@ -156,6 +162,10 @@ public class BroodtideBody extends Slime {
 
     public com.solme.emberfall.boss.BroodtideGrabber grabber() {
         return grabber;
+    }
+
+    public com.solme.emberfall.boss.BroodtideDevourer devourer() {
+        return devourer;
     }
 
     /** How many ticks the fight has run: the Tide's clock. */
@@ -198,6 +208,9 @@ public class BroodtideBody extends Slime {
     public void remove(Entity.RemovalReason reason) {
         if (grabber != null && this.level() instanceof ServerLevel sl) {
             grabber.clearAll(sl);   // no player keeps Slowness / Mining Fatigue from a boss that is gone
+        }
+        if (devourer != null && this.level() instanceof ServerLevel sl) {
+            devourer.clearAll(sl);   // every swallowed mob is given back first: none may stay hidden, invulnerable and frozen in a boss that is gone
         }
         if (arms != null) {
             arms.discard();   // every exit path: death, discard, unload, run teardown. No orphan display may outlive the boss.

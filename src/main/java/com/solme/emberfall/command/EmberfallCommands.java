@@ -905,7 +905,8 @@ public final class EmberfallCommands {
         var gr = b.grabber();
         source.sendSuccess(() -> Component.literal("BROODTIDE tick=" + b.fightTick() + " tide=" + b.tide()
                 + " armour=" + com.solme.emberfall.boss.TideClock.armourAt(b.fightTick())
-                + (gr == null ? "" : " phase=" + gr.phase() + " grabs=" + gr.grabsStarted() + " impulses=" + gr.impulsesApplied() + " active=" + gr.activeGrabs())), false);
+                + (gr == null ? "" : " phase=" + gr.phase() + " grabs=" + gr.grabsStarted() + " impulses=" + gr.impulsesApplied() + " active=" + gr.activeGrabs())
+                + (b.devourer() == null ? "" : " eats=" + b.devourer().eatsStarted() + " inCare=" + b.devourer().inCare() + " swallowed=" + b.devourer().swallowedNow() + " spits=" + b.devourer().spits())), false);
         return 1;
     }
 
