@@ -89,6 +89,38 @@ public class TideCheck {
         check("T14 the first Flood tick after 100000 cycles is still exactly where it should be", TideClock.stateAt(farFlood) == State.FLOOD && TideClock.stateAt(farFlood - 1) == State.EBB, "tick " + farFlood);
         check("T15 a negative tick is treated as the fight's start (Ebb, armour 1.0), never a crash or Flood", TideClock.stateAt(-5) == State.EBB && TideClock.armourAt(-5) == 1.0 && !TideClock.changesAt(-5), "");
 
+        // T16-T19: the 2^31 tick probe. 2^31 ticks is ~3.4 years of fight, unreachable in play, but the (int) casts in ticksInto/ticksLeft and the int n of changeTick are
+        // exactly where a boundary bug would hide, so prove the arithmetic across the int overflow point against a reference written here with plain long modulo.
+        long B = 1L << 31;
+        boolean sweepOk = true; String sweepNote = "";
+        for (long t = B - 3L * C; t <= B + 3L * C && sweepOk; t++) {
+            long into = t % C;
+            State want = into < E ? State.EBB : State.FLOOD;
+            int wantInto = (int) (into < E ? into : into - E);
+            int wantLeft = (int) (into < E ? E - into : C - into);
+            boolean wantChange = t > 0 && ((t % C) == 0 || (t % C) == E);
+            if (TideClock.stateAt(t) != want || TideClock.ticksInto(t) != wantInto || TideClock.ticksLeft(t) != wantLeft || TideClock.changesAt(t) != wantChange
+                || TideClock.ticksInto(t) + TideClock.ticksLeft(t) != (want == State.EBB ? E : C - E)) { sweepOk = false; sweepNote = "first bad tick " + t; }
+        }
+        check("T16 every tick within three cycles either side of 2^31 matches an independent long-modulo reference (state, ticksInto, ticksLeft, changesAt)", sweepOk, sweepNote);
+        check("T17 the ticks straddling 2^31 are positive longs, never wrapped negative (so a wrap to Ebb at tick 0 cannot happen)", B > 0 && (B - 1) > 0 && (B + 1) > B && TideClock.stateAt(B) == (((B % C) < E) ? State.EBB : State.FLOOD), "2^31 = " + B);
+        long big = Long.MAX_VALUE - 5;
+        long bigInto = big % C;
+        check("T18 a tick near Long.MAX_VALUE still gives a valid state, an in-range ticksInto and ticksLeft >= 1", TideClock.stateAt(big) == ((bigInto < E) ? State.EBB : State.FLOOD) && TideClock.ticksInto(big) >= 0 && TideClock.ticksLeft(big) >= 1, "tick " + big);
+        boolean wideChangeOk = true;
+        for (int n = 1; n <= 200_000 && wideChangeOk; n += 997) { long ct = TideClock.changeTick(n); if (ct <= 0 || !TideClock.changesAt(ct) || TideClock.changesAt(ct - 1)) wideChangeOk = false; }
+        long cLast = TideClock.changeTick(Integer.MAX_VALUE);
+        check("T19 changeTick stays a real change over a wide n range, and at n = Integer.MAX_VALUE it is a positive long that is a real change (no int overflow)", wideChangeOk && cLast > 0 && TideClock.changesAt(cLast) && !TideClock.changesAt(cLast - 1), "changeTick(MAX)=" + cLast);
+
+        // T20: the VALUE of changeTick at huge n, from the closed form written here (a masked or truncated n is still "a real change", so T19 alone cannot see it).
+        boolean valueOk = true; String valueNote = "";
+        int[] ns = { 1, 2, 3, 4, 999_999, 1_000_000, 1_073_741_823, 1_073_741_824, 1_073_741_825, 2_000_000_001, Integer.MAX_VALUE - 1, Integer.MAX_VALUE };
+        for (int n : ns) {
+            long want = ((long) (n - 1) / 2) * C + ((n % 2) == 1 ? E : C);
+            if (TideClock.changeTick(n) != want) { valueOk = false; valueNote = "n=" + n + " got " + TideClock.changeTick(n) + " want " + want; break; }
+        }
+        check("T20 changeTick(n) equals the closed form ((n-1)/2)*cycle + (odd ? ebb : cycle) for n up to Integer.MAX_VALUE (no mask, no truncation)", valueOk, valueNote);
+
         System.out.println();
         System.out.println(fails == 0 ? "ALL PASS (" + total + " checks)" : "SOME FAIL (" + fails + " of " + total + ")");
         if (fails > 0) System.exit(1);
