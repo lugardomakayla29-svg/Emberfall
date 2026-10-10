@@ -113,10 +113,22 @@ bot.once('spawn', async () => {
 
   // Teardown: a mob swallowed when the boss dies is given back.
   await ask('/kill @e[tag=subj]', 400);
-  await ask(`/execute at ${SEL} positioned ~5 ~ ~ run emberfall spawnveteran horde_zombie`, 1500);
+  // Same staging as the first subject: spawn OUT of reach (the bot and the Loyal Hounds kill anything near them within seconds, which is what made this check
+  // flaky: the zombie was slain by EmberTester 20 s after the spawn), tag it, then bring it into reach at the START of an Ebb.
+  await ask(`/execute at ${SEL} positioned ~30 ~ ~ run emberfall spawnveteran horde_zombie`, 1500);
   await ask(`/tag @e[type=emberfall:horde_zombie,limit=1,sort=nearest,tag=!subj] add subj2`, 300);
+  await ask('/effect give @e[tag=subj2,limit=1] minecraft:resistance 60 4 true', 200); // the bot and hounds must not kill it before the boss can eat it
+  let al2 = null;
+  for (let i = 0; i < 80; i++) { const t = await tide(); if (t && t.state === 'EBB' && (t.tick % 460) <= 60) { al2 = t; break; } await sleep(250); }
+  await ask(`/execute at ${SEL} run tp @e[tag=subj2,limit=1] ~6 ~ ~`, 600);
   let again = false;
   for (let i = 0; i < 140 && !again; i++) { await sleep(400); if (await count(`@e[tag=subj2,tag=${SW}]`) === 1) again = true; }
+  if (!again) {
+    // Make a failure explain itself: where the boss is in its tide, what is tagged, and where the second zombie is.
+    console.log('V21 DIAG tide/state: ' + (await ask('/emberfall bosstide 0', 700)).slice(-220));
+    console.log('V21 DIAG subj2 count=' + await count('@e[tag=subj2]') + ' any horde_zombie=' + await count('@e[type=emberfall:horde_zombie]') + ' kin=' + await count('@e[tag=emberfall_brood_kin]') + ' swallowed(any)=' + await count('@e[tag=' + SW + ']'));
+    console.log('V21 DIAG subj2 data: ' + (await ask('/data get entity @e[tag=subj2,limit=1] Pos', 500)).slice(-160));
+  }
   check('V21 a second zombie is swallowed', again);
   if (again) {
     await ask(`/kill ${SEL}`, 1500); await sleep(2500);
