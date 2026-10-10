@@ -6,6 +6,14 @@ const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'Em
 const lines = []; bot.on('message', m => lines.push(m.toString())); bot.on('error', e => console.log('ERR', e.message));
 const ask = async (x, w = 500) => { const n = lines.length; bot.chat(x); await sleep(w); return lines.slice(n).join(' | '); };
 let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + n + ' ' + note); if (!ok) fails++; };
+// 1.21.11 sends entity_velocity as lpVec3 = blocks per tick already, but mineflayer 4.39.0 still scales it by 1/8000 (the old wire format), so the bot
+// never moved and this test failed on every build, old ones included. Re-apply the true value AFTER mineflayer's own handler has run (setImmediate),
+// because our listener fires first and mineflayer would otherwise overwrite it.
+bot._client.on('entity_velocity', d => {
+  if (!bot.entity || d.entityId !== bot.entity.id || !d.velocity) return;
+  const v = { x: d.velocity.x, y: d.velocity.y, z: d.velocity.z };
+  setImmediate(() => bot.entity.velocity.set(v.x, v.y, v.z));
+});
 const vel = []; bot._client.on('packet', (d, m) => { if (m.name === 'entity_velocity' && bot.entity && d.entityId === bot.entity.id) vel.push({ t: Date.now(), v: d.velocity || [d.velocityX, d.velocityY, d.velocityZ] }); });
 const SEL = '@e[type=emberfall:broodtide,limit=1]';
 const st = async () => { for (let k = 0; k < 4; k++) { const r = await ask('/emberfall bosstide 0', 450); const m = /tick=(\d+) tide=(EBB|FLOOD) .*grabs=(\d+) impulses=(\d+) active=(\d+)/.exec(r); if (m) return { tick: +m[1], tide: m[2], grabs: +m[3], impulses: +m[4], active: +m[5] }; } return null; };

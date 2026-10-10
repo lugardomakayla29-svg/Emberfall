@@ -3,6 +3,13 @@
 const mineflayer = require('mineflayer');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
+// 1.21.11 sends entity_velocity as lpVec3 = blocks per tick already, but mineflayer 4.39.0 still scales it by 1/8000, so the bot never moved and the
+// pull checks below judged a bot that was standing still. Re-apply the true value AFTER mineflayer's own handler (setImmediate).
+bot._client.on('entity_velocity', d => {
+  if (!bot.entity || d.entityId !== bot.entity.id || !d.velocity) return;
+  const v = { x: d.velocity.x, y: d.velocity.y, z: d.velocity.z };
+  setImmediate(() => bot.entity.velocity.set(v.x, v.y, v.z));
+});
 const lines = []; bot.on('message', m => lines.push(m.toString())); bot.on('error', e => console.log('ERR', e.message));
 const ask = async (x, w = 500) => { const n = lines.length; bot.chat(x); await sleep(w); return lines.slice(n).join(' | '); };
 let fails = 0; const check = (n, ok, note = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + n + ' ' + note); if (!ok) fails++; };
