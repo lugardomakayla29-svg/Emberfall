@@ -67,6 +67,23 @@ public final class PlayerBuild {
         owned.remove(player.getUUID());
     }
 
+    /**
+     * Removes every run-scoped attribute modifier ({@link StaleModifiers}) from a player who is NOT in a run. A permanent modifier is saved in the player file but the
+     * bookkeeping that removes it is in memory only, so a server stop, crash or dropped connection mid-run leaves the modifier behind; the next run then rebuilds the same
+     * id and addPermanentModifier throws inside the tick loop. Call on join, before the player can start a run. Returns how many were removed.
+     */
+    public static int purgeStale(ServerPlayer player) {
+        int removed = 0;
+        for (net.minecraft.world.entity.ai.attributes.AttributeInstance instance : new java.util.ArrayList<>(player.getAttributes().getSyncableAttributes())) {
+            for (net.minecraft.world.entity.ai.attributes.AttributeModifier modifier : new java.util.ArrayList<>(instance.getModifiers())) {
+                if (StaleModifiers.isRunScoped(modifier.id().getNamespace(), modifier.id().getPath()) && instance.removeModifier(modifier.id())) {
+                    removed++;
+                }
+            }
+        }
+        return removed;
+    }
+
     public static int stacksOf(ServerPlayer player, String tomeId) {
         Map<String, Integer> build = owned.get(player.getUUID());
         return build == null ? 0 : build.getOrDefault(tomeId, 0);

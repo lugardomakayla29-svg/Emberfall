@@ -252,6 +252,7 @@ public final class TomePool {
                     "tome_" + id + "_" + stackIndex + "_" + player.getUUID());
             double amount = stackValue(amountPerStack, stackIndex,
                     attribute.equals(Attributes.MOVEMENT_SPEED) ? SPEED_DECAY : STAT_DECAY);
+            instance.removeModifier(modifierId); // never throw "Modifier is already applied" inside the tick loop: a leftover with this id is replaced, not duplicated
             instance.addPermanentModifier(new AttributeModifier(modifierId, amount, operation));
             // Stat Tomes are meant to last only for the run (design doc
             // 10.1 / class javadoc) - register the matching removal so

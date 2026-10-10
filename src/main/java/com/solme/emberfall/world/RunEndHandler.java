@@ -89,6 +89,13 @@ public final class RunEndHandler {
             com.solme.emberfall.progression.UpgradeEffects.apply(handler.getPlayer());
             rescuePlayerIfOrphaned(handler.getPlayer(), server);
             if (RunManager.slotOf(handler.getPlayer()) == null) {
+                // A run's permanent modifiers are saved with the player but their clean-up is in memory only: strip what a stopped server or a dropped connection left.
+                int stale = com.solme.emberfall.tome.PlayerBuild.purgeStale(handler.getPlayer());
+                if (stale > 0) {
+                    EmberfallMod.LOGGER.info("Removed {} stale run modifier(s) from {} on join", stale, handler.getPlayer().getGameProfile().name());
+                }
+            }
+            if (RunManager.slotOf(handler.getPlayer()) == null) {
                 com.solme.emberfall.progression.DisplacedItems.restore(handler.getPlayer()); // a crash mid-run left an item stashed
             }
         });
