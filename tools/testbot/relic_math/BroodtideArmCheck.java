@@ -134,6 +134,57 @@ public class BroodtideArmCheck {
         check("A30 ticksInto + ticksLeft is the state's length on every tick of three full cycles, and ticksInto is 0 on the first tick of each state", intoBad == 0 && TideClock.ticksInto(0) == 0 && TideClock.ticksInto(TideClock.EBB_TICKS) == 0 && TideClock.ticksInto(TideClock.CYCLE_TICKS) == 0, "bad " + intoBad);
         check("A31 ticksInto never goes negative for a negative tick", TideClock.ticksInto(-5) == 0, "");
 
+        // ---- the Devour's reaching arm (A32-A37): a limb that is never the Grab's ----
+        boolean neverBusy = true, nearestFree = true, inRange = true;
+        int cases = 0;
+        for (int n = 2; n <= 5; n++) {
+            for (int busy = -1; busy < n; busy++) {
+                for (int b = 0; b < 360; b += 7) {
+                    double bearing = Math.toRadians(b) - Math.PI;
+                    double spin = b * 0.013;
+                    int got = BroodtideArmPlan.reachingArm(n, spin, bearing, busy);
+                    cases++;
+                    if (got == busy || got < 0 || got >= n) {
+                        neverBusy = false;
+                    }
+                    // an independent brute force: the free arm whose angle is closest, lowest index on a tie
+                    int want = -1;
+                    double bd = Double.MAX_VALUE;
+                    for (int i = 0; i < n; i++) {
+                        if (i == busy) continue;
+                        double d = Math.abs(BroodtideArmPlan.wrap(BroodtideArmPlan.angle(i, n, spin) - bearing));
+                        if (d < bd - 1.0e-12) { bd = d; want = i; }
+                    }
+                    if (got != want) {
+                        nearestFree = false;
+                    }
+                    if (got != -1 && (got < 0 || got >= n)) {
+                        inRange = false;
+                    }
+                }
+            }
+        }
+        check("A32 the reaching arm is never the busy (Grab) arm and is always a real arm, over " + cases + " cases", neverBusy && inRange, "");
+        check("A33 it is the free arm closest to the mob's bearing (matches an independent brute force in every case)", nearestFree, "");
+        check("A34 with one arm that is busy, or no arms at all, there is no free arm: -1 (the eat is skipped)",
+                BroodtideArmPlan.reachingArm(1, 0.0, 0.0, 0) == -1 && BroodtideArmPlan.reachingArm(0, 0.0, 0.0, -1) == -1, "");
+        check("A35 with one arm that is NOT busy it is chosen", BroodtideArmPlan.reachingArm(1, 0.0, 2.0, -1) == 0, "");
+        // the Grab and the Devour at the SAME bearing must still use two different arms
+        boolean distinct = true;
+        for (int n = 2; n <= 5; n++) {
+            for (int b = 0; b < 360; b += 11) {
+                double bearing = Math.toRadians(b);
+                int grab = BroodtideArmPlan.grabbingArm(n, 0.4, bearing);
+                int reach = BroodtideArmPlan.reachingArm(n, 0.4, bearing, grab);
+                if (reach == grab || reach < 0) {
+                    distinct = false;
+                }
+            }
+        }
+        check("A36 a Grab and a Devour at the very same bearing use two different arms (2 to 5 arms)", distinct, "");
+        check("A37 an out-of-range busy index (-7, 99) busies nothing: the plain nearest arm is returned",
+                BroodtideArmPlan.reachingArm(4, 0.0, 0.3, -7) == BroodtideArmPlan.grabbingArm(4, 0.0, 0.3) && BroodtideArmPlan.reachingArm(4, 0.0, 0.3, 99) == BroodtideArmPlan.grabbingArm(4, 0.0, 0.3), "");
+
         System.out.println();
         System.out.println(fails == 0 ? "ALL PASS (" + total + " checks)" : "FAILED " + fails + " of " + total);
         System.exit(fails == 0 ? 0 : 1);

@@ -178,6 +178,17 @@ public class BroodtideDevourCheck {
         check("D29 an early kill refunds, a late kill does not, a negative time never does",
                 BroodtideDevour.refundsKill(0) && BroodtideDevour.refundsKill(BroodtideDevour.REFUND_WINDOW_TICKS) && !BroodtideDevour.refundsKill(BroodtideDevour.REFUND_WINDOW_TICKS + 1) && !BroodtideDevour.refundsKill(-1), "");
 
+        // ---- the v1 allow-list ----
+        check("D33 the Devour eats exactly the two proven types: horde_zombie and horde_spitter",
+                BroodtideDevour.EDIBLE_TYPES.size() == 2 && BroodtideDevour.isEdibleType("emberfall:horde_zombie") && BroodtideDevour.isEdibleType("emberfall:horde_spitter"), BroodtideDevour.EDIBLE_TYPES.toString());
+        check("D34 nothing unproven is edible: other horde mobs, bosses, the Testificate, the Pink Slime, a vanilla zombie, null and empty",
+                !BroodtideDevour.isEdibleType("emberfall:horde_skeleton") && !BroodtideDevour.isEdibleType("emberfall:horde_witch") && !BroodtideDevour.isEdibleType("emberfall:horde_bomber")
+                        && !BroodtideDevour.isEdibleType("emberfall:broodtide") && !BroodtideDevour.isEdibleType("emberfall:testificate") && !BroodtideDevour.isEdibleType("emberfall:pink_slime")
+                        && !BroodtideDevour.isEdibleType("minecraft:zombie") && !BroodtideDevour.isEdibleType(null) && !BroodtideDevour.isEdibleType(""), "");
+        check("D35 the match is exact: no prefix, suffix or case tricks",
+                !BroodtideDevour.isEdibleType("emberfall:horde_zombie_elite") && !BroodtideDevour.isEdibleType("horde_zombie") && !BroodtideDevour.isEdibleType("EMBERFALL:HORDE_ZOMBIE")
+                        && !BroodtideDevour.isEdibleType(" emberfall:horde_zombie"), "");
+
         System.out.println();
         System.out.println(fails == 0 ? "ALL PASS (" + total + " checks)" : "FAILED " + fails + " of " + total);
         System.exit(fails == 0 ? 0 : 1);

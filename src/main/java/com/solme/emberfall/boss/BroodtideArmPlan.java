@@ -115,6 +115,27 @@ public final class BroodtideArmPlan {
         return best;
     }
 
+    /**
+     * Which arm does the Devour's reach: the arm closest to the bearing of the mob, but NEVER {@code busyArm} (the arm already doing the Grab), so the two beats use
+     * different limbs. When no other arm exists (a single arm that is the busy one, or no arms) it returns -1, meaning "no free arm, skip this eat".
+     * Ties go to the lower index.
+     */
+    public static int reachingArm(int n, double spin, double bearing, int busyArm) {
+        int best = -1;
+        double bestDiff = Double.MAX_VALUE;
+        for (int i = 0; i < n; i++) {
+            if (i == busyArm) {
+                continue;
+            }
+            double d = Math.abs(wrap(angle(i, n, spin) - bearing));
+            if (d < bestDiff - 1.0e-12) {
+                bestDiff = d;
+                best = i;
+            }
+        }
+        return best;
+    }
+
     /** The angle wrapped into -PI..PI. */
     public static double wrap(double a) {
         double r = a % (2.0 * Math.PI);

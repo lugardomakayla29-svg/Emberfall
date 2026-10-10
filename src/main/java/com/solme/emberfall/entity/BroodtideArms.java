@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -47,6 +48,9 @@ public final class BroodtideArms {
     /** The arm doing the Grab and the player it reaches for; -1 when none. */
     private int grabArm = -1;
     private UUID grabTarget;
+    /** The arm doing the Devour's reach and the mob (any entity) it reaches for; -1 when none. Independent of the Grab's slot so the two use different limbs. */
+    private int reachArm = -1;
+    private UUID reachTarget;
     private boolean discarded = false;
 
     public BroodtideArms(ServerLevel level, Vec3 bodyPos) {
@@ -107,6 +111,20 @@ public final class BroodtideArms {
         this.grabArm = -1;
     }
 
+    /** The Devour says which mob it is reaching for; a free arm lunges at it. Cleared with {@link #clearReach()}. */
+    public void startReach(UUID entity) {
+        this.reachTarget = entity;
+    }
+
+    public void clearReach() {
+        this.reachTarget = null;
+        this.reachArm = -1;
+    }
+
+    public int reachingArm() {
+        return reachArm;
+    }
+
     /**
      * Once a tick. {@code ticksIntoState} is how long the Tide has been in its current state (from {@link TideClock}); the arms open in Ebb and curl in Flood.
      * Everything is skipped when the rig has been discarded.
@@ -132,6 +150,16 @@ public final class BroodtideArms {
         } else {
             grabArm = -1;
         }
+        Entity reached = reachTarget == null ? null : level.getEntity(reachTarget);
+        if (reached == null || !reached.isAlive()) {
+            reached = null;
+        }
+        if (reached != null) {
+            double bearing = Math.atan2(reached.getZ() - body.z, reached.getX() - body.x);
+            reachArm = BroodtideArmPlan.reachingArm(n, spin, bearing, grabArm);
+        } else {
+            reachArm = -1;
+        }
         boolean refreshFloor = sinceFloor >= FLOOR_REFRESH_TICKS;
         for (int a = 0; a < BroodtideArmPlan.MAX_ARMS; a++) {
             if (a >= n) {
@@ -140,12 +168,12 @@ public final class BroodtideArms {
             }
             Vec3 root = body.add(BroodtideArmPlan.rootDx(a, n, spin), BroodtideArmPlan.ROOT_HEIGHT, BroodtideArmPlan.rootDz(a, n, spin));
             double[] curl = BroodtideArmPlan.curlTarget(a, n, spin);
-            Player aim = a == grabArm ? grabbed : nearest;
+            Entity aim = a == grabArm ? grabbed : a == reachArm ? reached : nearest;
             double[] hunt = aim == null
                     ? BroodtideArmPlan.huntTarget(a, n, spin, false, 0, 0, 0)
                     : BroodtideArmPlan.huntTarget(a, n, spin, true, aim.getX() - body.x, aim.getY() + 0.6 - body.y, aim.getZ() - body.z);
-            // The grabbing arm is always fully out: it lunges even if the Tide has begun to close the others.
-            double useExt = a == grabArm ? 1.0 : ext;
+            // The grabbing arm and the reaching arm are always fully out: they lunge even if the Tide has begun to close the others.
+            double useExt = a == grabArm || a == reachArm ? 1.0 : ext;
             double[] t = BroodtideArmPlan.blend(curl, hunt, useExt);
             Vec3 target = new Vec3(body.x + t[0], body.y + t[1], body.z + t[2]);
             if (refreshFloor) {

@@ -47,6 +47,17 @@ public final class BroodtideDevour {
         return TideClock.ticksLeft(fightTick) > WINDUP_TICKS;
     }
 
+    /**
+     * The entity-type ids the Devour may eat in v1: ONLY the two types Prototype A proved come back from hiding with their AI, aggro and team intact (the plan, section 3
+     * item 7). Anything else stays uneaten until it has been proven the same way; do not widen this list without a live check for the new type.
+     */
+    public static final java.util.Set<String> EDIBLE_TYPES = java.util.Set.of("emberfall:horde_zombie", "emberfall:horde_spitter");
+
+    /** Whether an entity-type id is on the v1 allow-list. A null or unknown id is never edible. */
+    public static boolean isEdibleType(String typeId) {
+        return typeId != null && EDIBLE_TYPES.contains(typeId);
+    }
+
     /** Whether a mob may be chosen to eat: alive, a horde mob (not a boss, an arm, the Testificate or another Brood-Kin), and within reach of the body. */
     public static boolean isEdible(boolean alive, boolean isHorde, boolean alreadyKin, boolean alreadySwallowed, double distanceToBody) {
         return alive && isHorde && !alreadyKin && !alreadySwallowed && distanceToBody <= REACH && distanceToBody >= 0.0;
