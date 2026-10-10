@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: party_boss_grade.sh <boss entity id, e.g. ember_guardian> <solo hit output> <party-of-5 hit output> <party-of-5 server.log>
+# Usage: party_boss_grade.sh <boss entity id, e.g. broodtide> <solo hit output> <party-of-5 hit output> <party-of-5 server.log>
 # Inputs come from party_boss_hit_test.js (the "HIT boss=.. party=.. before=.. after=.. taken=.." line) run with PARTY=1 and PARTY=5.
 # A boss at 5 players has an effective pool of base x 4.0 (1 + 0.75 x 4). Vanilla caps max_health at 1024, so the surplus is a damage
 # factor: the SAME hit must take factor x as much, and factor must equal min(1, 1024 / (base x 4)).

@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "emberfall:ember_hearth"
+          "name": "emberfall:rift_shard"
         }
       ],
       "conditions": [

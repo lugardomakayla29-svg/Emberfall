@@ -64,6 +64,9 @@ public final class RiftManager {
         }
 
         /** True once the 5 s opening has played, so the Rift can be entered (design: OPEN at t = 5 s). */
+        /** The tear's silhouette, generated once from the seed (deterministic), so the idle draw does not rebuild it every tick. */
+        RiftShape.Shape shape;
+
         public boolean isOpen(long now) {
             return closingAt < 0 && now - openedAt >= RiftFx.OPEN_TICK;
         }
@@ -307,6 +310,12 @@ public final class RiftManager {
                 }
             } else if (RiftRules.idleExpired(now - r.openedAt, r.waiting)) {
                 close(r);
+            } else if (now - r.openedAt >= RiftFx.OPEN_TICK) {
+                // OPEN: nothing drew the Rift after its 5 s opening, so it was invisible (owner, 2026-10-09). Draw the idle look every tick.
+                if (r.shape == null) {
+                    r.shape = RiftShape.generate(r.seed);
+                }
+                RiftStage.drawIdle(r.level, r.x, r.y, r.z, r.facing, r.shape, (int) (now - r.openedAt - RiftFx.OPEN_TICK));
             }
         }
         rollNatural(server);

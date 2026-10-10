@@ -117,20 +117,17 @@ public final class ModEntities {
                     .clientTrackingRange(8)
     );
 
-    /** One of the Ember Guardian's lit pylons: a real, breakable, invisible Silverfish with a lit-magma display rider. */
-    public static final EntityType<CinderPylon> CINDER_PYLON = register(
-            "cinder_pylon",
-            EntityType.Builder.of(CinderPylon::new, MobCategory.MONSTER)
-                    .sized(0.9F, 1.6F)
-                    .clientTrackingRange(12)
-                    .fireImmune()
-    );
 
-    /** EMBERFALL 1st boss ("The Ember Guardian", replaces the Hydra) - a fully invisible Silverfish hitbox with display parts. */
-    public static final EntityType<EmberGuardian> EMBER_GUARDIAN = register(
-            "ember_guardian",
-            EntityType.Builder.of(EmberGuardian::new, MobCategory.MONSTER)
-                    .sized(2.4F, 4.4F)
+
+    /**
+     * EMBERFALL 1st boss ("The Broodtide", replaces the Ember Guardian): a real rooted Slime. The type's box is the VANILLA slime's 0.52 because
+     * {@code Slime.getDefaultDimensions} scales it by getSize() (size 6 gives a 3.1 block body); sizing a big box here would multiply by the size.
+     */
+    public static final EntityType<BroodtideBody> BROODTIDE = register(
+            "broodtide",
+            EntityType.Builder.of(BroodtideBody::new, MobCategory.MONSTER)
+                    .sized(0.52F, 0.52F)
+                    .eyeHeight(0.325F)
                     .clientTrackingRange(14)
                     .fireImmune()
     );
@@ -307,14 +304,13 @@ public final class ModEntities {
         FabricDefaultAttributeRegistry.register(HORDE_BOMBER, wide(HordeBomber.createBomberAttributes()));
         FabricDefaultAttributeRegistry.register(HORDE_WITCH, wide(net.minecraft.world.entity.monster.Witch.createAttributes()));
         FabricDefaultAttributeRegistry.register(BROODLING, wide(Spider.createAttributes()));
-        FabricDefaultAttributeRegistry.register(EMBER_GUARDIAN, EmberGuardian.createBossAttributes());
-        FabricDefaultAttributeRegistry.register(CINDER_PYLON, CinderPylon.createPylonAttributes());
         FabricDefaultAttributeRegistry.register(DEVOURER_BRAIN, DevourerBrain.createBossAttributes());
         FabricDefaultAttributeRegistry.register(DEVOURER_SPAWN, wide(DevourerSpawn.createAttributes()));
         FabricDefaultAttributeRegistry.register(CINDERBRAND_REAVER, wide(Vindicator.createAttributes()));
         FabricDefaultAttributeRegistry.register(BLIGHTFEATHER_MARKSMAN, wide(AbstractSkeleton.createAttributes()));
         FabricDefaultAttributeRegistry.register(UMBRAL_MAGUS, wide(Witch.createAttributes()));
         FabricDefaultAttributeRegistry.register(PINK_SLIME, wide(PinkSlime.createAttributes()));
+        FabricDefaultAttributeRegistry.register(BROODTIDE, BroodtideBody.createBossAttributes());
         FabricDefaultAttributeRegistry.register(CORRUPTED_SENTINEL, wide(Zombie.createAttributes()));
         FabricDefaultAttributeRegistry.register(BONECALLER_NECROMANCER, wide(BonecallerNecromancer.createAttributes()));
         FabricDefaultAttributeRegistry.register(TIKI_MAGMA, wide(TikiMagma.createAttributes()));

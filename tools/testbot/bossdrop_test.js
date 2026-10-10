@@ -1,4 +1,4 @@
-// A GENUINE Guardian kill escalates the run to tier 2 and leaves a free chest; a teardown discard does neither.
+// A GENUINE Broodtide kill escalates the run to tier 2 and leaves a free chest; a teardown discard does neither.
 const mineflayer = require('mineflayer');
 const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25565, username: 'EmberTester', version: '1.21.11', auth: 'offline' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -15,11 +15,11 @@ bot.once('spawn', async () => {
   await c('/effect give @s minecraft:resistance 999 4 true', 200); await c('/effect give @s minecraft:regeneration 999 4 true', 200);
   check('no free chest before the boss', (await free()) === 0);
   console.log('boss:', (await ask('/emberfall boss 0', 1500)).slice(0, 90)); await sleep(3000);
-  const g = await ask('/execute if entity @e[type=emberfall:ember_guardian] run say GUARDIANUP', 500);
-  check('the Ember Guardian is up', g.includes('GUARDIANUP'));
-  await c('/kill @e[type=emberfall:ember_guardian]', 800); await sleep(6000);
+  const g = await ask('/execute if entity @e[type=emberfall:broodtide] run say BROODUP', 500);
+  check('the Broodtide is up', g.includes('BROODUP'));
+  await c('/kill @e[type=emberfall:broodtide]', 800); await sleep(6000);
   const f = await free();
-  check('a genuine Guardian death leaves exactly one free chest', f === 1, 'free=' + f);
+  check('a genuine Broodtide death leaves exactly one free chest', f === 1, 'free=' + f);
   await c('/expedition leave', 800);
   console.log(fails === 0 ? 'RESULT: ALL PASS' : 'RESULT: ' + fails + ' FAILED'); bot.quit(); setTimeout(() => process.exit(0), 400);
 });

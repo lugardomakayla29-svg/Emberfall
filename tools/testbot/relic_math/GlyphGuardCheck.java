@@ -109,7 +109,7 @@ public class GlyphGuardCheck {
         check("G7 the scan actually read source (java and json files under src/client and src/main)", files > 100, "(" + files + " files)");
         long glyphs = all.stream().filter(h -> h.cp() != 0xA7).count();
         long bad = all.stream().filter(h -> !h.ok()).count();
-        check("G8 the glyph characters the code can draw were found (a scan that finds none proves nothing)", glyphs >= 6, "(" + glyphs + " glyph uses)");
+        check("G8 the glyph characters the code can draw were found (a scan that finds none proves nothing; floor 5, the five in RunHud)", glyphs >= 5, "(" + glyphs + " glyph uses; the floor was 6 until the Character Select rewrite dropped its play marker and the hub removal dropped the bust sign, leaving the 5 in RunHud)");
         Set<String> distinct = all.stream().filter(h -> h.cp() != 0xA7).map(h -> String.format("U+%04X", h.cp())).collect(Collectors.toCollection(TreeSet::new));
         System.out.println("DISTINCT non-section glyphs in the source: " + distinct);
         for (Hit h : all) if (!h.ok()) System.out.println("  BAD " + h.where() + " " + String.format("U+%04X", h.cp()) + " " + h.why());

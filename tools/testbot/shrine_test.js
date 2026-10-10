@@ -98,8 +98,21 @@ bot.once('spawn', async () => {
   // --- boss really is cursed ---
   await ask('/kill @e[type=!player,type=!minecraft:item_display,type=!minecraft:interaction]', 500);
   await ask('/emberfall boss 0', 1500); await sleep(2500);
-  const hp = await ask('/data get entity @e[type=emberfall:ember_guardian,limit=1] Health', 700); console.log('guardian hp reply:', hp.slice(0, 120));
-  const hm = /: ([\d.]+)f/.exec(hp);
-  check('S17 the Guardian spawned with 900 health (600 x 1.5)', hm && Math.abs(+hm[1] - 900) < 25, hm ? hm[1] : hp.slice(0, 80));
+  // Broodtide base 600 x 1.35 owner boost = 810, then the top Boss Curse tier x1.5 = 1215 EFFECTIVE health. Vanilla clamps the max_health attribute at 1024,
+  // so the boss holds 1024 and takes 1024/1215 of every hit (BroodtideRules.overflowFactor). Judge what a player feels, not the raw Health number:
+  // (a) the attribute is the ceiling, (b) a real hit removes 1024/1215 of its size, so (c) 100 damage is 100 x 1024/1215 and the pool is 1215 hits-worth.
+  const num = r => { const m = /: (-?[\d.]+)[fd]/.exec(r); return m ? parseFloat(m[1]) : NaN; };
+  const hpNow = async () => num(await ask('/data get entity @e[type=emberfall:broodtide,limit=1] Health', 700));
+  const maxNow = async () => num(await ask('/data get entity @e[type=emberfall:broodtide,limit=1] attributes[{id:"minecraft:max_health"}].base', 700));
+  const EXPECT_HP = 600 * 1.35 * 1.5, CEIL = 1024;
+  const mx = await maxNow(), h0 = await hpNow(); console.log('boss max', mx, 'health', h0);
+  check('S17a the cursed Broodtide attribute is the vanilla ceiling 1024 (the 1215 pool does not fit)', Math.abs(mx - CEIL) < 0.5 && Math.abs(h0 - CEIL) < 0.5, 'max ' + mx + ' health ' + h0);
+  await ask('/damage @e[type=emberfall:broodtide,limit=1] 100 minecraft:generic', 700);
+  const h1 = await hpNow(); const taken = h0 - h1;
+  // the Tide armour (x0.35 in Flood, x1 in Ebb) multiplies on top, so the hit is 100 x 1024/1215 x armour; derive the armour from the hit and require it to be a real one
+  const armour = taken / (100 * CEIL / EXPECT_HP);
+  console.log('hit taken', taken.toFixed(3), 'armour implied', armour.toFixed(3));
+  check('S17b a 100 hit removed 100 x 1024/1215 x Tide armour (armour is 1.0 or 0.35), so the pool is 1215 not 1024', Math.abs(armour - 1.0) < 0.02 || Math.abs(armour - 0.35) < 0.02, 'taken ' + taken.toFixed(3) + ' armour ' + armour.toFixed(3));
+  check('S17c the OLD bug is excluded: a full 100 (or 35) off a 1024 pool would mean the curse was lost', Math.abs(taken - 100) > 1 && Math.abs(taken - 35) > 0.5, 'taken ' + taken.toFixed(3));
   console.log(fails === 0 ? 'ALL PASS' : 'SOME FAIL ' + fails); bot.quit(); setTimeout(() => process.exit(0), 400);
 });

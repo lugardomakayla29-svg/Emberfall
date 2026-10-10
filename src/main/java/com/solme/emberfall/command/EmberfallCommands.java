@@ -96,6 +96,10 @@ public final class EmberfallCommands {
                                 ctx.getSource().sendSuccess(() -> Component.literal("RIFT closing all"), false);
                                 return 1;
                             }))
+                            .then(Commands.literal("selectstate").executes(ctx -> {
+                                ctx.getSource().sendSuccess(() -> Component.literal(com.solme.emberfall.rift.RiftGate.selectState()), false);
+                                return 1;
+                            }))
                             .then(Commands.literal("state").executes(ctx -> {
                                 int ents = 0;
                                 for (var e : ctx.getSource().getLevel().getAllEntities()) { ents++; }
@@ -218,6 +222,9 @@ public final class EmberfallCommands {
                                         ctx.getSource().sendSuccess(() -> Component.literal(out), false);
                                         return 1;
                                     })))
+                    .then(Commands.literal("bosstide")
+                            .then(Commands.argument("slot", IntegerArgumentType.integer())
+                                    .executes(ctx -> broodtideTideState(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "slot")))))
                     .then(Commands.literal("bossdevourer")
                             .then(Commands.argument("slot", IntegerArgumentType.integer())
                                     .executes(ctx -> devourerBossTest(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "slot")))))
@@ -234,44 +241,6 @@ public final class EmberfallCommands {
                     .then(Commands.literal("spawnelite")
                             .then(Commands.argument("name", StringArgumentType.word())
                                     .executes(ctx -> spawnElite(ctx.getSource(), StringArgumentType.getString(ctx, "name")))))
-                    .then(Commands.literal("hubfind")
-                            .executes(ctx -> hubFind(ctx.getSource()))
-                            .then(Commands.argument("radius", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 8))
-                                    .then(Commands.argument("relief", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 3))
-                                            .executes(ctx -> hubFind(ctx.getSource(),
-                                                    com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "radius"), 1,
-                                                    com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "relief"))))))
-                    .then(Commands.literal("hubactivate")
-                            .then(Commands.argument("pos", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
-                                    .executes(ctx -> {
-                                        var src = ctx.getSource();
-                                        var p = src.getPlayer();
-                                        if (p == null) {
-                                            return 0;
-                                        }
-                                        var pos = net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(ctx, "pos");
-                                        com.solme.emberfall.hub.HearthBlock.activate(src.getLevel(), pos, p);
-                                        return 1;
-                                    })))
-                    .then(Commands.literal("hubclick")
-                            .then(Commands.argument("action", StringArgumentType.word())
-                                    .executes(ctx -> {
-                                        var p = ctx.getSource().getPlayer();
-                                        if (p == null) {
-                                            return 0;
-                                        }
-                                        String action = StringArgumentType.getString(ctx, "action");
-                                        var box = p.getBoundingBox().inflate(12);
-                                        var found = p.level().getEntities((net.minecraft.world.entity.Entity) null, box,
-                                                e -> e instanceof net.minecraft.world.entity.Interaction && e.getTags().contains(action));
-                                        if (found.isEmpty()) {
-                                            ctx.getSource().sendFailure(Component.literal("HUBCLICK no hotspot tagged " + action));
-                                            return 0;
-                                        }
-                                        boolean ran = com.solme.emberfall.hub.HubInteractions.runAction(p, found.get(0));
-                                        ctx.getSource().sendSuccess(() -> Component.literal("HUBCLICK " + action + " ran=" + ran), false);
-                                        return 1;
-                                    })))
                     .then(Commands.literal("trypick")
                             .then(Commands.argument("id", StringArgumentType.word())
                                     .executes(ctx -> {
@@ -292,11 +261,6 @@ public final class EmberfallCommands {
                                                 + pos.getZ() + " = " + net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock())), false);
                                         return 1;
                                     })))
-                    .then(Commands.literal("hubsweep")
-                            .executes(ctx -> hubSweep(ctx.getSource())))
-                    .then(Commands.literal("hubscan")
-                            .then(Commands.argument("radius", IntegerArgumentType.integer(8, 200))
-                                    .executes(ctx -> hubScan(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "radius")))))
                     .then(Commands.literal("rigreport")
                             .executes(ctx -> rigReport(ctx.getSource())))
                     .then(Commands.literal("spawnveteran")
@@ -920,7 +884,28 @@ public final class EmberfallCommands {
         var arena = com.solme.emberfall.world.RunManager.getActive(slot);
         ServerLevel level = arena != null ? arena.level() : source.getServer().getLevel(com.solme.emberfall.world.Dimensions.EXPEDITION);
         director.triggerBossNow(level);
-        source.sendSuccess(() -> Component.literal("Ember Guardian boss triggered for slot " + slot), true);
+        source.sendSuccess(() -> Component.literal(com.solme.emberfall.boss.FirstBoss.NAME + " boss triggered for slot " + slot), true);
+        return 1;
+    }
+
+    /** Read-only test hook: the Broodtide's fight tick, Tide state and the armour factor right now, so a live test can compare damage dealt with what the clock says. */
+    private static int broodtideTideState(CommandSourceStack source, int slot) {
+        var arena = com.solme.emberfall.world.RunManager.getActive(slot);
+        if (arena == null) {
+            source.sendFailure(Component.literal("No active run for slot " + slot));
+            return 0;
+        }
+        var bodies = arena.level().getEntitiesOfClass(com.solme.emberfall.entity.BroodtideBody.class,
+                new net.minecraft.world.phys.AABB(-30000000, -64, -30000000, 30000000, 400, 30000000));
+        if (bodies.isEmpty()) {
+            source.sendFailure(Component.literal("No Broodtide in slot " + slot));
+            return 0;
+        }
+        var b = bodies.get(0);
+        var gr = b.grabber();
+        source.sendSuccess(() -> Component.literal("BROODTIDE tick=" + b.fightTick() + " tide=" + b.tide()
+                + " armour=" + com.solme.emberfall.boss.TideClock.armourAt(b.fightTick())
+                + (gr == null ? "" : " phase=" + gr.phase() + " grabs=" + gr.grabsStarted() + " impulses=" + gr.impulsesApplied() + " active=" + gr.activeGrabs())), false);
         return 1;
     }
 
@@ -1424,106 +1409,7 @@ public final class EmberfallCommands {
         return 1;
     }
 
-    /**
-     * Debug: runs {@link com.solme.emberfall.hub.HubSiteAnalyzer} on a grid of candidate centres around the
-     * caller and reports accepted sites plus a tally of WHY the rest were rejected. Read-only.
-     */
-    private static int hubScan(CommandSourceStack source, int radius) {
-        net.minecraft.server.level.ServerPlayer player = source.getPlayer();
-        if (player == null) {
-            source.sendFailure(Component.literal("Player only."));
-            return 0;
-        }
-        net.minecraft.server.level.ServerLevel level = source.getLevel();
-        int step = 6;
-        int[] dumped = {0};
-        int tried = 0;
-        int accepted = 0;
-        java.util.Map<String, Integer> reasons = new java.util.TreeMap<>();
-        for (int dx = -radius; dx <= radius; dx += step) {
-            for (int dz = -radius; dz <= radius; dz += step) {
-                var r = com.solme.emberfall.hub.HubSiteAnalyzer.analyse(level,
-                        player.blockPosition().getX() + dx, player.blockPosition().getZ() + dz);
-                tried++;
-                if (r.ok()) {
-                    accepted++;
-                } else {
-                    if (r.reason().contains("COLUMN[") && dumped[0]++ < 3) {
-                        final String raw = r.reason();
-                        source.sendSuccess(() -> Component.literal("HUBSCAN RAW " + raw), false);
-                    }
-                    String key = r.reason().replaceAll("COLUMN\\[.*\\]", "COLUMN")
-                            .replaceAll("depth [0-9]+", "depth N")
-                            .replaceAll("[-0-9]+,[-0-9]+", "#")
-                            .replaceAll("relief [0-9]+", "relief N");
-                    if (true) { reasons.merge(key, 1, Integer::sum); continue; }
-                    String unusedKey = r.reason().replaceAll("[-0-9]+,[-0-9]+", "#").replaceAll("depth [0-9]+", "depth N").replaceAll("relief [0-9]+", "relief N");
-                    reasons.merge(key, 1, Integer::sum);
-                }
-            }
-        }
-        final int fTried = tried;
-        final int fAccepted = accepted;
-        source.sendSuccess(() -> Component.literal("HUBSCAN tried=" + fTried + " accepted=" + fAccepted), false);
-        reasons.forEach((k, v) -> source.sendSuccess(() -> Component.literal("HUBSCAN reject " + v + " x " + k), false));
-        return accepted;
-    }
 
-    /** Debug: acceptance rate of the hub analyzer for several footprint/relief settings over one wide grid. */
-    private static int hubSweep(CommandSourceStack source) {
-        net.minecraft.server.level.ServerPlayer player = source.getPlayer();
-        if (player == null) {
-            return 0;
-        }
-        net.minecraft.server.level.ServerLevel level = source.getLevel();
-        int[][] configs = {{6, 2, 0}, {6, 2, 1}, {6, 2, 2}, {4, 1, 0}, {4, 1, 1}, {4, 1, 2}, {3, 1, 0}, {3, 1, 1}};
-        int span = 90;
-        int step = 6;
-        for (int[] cfg : configs) {
-            int tried = 0;
-            int ok = 0;
-            for (int dx = -span; dx <= span; dx += step) {
-                for (int dz = -span; dz <= span; dz += step) {
-                    tried++;
-                    if (com.solme.emberfall.hub.HubSiteAnalyzer.analyse(level, player.blockPosition().getX() + dx,
-                            player.blockPosition().getZ() + dz, cfg[0], cfg[1], cfg[2]).ok()) {
-                        ok++;
-                    }
-                }
-            }
-            final String line = "HUBSWEEP radius=" + cfg[0] + " margin=" + cfg[1] + " relief<=" + cfg[2]
-                    + " accepted=" + ok + "/" + tried;
-            source.sendSuccess(() -> Component.literal(line), false);
-        }
-        return 1;
-    }
 
-    /** Debug: runs the nearest-site search to completion, reporting result, candidates examined and time per candidate. */
-    private static int hubFind(CommandSourceStack source) {
-        return hubFind(source, com.solme.emberfall.hub.HubSiteAnalyzer.RADIUS, com.solme.emberfall.hub.HubSiteAnalyzer.MARGIN,
-                com.solme.emberfall.hub.HubSiteAnalyzer.MAX_RELIEF);
-    }
 
-    private static int hubFind(CommandSourceStack source, int radius, int margin, int maxRelief) {
-        net.minecraft.server.level.ServerPlayer player = source.getPlayer();
-        if (player == null) {
-            return 0;
-        }
-        var finder = new com.solme.emberfall.hub.HubSiteFinder(source.getLevel(), player.blockPosition(), radius, margin, maxRelief);
-        long start = System.nanoTime();
-        int steps = 0;
-        while (!finder.isDone() && steps < 4000) {
-            finder.step();
-            steps++;
-        }
-        double ms = (System.nanoTime() - start) / 1_000_000.0;
-        var found = finder.result();
-        String where = found == null ? "none within radius" : found.toShortString()
-                + " dist=" + (int) Math.sqrt(found.distToLowCornerSqr(player.getX(), found.getY(), player.getZ()));
-        final String line = "HUBFIND r=" + radius + " relief<=" + maxRelief + " result=" + where + " steps=" + steps + " (x"
-                + com.solme.emberfall.hub.HubSiteFinder.PER_STEP + " candidates) totalMs=" + String.format("%.1f", ms)
-                + " msPerStep=" + String.format("%.2f", ms / Math.max(1, steps));
-        source.sendSuccess(() -> Component.literal(line), false);
-        return found == null ? 0 : 1;
-    }
 }

@@ -11,7 +11,6 @@ import net.fabricmc.fabric.api.event.registry.RegistryAttributeHolder;
 import com.solme.emberfall.block.ModBlockEntities;
 import com.solme.emberfall.block.ModBlocks;
 import com.solme.emberfall.boss.DevourerBossFight;
-import com.solme.emberfall.boss.GuardianBossFight;
 import com.solme.emberfall.combat.CompositeParts;
 import com.solme.emberfall.command.EmberfallCommands;
 import com.solme.emberfall.command.CharacterCommand;
@@ -43,6 +42,7 @@ public class EmberfallMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		com.solme.emberfall.rift.RiftGate.register();
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
@@ -63,8 +63,6 @@ public class EmberfallMod implements ModInitializer {
 		CharacterCommand.register();
 		EmberfallNetworking.registerCommon();
 		RunEndHandler.register();
-		com.solme.emberfall.hub.HubSiteSearch.register();
-		com.solme.emberfall.hub.HubInteractions.register();
 		com.solme.emberfall.world.RunManager.registerRunEntityTagger();
 		com.solme.emberfall.combat.MobPresentation.register();
 		com.solme.emberfall.pickup.KillRewards.register();
@@ -76,7 +74,7 @@ public class EmberfallMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.bot.BotBrain::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.bot.BotPilot::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.music.RunMusic::tick);
-		ServerTickEvents.END_SERVER_TICK.register(GuardianBossFight::tickAll);
+		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.boss.BroodtideBossFight::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftStage::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftManager::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.relic.ChestManager::tickReveals);
@@ -100,8 +98,8 @@ public class EmberfallMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.relic.RelicRegenSystem::tick);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.relic.MerchantManager::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.wave.SwarmPortal::tickAll);
-		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.hub.GateManager::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftGate::tickAll);
+		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.rift.RiftGate::tickSelections);
 		ServerTickEvents.END_SERVER_TICK.register(com.solme.emberfall.network.SwarmHudSync::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(ShrineManager::tickAll);
 		ServerTickEvents.END_SERVER_TICK.register(WeaponChoiceManager::tickAll);

@@ -50,11 +50,10 @@ public class EmberfallModClient implements ClientModInitializer {
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.BROODMOTHER_STALKER, SpiderRenderer::new);
 		// Others
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.DEVOURER_BRAIN, SilverfishRenderer::new);
-		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.EMBER_GUARDIAN, SilverfishRenderer::new);
-		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.CINDER_PYLON, SilverfishRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.CINDERBRAND_REAVER, VindicatorRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.UMBRAL_MAGUS, WitchRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.PINK_SLIME, PinkSlimeRenderer::new);
+		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.BROODTIDE, BroodtideRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.TIKI_MAGMA, MagmaCubeRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.TIKI_CUBE, MagmaCubeRenderer::new);
 		// Invisible rig parts (ArmorStand-based): the visible model is an item/block display rider, so
@@ -99,7 +98,7 @@ public class EmberfallModClient implements ClientModInitializer {
 		// The Character Table: open the character-selection screen (lore on hover).
 		ClientPlayNetworking.registerGlobalReceiver(com.solme.emberfall.network.OpenCharacterSelectPayload.TYPE,
 				(payload, context) -> context.client().setScreen(
-						new CharacterSelectScreen(payload.currentId(), payload.characters())));
+						new CharacterSelectScreen(payload.currentId(), payload.characters(), payload.selectId(), payload.secondsLeft())));
 		// A shrine on the expedition map: left click opens its small window.
 		ClientPlayNetworking.registerGlobalReceiver(com.solme.emberfall.network.OpenShrinePayload.TYPE,
 				(payload, context) -> context.client().setScreen(new ShrineScreen(payload)));

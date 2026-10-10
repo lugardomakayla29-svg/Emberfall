@@ -1,11 +1,11 @@
 // Issue #13 step 3d, the DAMAGE side. A party boss can hold more than vanilla's 1024 max_health, so the surplus is a damage factor
 // applied in the boss's own hurtServer. This test hits the real boss with /damage and reads what was taken, solo and party.
-// Env: PARTY=1|5, BOSS=guardian|devourer. Needs -Demberfall.logPartyHp=true. Prints one line "HIT boss=.. party=.. taken=.. pool=..".
+// Env: PARTY=1|5, BOSS=broodtide|devourer. Needs -Demberfall.logPartyHp=true. Prints one line "HIT boss=.. party=.. taken=.. pool=..".
 const mineflayer = require('mineflayer');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const PARTY = parseInt(process.env.PARTY || '1', 10);
-const BOSS = process.env.BOSS || 'guardian';
-const TYPE = BOSS === 'guardian' ? 'emberfall:ember_guardian' : 'emberfall:devourer_brain';
+const BOSS = process.env.BOSS || 'broodtide';
+const TYPE = BOSS === 'broodtide' ? 'emberfall:broodtide' : 'emberfall:devourer_brain';
 const HIT = 100; let ran = 0, fails = 0;
 const check = (n, ok, note = '') => { ran++; console.log((ok ? 'PASS ' : 'FAIL ') + n + ' ' + note); if (!ok) fails++; };
 const mk = name => new Promise(res => {
@@ -37,12 +37,10 @@ const mk = name => new Promise(res => {
   check('H2 the run has ' + PARTY + ' players', pm && parseInt(pm[1], 10) === PARTY, st.slice(-30));
   const g = await say(`/emberfall relic summoner EmberTester ${BOSS}`, 2500);
   check('H3 the ' + BOSS + ' summon was accepted', /ok/.test(g), g.slice(0, 50));
-  // The Guardian is gated by pylons and immune until they are lit, the Devourer may be submerged; both let /damage through
+  // The Broodtide is armoured x0.35 in Flood and the Devourer may be submerged; both let /damage through
   // only when it is not blocked. If the gate holds, the pool is unchanged and H4 reports it instead of passing.
   await sleep(3000);
-  // The Guardian cannot be hurt while a pylon is lit. Killing the pylons is how a player opens it, so do that, then hit at once.
-  if (BOSS === 'guardian') await say('/kill @e[type=emberfall:cinder_pylon]', 500);
-  const before = await hp();
+    const before = await hp();
   await say(`/damage @e[type=${TYPE},limit=1] ${HIT} minecraft:generic`, 700);
   const after = await hp();
   const taken = before - after;

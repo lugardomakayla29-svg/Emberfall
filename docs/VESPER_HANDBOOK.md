@@ -15,8 +15,8 @@ never a copy: every relic, mob and mechanic is a Minecraft-flavoured original). 
 `com.solme.emberfall`, mod version `0.1.2`. Authors in `fabric.mod.json`: solme.
 
 The player loop:
-1. In the **hub** (built by placing an Ember Hearth block) the player picks one of 8 **characters** (busts you right-click).
-2. They click the **Expedition Gate** (3 s countdown, cancels if you walk away) and a **run** starts on a generated static
+1. A **Rift** opens (naturally, or from a crafted Rift Shard). The player right-clicks it.
+2. They hold still for a 3 s countdown (a move cancels), the party is offered **Character Select** (30 s, a screen with the 8 characters), and a **run** starts on a generated static
    **map** in its own dimension (an "arena slot").
 3. A **Wave Director** spawns hordes that scale with time and a "threat" number. Fodder, veterans, elites, special mobs.
 4. The player has **weapons** that fire **automatically** (there is no attack key). They gain XP, level up, and pick **tomes**
@@ -47,7 +47,8 @@ every weapon must have more strikes/projectiles per level, a jaw-dropping ultima
 | `entity/` | ~50 mobs and bosses. Multi-part bosses = one brain entity + display segments. `MobRig`, `TentacleRig`. |
 | `relic/` | 24 relics (`RelicPool`), `ChestManager`, `ChestOpening` (pure rule), `MerchantManager`, `RelicStats`, `RelicEffects`, `RelicUnlocks`. |
 | `tome/`, `progression/`, `leveling/`, `character/`, `pickup/` | Tomes and offers, meta progress/shop, XP curve, the 8 characters, gold/XP pickups. |
-| `hub/` | Hearth, `GateManager`/`GateRules`, hub builder, `HubInteractions`. |
+| `hub/` | `HearthBlock` only: a cold block kept for old worlds. Breaking it tears down any old hub and drops a Rift Shard. |
+| `rift/` | `RiftManager`, `RiftGate` (click, countdown, Character Select, run end, lockout), `RiftSelect`, `GateRules`, `RiftEntry`. |
 | `shrine/` | `MapShrines`, `RunModifiers`. (`ShrineManager` is the old proximity shrine, unused on map runs.) |
 | `network/` | 18 custom packet payloads plus 4 helper classes (HUD sync, choices, swarm HUD...). Shared files. |
 | `mixin/` | 6 mixins (hostility, no vanilla orbs, tab-list filter...). |

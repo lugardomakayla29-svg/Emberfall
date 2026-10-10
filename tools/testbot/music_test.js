@@ -9,7 +9,8 @@ bot._client.on('packet', (d, meta) => {
   if (meta.name === 'stop_sound') stops.push(JSON.stringify(d));
 });
 const R = (n, ok, extra = '') => console.log(`${ok ? 'PASS' : 'FAIL'} ${n} ${extra}`);
-const TRACKS = ['nyny_08', 'pump_it_up_hyperdron', 'multi_minecart_drifting', 'final_cubic_generator'];
+const TRACKS = ['nyny_08', 'pump_it_up_hyperdron', 'multi_minecart_drifting', 'final_cubic_generator', 'flight_in_fantasia', 'gamemode88', 'icy_breeze', 'license_to_infinity'];
+const NEW_TRACKS = ['flight_in_fantasia', 'gamemode88', 'icy_breeze', 'license_to_infinity'];
 const now = async () => { const r = await ask('/emberfall musicnow EmberTester', 700); const m = /MUSIC (\S+)/.exec(r); return m ? m[1] : '?'; };
 bot.once('spawn', async () => {
   await sleep(4000);
@@ -19,6 +20,10 @@ bot.once('spawn', async () => {
   const isMusic = s => /music/i.test(s);
   sounds = []; stops = [];
   await ask('/character select juggernaut'); await ask('/expedition', 2500);
+  // The map builds async (about 32 s). Poll the dimension so what follows is judged in the RUN, not in the hub, and assert it.
+  // The music packet is sent on join, so it lands DURING this poll and startPk below still counts it (M2 expects exactly one).
+  let inRun = false; for (let i = 0; i < 80 && !inRun; i++) { await sleep(1500); inRun = /expedition/.test(await ask('/data get entity @s Dimension', 400)); }
+  R('R0 the bot is inside a run (nothing below means anything in the hub)', inRun, `inRun=${inRun}`);
   const first = await now();
   const startPk = sounds.filter(isMusic).length;
   R('M1 a track starts on entry', TRACKS.includes(first), `(${first})`);
@@ -27,7 +32,7 @@ bot.once('spawn', async () => {
   R('M3 no repeat packets over 6s idle', sounds.filter(isMusic).length === startPk, `(${sounds.filter(isMusic).length})`);
   const played = [first];
   for (let i = 0; i < TRACKS.length - 1; i++) { await ask('/emberfall musicskip EmberTester', 300); await sleep(1500); played.push(await now()); }
-  R('M4 four tracks in a row are all different (one full pass) and the new song is among them', new Set(played).size === TRACKS.length && played.includes('final_cubic_generator'), `(${played.join(' > ')})`);
+  R(`M4 ${TRACKS.length} tracks in a row are all different (one full pass) and all 4 new songs are among them`, new Set(played).size === TRACKS.length && NEW_TRACKS.every(t => played.includes(t)), `(${played.join(' > ')})`);
   await ask('/emberfall musicskip EmberTester', 300); await sleep(1500);
   const fourth = await now();
   R('M5 new pass never starts with the track that just played', fourth !== played[TRACKS.length - 1], `(${played[TRACKS.length - 1]} > ${fourth})`);

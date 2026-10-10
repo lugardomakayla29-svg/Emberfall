@@ -1,7 +1,6 @@
 package com.solme.emberfall.rift;
 
 import com.solme.emberfall.command.RunCommand;
-import com.solme.emberfall.hub.GateRules;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,10 +21,42 @@ import java.util.UUID;
  * the Rift refuses that player for {@link RiftRules#LOCKOUT_TICKS}, so a stray click can never restart a run at once.
  *
  * Every rule is a pure predicate in {@link RiftRules}, {@link RiftEntry} and {@code GateRules}; this class supplies the facts (who clicked,
- * where they stand) and keeps the departures. It mirrors {@code GateManager}, which is proven live; the difference is the key (a Rift, not a block).
+ * where they stand) and keeps the departures. The key is a Rift, not a block.
  */
 public final class RiftGate {
     private RiftGate() {}
+
+    /**
+     * Routes a right click on a Rift's click target (a vanilla Interaction tagged {@link RiftEntry#TAG}) to {@link #click}. Called once at startup.
+     * Every other entity passes through untouched.
+     */
+    public static void register() {
+        net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.register((player, level, hand, entity, hit) -> {
+            if (!(entity instanceof net.minecraft.world.entity.Interaction) || !entity.getTags().contains(RiftEntry.TAG)) {
+                return net.minecraft.world.InteractionResult.PASS;
+            }
+            return riftClick(player, level, hand, entity);
+        });
+    }
+
+    /**
+     * A right click on a Rift's click target. The off-hand click is swallowed so one click never starts two countdowns, and a refusal is shown to
+     * the player as a plain chat line.
+     */
+    private static net.minecraft.world.InteractionResult riftClick(net.minecraft.world.entity.player.Player player, net.minecraft.world.level.Level level,
+                                                                   net.minecraft.world.InteractionHand hand, Entity entity) {
+        if (hand != net.minecraft.world.InteractionHand.MAIN_HAND) {
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+        if (level.isClientSide() || !(player instanceof ServerPlayer sp)) {
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+        String refusal = click(sp, entity, level.getServer().getTickCount());
+        if (refusal != null) {
+            sp.sendSystemMessage(Component.literal("\u00A7c" + (refusal.isEmpty() ? refusal : Character.toUpperCase(refusal.charAt(0)) + refusal.substring(1)) + "."));
+        }
+        return net.minecraft.world.InteractionResult.SUCCESS_SERVER;
+    }
 
     /** One member's wait: where they stood when they clicked (their cancel anchor and their return spot). */
     private record Member(UUID id, double x, double y, double z) {}
@@ -55,6 +86,30 @@ public final class RiftGate {
 
     /** The countdown running at each Rift. */
     private static final Map<RiftManager.Rift, Departure> DEPARTURES = new HashMap<>();
+
+    /** A party that finished the countdown and is choosing characters. Keyed by the phase id the client echoes if it closes the screen. */
+    private static final class Selecting {
+        final int id;
+        RiftManager.Rift rift;
+        final RiftSelect.Phase phase;
+        /** Where each member stood when they clicked (their return spot), kept so the run starts exactly as the old direct start did. */
+        final Map<UUID, Member> anchors = new java.util.LinkedHashMap<>();
+        int lastShown = -1;
+
+        Selecting(int id, long now, List<Member> members) {
+            this.id = id;
+            java.util.Set<UUID> ids = new java.util.LinkedHashSet<>();
+            for (Member m : members) {
+                ids.add(m.id());
+                anchors.put(m.id(), m);
+            }
+            this.phase = new RiftSelect.Phase(now, ids);
+        }
+    }
+
+    private static final Map<Integer, Selecting> SELECTIONS = new HashMap<>();
+    /** Phase ids start at 1: 0 is {@code OpenCharacterSelectPayload.NO_PHASE}. */
+    private static int nextSelectId = 1;
     /** Server tick at which each player's last run ended. */
     private static final Map<UUID, Long> ENDED = new HashMap<>();
 
@@ -72,11 +127,15 @@ public final class RiftGate {
 
     /** Forgets everything (server stop, tests). */
     public static void clear() {
+        SELECTIONS.clear();
         DEPARTURES.clear();
         ENDED.clear();
     }
 
     private static void drop(UUID id) {
+        for (Selecting sel : SELECTIONS.values()) {
+            sel.phase.drop(id);
+        }
         for (Departure d : new ArrayList<>(DEPARTURES.values())) {
             d.members.removeIf(m -> m.id().equals(id));
             if (d.members.isEmpty()) {
@@ -87,8 +146,21 @@ public final class RiftGate {
 
     /** True while this player is waiting in a countdown. */
     public static boolean counting(UUID id) {
+        if (selecting(id)) {
+            return true;
+        }
         for (Departure d : DEPARTURES.values()) {
             if (d.has(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** True while this player's party is choosing characters. */
+    public static boolean selecting(UUID id) {
+        for (Selecting sel : SELECTIONS.values()) {
+            if (sel.phase.party().contains(id)) {
                 return true;
             }
         }
@@ -191,12 +263,103 @@ public final class RiftGate {
             }
             if (GateRules.groupDeparts(elapsed)) {
                 DEPARTURES.remove(d.rift);
-                d.rift.waiting = 0;
-                String error = RunCommand.tryStartParty(going);
-                if (error != null) {
-                    for (RunCommand.PartyMember m : going) {
-                        m.player().sendSystemMessage(Component.literal("\u00A7c" + error));
+                beginSelection(d.rift, now, going);
+            }
+        }
+    }
+
+    /**
+     * The countdown ended: the party now chooses characters, THEN the run starts (owner decision 2026-10-08). Each member gets the screen with
+     * this phase's id; {@code rift.waiting} stays at the party size so an idle Rift is not closed under them.
+     */
+    private static void beginSelection(RiftManager.Rift rift, long now, List<RunCommand.PartyMember> going) {
+        List<Member> members = new ArrayList<>();
+        for (RunCommand.PartyMember m : going) {
+            members.add(new Member(m.player().getUUID(), m.backX(), m.backY(), m.backZ()));
+        }
+        Selecting sel = new Selecting(nextSelectId++, now, members);
+        sel.rift = rift;
+        SELECTIONS.put(sel.id, sel);
+        rift.waiting = members.size();
+        for (RunCommand.PartyMember m : going) {
+            com.solme.emberfall.character.CharacterSelectManager.open(m.player(), sel.id, RiftSelect.secondsLeft(0));
+        }
+    }
+
+    /** Test reader: "SELECT phases=N [id=I party=P pending=Q waiting=W]...". The live test reads the server's own counters, not chat. */
+    public static String selectState() {
+        StringBuilder sb = new StringBuilder("SELECT phases=" + SELECTIONS.size());
+        for (Selecting sel : SELECTIONS.values()) {
+            sb.append(" [id=").append(sel.id).append(" party=").append(sel.phase.party().size())
+                    .append(" pending=").append(sel.phase.pendingCount()).append(" waiting=").append(sel.rift.waiting).append(']');
+        }
+        return sb.toString();
+    }
+
+    /** A Rift party member picked a character (accepted or refused): they have answered. A pick from anywhere else is a no-op. */
+    public static void onSelectAnswered(ServerPlayer player) {
+        for (Selecting sel : SELECTIONS.values()) {
+            if (sel.phase.resolve(player.getUUID())) {
+                return;
+            }
+        }
+    }
+
+    /** A Rift party member closed the screen without picking. Honoured only for the phase id the server issued to THIS player. */
+    public static void onSelectClosed(ServerPlayer player, int selectId) {
+        Selecting sel = SELECTIONS.get(selectId);
+        if (sel != null) {
+            sel.phase.resolve(player.getUUID());
+        }
+    }
+
+    /** Every tick: drop members who left or died, remind the party of the time, and start each run whose phase is done. */
+    public static void tickSelections(MinecraftServer server) {
+        if (SELECTIONS.isEmpty()) {
+            return;
+        }
+        long now = server.getTickCount();
+        for (Selecting sel : new ArrayList<>(SELECTIONS.values())) {
+            for (UUID id : new ArrayList<>(sel.phase.party())) {
+                ServerPlayer p = server.getPlayerList().getPlayer(id);
+                if (p == null || !p.isAlive()) {
+                    sel.phase.drop(id);
+                }
+            }
+            if (sel.phase.empty()) {
+                SELECTIONS.remove(sel.id);
+                sel.rift.waiting = 0;
+                continue;
+            }
+            sel.rift.waiting = sel.phase.party().size();
+            long elapsed = now - sel.phase.startedTick();
+            int left = RiftSelect.secondsLeft(elapsed);
+            if (!sel.phase.done(now)) {
+                if (left != sel.lastShown && elapsed % 20 == 0) {
+                    sel.lastShown = left;
+                    for (UUID id : sel.phase.party()) {
+                        ServerPlayer p = server.getPlayerList().getPlayer(id);
+                        if (p != null && sel.phase.isPending(id)) {
+                            p.sendSystemMessage(Component.literal("\u00A75Choose your character \u00A77(" + left + " s)"), true);
+                        }
                     }
+                }
+                continue;
+            }
+            SELECTIONS.remove(sel.id);
+            sel.rift.waiting = 0;
+            List<RunCommand.PartyMember> going = new ArrayList<>();
+            for (UUID id : sel.phase.party()) {
+                ServerPlayer p = server.getPlayerList().getPlayer(id);
+                Member a = sel.anchors.get(id);
+                if (p != null && a != null) {
+                    going.add(new RunCommand.PartyMember(p, a.x(), a.y(), a.z()));
+                }
+            }
+            String error = RunCommand.tryStartParty(going);
+            if (error != null) {
+                for (RunCommand.PartyMember m : going) {
+                    m.player().sendSystemMessage(Component.literal("\u00A7c" + error));
                 }
             }
         }

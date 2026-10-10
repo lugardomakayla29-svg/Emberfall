@@ -27,14 +27,12 @@ public final class ModCreativeTab {
     public static void init() {
         CreativeModeTab tab = FabricItemGroup.builder()
                 .title(Component.translatable("itemGroup.emberfall.emberfall"))
-                .icon(() -> new ItemStack(ModBlocks.EMBER_HEARTH.asItem()))
+                .icon(() -> new ItemStack(ModItems.RIFT_SHARD))
                 .displayItems((parameters, output) -> {
-                    output.accept(ModBlocks.EMBER_HEARTH.asItem());
                     output.accept(ModBlocks.CHARACTER_TABLE.asItem());
                     output.accept(ModBlocks.CHEST_PAID.asItem());
                     output.accept(ModBlocks.CHEST_FREE.asItem());
                     output.accept(ModBlocks.CHEST_GOLD.asItem());
-                    output.accept(ModBlocks.DEPARTURE_PLATE.asItem()); // the Expedition Gate frame
                     for (WeaponType weapon : WeaponPool.ALL) {
                         Item item = ModItems.itemFor(weapon);
                         if (item != null) {
@@ -44,7 +42,7 @@ public final class ModCreativeTab {
                     for (Item egg : ModItems.MOB_EGGS.values()) {
                         output.accept(egg);
                     }
-                    output.accept(ModItems.GUARDIAN_SUMMONER);
+                    output.accept(ModItems.BROODTIDE_SUMMONER);
                     output.accept(ModItems.DEVOURER_SUMMONER);
                     output.accept(ModItems.MERCHANT_SUMMONER);
                     output.accept(ModItems.RIFT_SHARD);

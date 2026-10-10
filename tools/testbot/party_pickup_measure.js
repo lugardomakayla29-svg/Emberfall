@@ -27,8 +27,6 @@ const obs = (name, note) => console.log('OBS  ' + name + ' :: ' + note);
   // (A bare `PartyB[distance=..1.6]` is a syntax error and silently read as "false" in my first version: use @a[name=...].)
   const near = async (who, x, y, z, r) => /Test passed/i.test(await ask(op, `/execute positioned ${x} ${y} ${z} if entity @a[name=${who},distance=..${r}]`, 500));
   const stable = async () => { let last = [NaN, NaN], same = 0; for (let i = 0; i < 12 && same < 3; i++) { const cur = [await wallet('PartyA'), await wallet('PartyB')]; same = (cur[0] === last[0] && cur[1] === last[1]) ? same + 1 : 0; last = cur; await sleep(700); } return same >= 3; };
-
-  await ask(op, '/emberfall hubactivate -29 76 -2', 3500);
   ctrl('the operator started a run', /Expedition started/.test(await ask(op, '/expedition', 2500)));
   await sleep(45000);
   await ask(op, '/emberfall join 0 PartyA', 1500);

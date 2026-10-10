@@ -29,7 +29,6 @@ const obs = (name, note) => console.log('OBS  ' + name + ' :: ' + note);
   const bots = {}; for (const n of NAMES) bots[n] = await mk(n);
   await sleep(6000);
   ctrl('all five party bots are online and none of them is EmberTester', NAMES.every(n => bots[n].entity) && !NAMES.includes('EmberTester'), NAMES.map(n => n + ':' + (bots[n].entity ? 'in' : 'NOT')).join(' '));
-  await ask(op, '/emberfall hubactivate -29 76 -2', 3500);
   const started = await ask(op, '/expedition', 2500);
   ctrl('the operator started a run', /Expedition started/.test(started), started.slice(0, 80));
   await sleep(45000);                                   // map build
