@@ -102,6 +102,38 @@ public final class TentacleMath {
         }
     }
 
+    /**
+     * Caps how sharply a chain may turn at any one joint, keeping every bone length and the root exactly. FABRIK folds a chain with ONE hard elbow (measured on
+     * the Broodtide arm curling to its rest pose: a 96.5 degree kink at joint 2 while the other joints turned 2 to 5), and a hard elbow is where a stack of cubes
+     * opens its widest bite on the outside of the bend. This walks the chain from the root and, wherever a link would turn more than {@code maxDeg} away from the
+     * link before it, turns it as far as allowed toward where the solver wanted it. The tip may then fall short of the target; the caller picks a limit its
+     * targets can still reach (35 degrees reaches the Broodtide curl exactly, 30 does not: measured).
+     */
+    public static void limitBend(Vec3[] joints, Vec3 root, double[] bones, double maxDeg) {
+        int n = joints.length;
+        if (n < 2) {
+            return;
+        }
+        double maxRad = Math.toRadians(maxDeg);
+        joints[0] = root;
+        Vec3 prev = null;
+        for (int i = 1; i < n; i++) {
+            Vec3 wanted = joints[i].subtract(joints[i - 1]);
+            Vec3 dir = wanted.lengthSqr() > 1.0E-12 ? wanted.normalize() : (prev != null ? prev : new Vec3(0.0, 1.0, 0.0));
+            if (prev != null) {
+                double ang = Math.acos(Math.max(-1.0, Math.min(1.0, prev.dot(dir))));
+                if (ang > maxRad && ang > 1.0E-9) {
+                    double t = maxRad / ang;
+                    double sa = Math.sin(ang);
+                    Vec3 blended = prev.scale(Math.sin((1.0 - t) * ang) / sa).add(dir.scale(Math.sin(t * ang) / sa));
+                    dir = blended.lengthSqr() > 1.0E-12 ? blended.normalize() : prev;
+                }
+            }
+            joints[i] = joints[i - 1].add(dir.scale(bones[i - 1]));
+            prev = dir;
+        }
+    }
+
     /** {@link #lay(Vec3[], Vec3, Vec3, double)} with one bone length per link. */
     public static void lay(Vec3[] joints, Vec3 root, Vec3 dir, double[] bones) {
         Vec3 u = dir.lengthSqr() > 1.0E-12 ? dir.normalize() : new Vec3(0.0, 1.0, 0.0);

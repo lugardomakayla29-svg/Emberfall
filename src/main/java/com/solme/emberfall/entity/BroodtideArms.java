@@ -180,6 +180,7 @@ public final class BroodtideArms {
                 floorY[a] = groundBelow(Math.max(root.y, target.y) + 1.0, target.x, target.z, floorY[a]);
             }
             TentacleMath.solve(joints[a], root, target, BroodtideArmPlan.BONES, 2);
+            TentacleMath.limitBend(joints[a], root, BroodtideArmPlan.BONES, BroodtideArmPlan.MAX_BEND_DEG);
             TentacleMath.keepAboveFloor(joints[a], root, floorY[a], BroodtideArmPlan.BONES, BroodtideArmPlan.SIZES);
             apply(a);
         }

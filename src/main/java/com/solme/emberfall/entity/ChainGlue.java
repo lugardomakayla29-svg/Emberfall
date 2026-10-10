@@ -9,7 +9,12 @@ package com.solme.emberfall.entity;
  * outside of the turn, and sinking the faces into each other is what hides it.
  */
 public final class ChainGlue {
-    /** Fraction of the touching distance the neighbours overlap. 0.12 hides a wedge up to roughly a 25 degree bend per link. */
+    /**
+     * Fraction of the touching distance the neighbours overlap. MEASURED with shapely on the real arm sizes (2.4 down to 0.8): at 12% the two cubes stay ONE
+     * connected solid at every bend from 0 to 45 degrees (never a see-through sliver), but the open notch on the OUTSIDE of a turn grows with the angle, from
+     * 0.19 block squared on a straight joint (the taper step itself) to 0.86 at 14 degrees and 1.6 at 45 degrees for the thickest joint. So "no gaps" holds as
+     * "always joined"; a tight curl still shows a bite on its outer edge. An earlier comment here claimed a wedge was hidden up to 25 degrees: that was not measured.
+     */
     public static final double OVERLAP = 0.12;
 
     private ChainGlue() {

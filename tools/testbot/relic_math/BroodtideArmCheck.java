@@ -73,6 +73,9 @@ public class BroodtideArmCheck {
         double[] curl = BroodtideArmPlan.curlTarget(0, 3, 0.0);
         check("A11 a curled arm ends CURL_RADIUS out and CURL_HEIGHT up, so it wraps the body", near(Math.hypot(curl[0], curl[2]), BroodtideArmPlan.CURL_RADIUS) && near(curl[1], BroodtideArmPlan.CURL_HEIGHT), "");
         double[] near = BroodtideArmPlan.huntTarget(0, 3, 0.0, true, 4.0, 0.0, 3.0);
+        double chain = 0.0; for (double b : BroodtideArmPlan.BONES) { chain += b; }
+        double curlChord = Math.hypot(BroodtideArmPlan.ROOT_RADIUS - BroodtideArmPlan.CURL_RADIUS, BroodtideArmPlan.CURL_HEIGHT - BroodtideArmPlan.ROOT_HEIGHT);
+        check("A99 the curl target is inside the arm's length (the arm can reach it) and not so close that it folds flat over its own root (chord >= a third of the arm)", curlChord < chain && curlChord >= chain / 3.0, "chord " + curlChord + " arm " + chain);
         check("A12 a player inside reach is the target exactly", near(near[0], 4.0) && near(near[1], 0.0) && near(near[2], 3.0), "");
         double[] far = BroodtideArmPlan.huntTarget(0, 3, 0.0, true, 100.0, 2.0, 0.0);
         check("A13 a player beyond reach is clamped to HUNT_REACH along the same bearing, height kept", near(Math.hypot(far[0], far[2]), BroodtideArmPlan.HUNT_REACH) && near(far[2], 0.0) && near(far[1], 2.0), "len " + Math.hypot(far[0], far[2]));

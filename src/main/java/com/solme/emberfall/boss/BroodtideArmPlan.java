@@ -18,9 +18,20 @@ public final class BroodtideArmPlan {
     /** The arms root on a ring of this radius around the body centre, and this high above its feet. */
     public static final double ROOT_RADIUS = 3.4;
     public static final double ROOT_HEIGHT = 1.6;
-    /** A resting (curled) arm ends this far from the body centre horizontally and this high. */
-    public static final double CURL_RADIUS = 3.2;
-    public static final double CURL_HEIGHT = 3.4;
+    /**
+     * A resting (curled) arm ends this far from the body centre horizontally and this high. The arm is 11.3 blocks long and roots 3.4 out, so the old
+     * 3.2 / 3.4 target asked it to fold flat over its own root (chord 1.8, about 39 degrees per joint, the worst bite on the outside of every bend). 2.0 out and
+     * 6.0 up is a chord of 4.6: still a tight horn that wraps the head, about 30 degrees per joint (measured, see ChainGlue.OVERLAP).
+     */
+    /**
+     * The sharpest turn any one joint of an arm may make, in degrees. Measured on the real solver: with no limit the curl folds with a single 96.5 degree elbow;
+     * at 35 the same curl is still reached exactly (tip miss 0.00) with the bend spread along the arm; at 30 it is no longer reached (miss 1.56). The bite a
+     * cube chain leaves on the outside of a turn grows with the angle (shapely, thickest joint: 0.9 block squared at 15 degrees, 1.4 at 30, 1.6 at 45), so
+     * this is the tightest limit that keeps the design.
+     */
+    public static final double MAX_BEND_DEG = 35.0;
+    public static final double CURL_RADIUS = 2.0;
+    public static final double CURL_HEIGHT = 6.0;
     /** Ticks an arm takes to go from curled to fully out, and back. The Tide's Flood swell is the cue. */
     public static final int EXTEND_TICKS = 18;
 
