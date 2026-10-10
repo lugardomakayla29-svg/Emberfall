@@ -259,7 +259,7 @@ public final class TotemWeaponSystem {
         double radius = (big ? 1.4 : 1.0) * BeaconSystem.radius(beacon.weaponLevel);
         AABB box = AABB.ofSize(beacon.pos, radius * 2, radius * 2, radius * 2);
         List<Mob> targets = beacon.level.getEntitiesOfClass(Mob.class, box,
-                mob -> mob.isAlive() && AutoAttackSystem.isEmberfallHostile(mob)
+                mob -> mob.isAlive() && AutoAttackSystem.isTargetable(mob)
                         && mob.position().distanceTo(beacon.pos) <= radius);
 
         ServerPlayer owner = beacon.level.getServer().getPlayerList().getPlayer(beacon.ownerId);

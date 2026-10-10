@@ -104,7 +104,7 @@ public final class HalberdSystem {
                         }
                         Vec3 at = center.position();
                         List<Mob> foes = level.getEntitiesOfClass(Mob.class, new AABB(at, at).inflate(radius),
-                                m -> m.isAlive() && AutoAttackSystem.isEmberfallHostile(m) && m.position().distanceTo(at) <= radius);
+                                m -> m.isAlive() && AutoAttackSystem.isTargetable(m) && m.position().distanceTo(at) <= radius);
                         Fx.impactRing(level, at, radius, ParticleTypes.CRIT);
                         for (Mob m : foes) {
                             float before = m.getHealth();
@@ -156,7 +156,7 @@ public final class HalberdSystem {
         final double front = QuakeWave.frontAt(radius, step);
         com.solme.emberfall.item.Loadout.acting(player, slotIndex, () -> {
             List<Mob> foes = level.getEntitiesOfClass(Mob.class, new AABB(origin, origin).inflate(radius),
-                    m -> m.isAlive() && AutoAttackSystem.isEmberfallHostile(m));
+                    m -> m.isAlive() && AutoAttackSystem.isTargetable(m));
             for (Mob m : foes) {
                 double d = m.position().distanceTo(origin);
                 if (!QuakeWave.passedOnStep(radius, step, d) || !struck.add(m.getUUID())) {

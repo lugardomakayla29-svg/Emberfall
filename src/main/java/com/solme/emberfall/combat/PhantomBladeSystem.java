@@ -130,7 +130,7 @@ public final class PhantomBladeSystem {
         final Vec3 wielder = player.position();
         // ONE query for both blades: live hostiles within range of the wielder (blades hunt near him, so they follow him).
         List<Mob> foes = level.getEntitiesOfClass(Mob.class, AABB.ofSize(wielder.add(0, 1.0, 0), range * 2, range * 2, range * 2),
-                m -> m.isAlive() && AutoAttackSystem.isEmberfallHostile(m) && PhantomBlades.inRange(m.position().distanceTo(wielder), s.level));
+                m -> m.isAlive() && AutoAttackSystem.isTargetable(m) && PhantomBlades.inRange(m.position().distanceTo(wielder), s.level));
         final int gap = PhantomBlades.cutGap(s.level);
         final float damage = (float) (s.hitDamage * PhantomBlades.cutMultiple(s.level));
         for (int i = 0; i < PhantomBlades.BLADES; i++) {

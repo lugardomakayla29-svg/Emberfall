@@ -157,7 +157,7 @@ public final class BotPilot {
         double reach = shortestReach(bot);
         List<BotPlan.Foe> foes = new ArrayList<>();
         AABB box = bot.getBoundingBox().inflate(BotPilot.SIGHT, 12.0, BotPilot.SIGHT);
-        List<Mob> mobs = level.getEntitiesOfClass(Mob.class, box, AutoAttackSystem::isEmberfallHostile);
+        List<Mob> mobs = level.getEntitiesOfClass(Mob.class, box, AutoAttackSystem::isTargetable);
         for (Mob m : mobs) {
             int neighbours = 0;
             for (Mob o : mobs) {

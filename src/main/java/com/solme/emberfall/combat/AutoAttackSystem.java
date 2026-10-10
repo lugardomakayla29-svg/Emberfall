@@ -491,7 +491,7 @@ public final class AutoAttackSystem {
     private static void burstRendToNearest(ServerLevel level, ServerPlayer player, LivingEntity deadTarget, int amplifier) {
         AABB box = new AABB(deadTarget.position(), deadTarget.position()).inflate(BLEEDING_EDGE_BURST_RADIUS);
         List<Mob> candidates = level.getEntitiesOfClass(Mob.class, box,
-                mob -> mob != deadTarget && mob.isAlive() && isEmberfallHostile(mob));
+                mob -> mob != deadTarget && mob.isAlive() && isTargetable(mob));
         candidates.stream()
                 .min(Comparator.comparingDouble(mob -> mob.position().distanceTo(deadTarget.position())))
                 .ifPresent(nearest -> {
@@ -563,7 +563,7 @@ public final class AutoAttackSystem {
 
         AABB box = new AABB(target.position(), target.position()).inflate(cleaveRadius);
         List<Mob> others = level.getEntitiesOfClass(Mob.class, box,
-                mob -> mob != target && mob.isAlive() && isEmberfallHostile(mob)
+                mob -> mob != target && mob.isAlive() && isTargetable(mob)
                         && mob.position().distanceTo(target.position()) <= cleaveRadius
                         && mob.position().distanceTo(player.position()) <= range + cleaveRadius);
         others.sort(Comparator.comparingDouble(mob -> mob.position().distanceTo(target.position())));
@@ -607,7 +607,7 @@ public final class AutoAttackSystem {
     private static void shatterSunderNearby(ServerLevel level, LivingEntity deadTarget, double radius) {
         AABB box = new AABB(deadTarget.position(), deadTarget.position()).inflate(radius);
         List<Mob> nearby = level.getEntitiesOfClass(Mob.class, box,
-                mob -> mob != deadTarget && mob.isAlive() && isEmberfallHostile(mob));
+                mob -> mob != deadTarget && mob.isAlive() && isTargetable(mob));
         for (Mob mob : nearby) {
             mob.addEffect(new MobEffectInstance(ModEffects.SUNDER, SUNDER_DURATION_TICKS, SUNDER_MAX_AMPLIFIER));
             level.sendParticles(ParticleTypes.CRIT, mob.getX(), mob.getY() + 1.0, mob.getZ(),
@@ -767,7 +767,7 @@ public final class AutoAttackSystem {
         final double gatherRadius = ChainSystem.gatherRadius(chainLevel);
         AABB box = AABB.ofSize(gatherPoint, gatherRadius * 2, gatherRadius * 2, gatherRadius * 2);
         List<Mob> nearby = level.getEntitiesOfClass(Mob.class, box,
-                mob -> mob != target && mob.isAlive() && isEmberfallHostile(mob)
+                mob -> mob != target && mob.isAlive() && isTargetable(mob)
                         && mob.position().distanceTo(gatherPoint) <= gatherRadius);
         nearby.sort(Comparator.comparingDouble(mob -> mob.position().distanceToSqr(gatherPoint)));
 
@@ -861,7 +861,7 @@ public final class AutoAttackSystem {
 
         AABB box = new AABB(origin, origin).inflate(reach);
         List<Mob> pierced = level.getEntitiesOfClass(Mob.class, box, mob -> {
-            if (!mob.isAlive() || !isEmberfallHostile(mob)) {
+            if (!mob.isAlive() || !isTargetable(mob)) {
                 return false;
             }
             // Line is anchored on eye-to-eye positions (origin is the player's eye, dir points at
@@ -911,7 +911,7 @@ public final class AutoAttackSystem {
                 && !pierced.isEmpty() && pierced.stream().noneMatch(Mob::isAlive)) {
             AABB nextBox = new AABB(player.position(), player.position()).inflate(reach);
             List<Mob> nextTargets = level.getEntitiesOfClass(Mob.class, nextBox,
-                    mob -> mob.isAlive() && isEmberfallHostile(mob)
+                    mob -> mob.isAlive() && isTargetable(mob)
                             && mob.position().distanceTo(player.position()) <= reach);
             nextTargets.stream()
                     .min(Comparator.comparingDouble(mob -> mob.position().distanceToSqr(player.position())))
@@ -988,7 +988,7 @@ public final class AutoAttackSystem {
 
         AABB box = AABB.ofSize(loc, radius * 2, radius * 2, radius * 2);
         List<Mob> hit = level.getEntitiesOfClass(Mob.class, box,
-                mob -> mob.isAlive() && isEmberfallHostile(mob) && mob.position().distanceTo(loc) <= radius);
+                mob -> mob.isAlive() && isTargetable(mob) && mob.position().distanceTo(loc) <= radius);
         for (Mob mob : hit) {
             float healthBefore = mob.getHealth();
             clearInvulnerabilityWindow(mob);
@@ -1016,7 +1016,7 @@ public final class AutoAttackSystem {
             List<Mob> hitSet = hit;
             AABB sparkBox = AABB.ofSize(loc, SPARK_SEARCH_RADIUS * 2, SPARK_SEARCH_RADIUS * 2, SPARK_SEARCH_RADIUS * 2);
             List<Mob> sparkTargets = level.getEntitiesOfClass(Mob.class, sparkBox, mob ->
-                    mob.isAlive() && isEmberfallHostile(mob) && !hitSet.contains(mob)
+                    mob.isAlive() && isTargetable(mob) && !hitSet.contains(mob)
                             && mob.position().distanceTo(loc) <= SPARK_SEARCH_RADIUS);
             sparkTargets.sort(Comparator.comparingDouble(mob -> mob.position().distanceTo(loc)));
             // A kill-fueled bonus hop only earns a single spark (a small "echo"), not the full
@@ -1074,7 +1074,7 @@ public final class AutoAttackSystem {
     public static LivingEntity findNearestHostile(ServerLevel level, Vec3 origin, double range) {
         AABB box = new AABB(origin, origin).inflate(range);
         List<Mob> candidates = level.getEntitiesOfClass(Mob.class, box,
-                mob -> mob.isAlive() && isEmberfallHostile(mob)
+                mob -> mob.isAlive() && isTargetable(mob)
                         && mob.position().distanceTo(origin) <= range);
         if (candidates.isEmpty()) {
             return null;
@@ -1089,6 +1089,18 @@ public final class AutoAttackSystem {
      * from any specific enemy class - new enemy types just need to be
      * registered under emberfall: to be picked up automatically.
      */
+    /** The scoreboard tag the Devour sets on a mob the Broodtide has swallowed and clears when it spits it out. One marker, no new entity. */
+    public static final String SWALLOWED_TAG = "emberfall_swallowed";
+
+    /**
+     * Whether a weapon, chain, splash or bot may PICK this mob as a target: {@link #isEmberfallHostile} and not swallowed. A swallowed mob is hidden and invulnerable inside the
+     * Broodtide, but it must still COUNT toward the wave cap and the arena containment, so those call sites keep {@link #isEmberfallHostile}. Measured: while one mob was hidden,
+     * the visible mob beside it lost 92% less damage, because the halberd kept committing to the hidden one.
+     */
+    public static boolean isTargetable(Mob mob) {
+        return isEmberfallHostile(mob) && !mob.getTags().contains(SWALLOWED_TAG);
+    }
+
     public static boolean isEmberfallHostile(Mob mob) {
         if (mob instanceof com.solme.emberfall.entity.Testificate) {
             return false; // the friendly merchant is in our namespace but is never a target: no weapon swing, chain or splash may pick him

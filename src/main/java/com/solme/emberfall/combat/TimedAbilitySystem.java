@@ -200,7 +200,7 @@ public final class TimedAbilitySystem {
     private static List<Mob> beam(ServerLevel level, ServerPlayer player, WeaponType staff, Vec3 origin, Vec3 dir, double length) {
         AABB box = new AABB(origin, origin.add(dir.scale(length))).inflate(LASER_HALF_WIDTH + 1.0);
         List<Mob> victims = level.getEntitiesOfClass(Mob.class, box, mob -> {
-            if (!mob.isAlive() || !AutoAttackSystem.isEmberfallHostile(mob)) {
+            if (!mob.isAlive() || !AutoAttackSystem.isTargetable(mob)) {
                 return false;
             }
             Vec3 body = mob.position().add(0, mob.getBbHeight() * 0.5, 0);
@@ -308,7 +308,7 @@ public final class TimedAbilitySystem {
     private static LivingEntity firstHostileAt(ServerLevel level, Vec3 pos) {
         AABB box = AABB.ofSize(pos, SPIN_HIT_RADIUS * 2, SPIN_HIT_RADIUS * 2, SPIN_HIT_RADIUS * 2);
         for (Mob mob : level.getEntitiesOfClass(Mob.class, box)) {
-            if (mob.isAlive() && AutoAttackSystem.isEmberfallHostile(mob)) {
+            if (mob.isAlive() && AutoAttackSystem.isTargetable(mob)) {
                 return mob;
             }
         }

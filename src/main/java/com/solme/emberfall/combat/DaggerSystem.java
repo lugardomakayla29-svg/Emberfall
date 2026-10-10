@@ -101,7 +101,7 @@ public final class DaggerSystem {
     /** Hostile foes within {@code radius} of {@code centre}, nearest first, skipping {@code skip}, and within {@code playerLimit} of the wielder. */
     private static List<Mob> foesNear(ServerLevel level, Vec3 centre, double radius, LivingEntity skip, double playerLimit, ServerPlayer player) {
         List<Mob> found = new ArrayList<>(level.getEntitiesOfClass(Mob.class, new AABB(centre, centre).inflate(radius),
-                m -> m != skip && m.isAlive() && AutoAttackSystem.isEmberfallHostile(m)
+                m -> m != skip && m.isAlive() && AutoAttackSystem.isTargetable(m)
                         && m.position().distanceTo(centre) <= radius && m.position().distanceTo(player.position()) <= playerLimit));
         found.sort(Comparator.comparingDouble(m -> m.position().distanceTo(centre)));
         return found;

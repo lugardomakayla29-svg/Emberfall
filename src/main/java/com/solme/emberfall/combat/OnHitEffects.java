@@ -212,6 +212,6 @@ public final class OnHitEffects {
         if (candidate == origin || candidate == player || !candidate.isAlive() || candidate instanceof Player) {
             return false;
         }
-        return candidate instanceof net.minecraft.world.entity.Mob mob && AutoAttackSystem.isEmberfallHostile(mob);
+        return candidate instanceof net.minecraft.world.entity.Mob mob && AutoAttackSystem.isTargetable(mob);
     }
 }

@@ -37,7 +37,7 @@ public final class RelicHitEvents {
 
     /** The run player behind this damage source when it is a direct player attack with relics, otherwise null. */
     private static ServerPlayer attackerOf(LivingEntity victim, DamageSource source) {
-        if (!(source.getEntity() instanceof ServerPlayer p) || !(victim instanceof Mob mob) || !AutoAttackSystem.isEmberfallHostile(mob)) {
+        if (!(source.getEntity() instanceof ServerPlayer p) || !(victim instanceof Mob mob) || !AutoAttackSystem.isTargetable(mob)) {
             return null;
         }
         if (!PlayerRelics.active(p) || RunManager.slotOf(p) == null || IN_BLAST.contains(p.getUUID())) {
@@ -99,7 +99,7 @@ public final class RelicHitEvents {
         }
         AABB box = centre.getBoundingBox().inflate(RelicStats.CENSER_RADIUS);
         List<Mob> near = level.getEntitiesOfClass(Mob.class, box,
-                m -> m != centre && m.isAlive() && AutoAttackSystem.isEmberfallHostile(m));
+                m -> m != centre && m.isAlive() && AutoAttackSystem.isTargetable(m));
         near.sort(Comparator.comparingDouble(m -> m.distanceToSqr(centre)));
         level.sendParticles(net.minecraft.core.particles.ParticleTypes.EXPLOSION, centre.getX(), centre.getY() + 0.5, centre.getZ(), 1, 0, 0, 0, 0);
         IN_BLAST.add(p.getUUID());

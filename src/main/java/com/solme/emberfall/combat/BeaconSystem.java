@@ -164,7 +164,7 @@ public final class BeaconSystem {
     /** Live hostiles within {@code reach} of {@code centre}, nearest first, other than {@code skip}. */
     public static List<Mob> foesIn(ServerLevel level, Vec3 centre, double reach, LivingEntity skip) {
         List<Mob> found = new ArrayList<>(level.getEntitiesOfClass(Mob.class, new AABB(centre, centre).inflate(reach),
-                m -> m != skip && m.isAlive() && AutoAttackSystem.isEmberfallHostile(m) && m.position().distanceTo(centre) <= reach));
+                m -> m != skip && m.isAlive() && AutoAttackSystem.isTargetable(m) && m.position().distanceTo(centre) <= reach));
         found.sort(Comparator.comparingDouble(m -> m.position().distanceTo(centre)));
         return found;
     }

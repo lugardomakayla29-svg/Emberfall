@@ -131,7 +131,7 @@ public final class OrbitWeaponSystem {
         // ONE entity query per tick for the whole ring, however many blades there are. Each blade is then plain distance maths.
         double reach = orbitRadius + effectiveRadius + 1.0;
         List<Mob> candidates = level.getEntitiesOfClass(Mob.class, AABB.ofSize(center.add(0, 1.0, 0), reach * 2, 3.0 + effectiveRadius * 2, reach * 2),
-                mob -> mob.isAlive() && AutoAttackSystem.isEmberfallHostile(mob));
+                mob -> mob.isAlive() && AutoAttackSystem.isTargetable(mob));
 
         int slots = SickleSystem.slots(blades);
         for (int i = 0; i < slots; i++) {

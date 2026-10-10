@@ -97,7 +97,7 @@ public final class ReapersRiteSystem {
 
     private static List<Mob> foesAround(ServerLevel level, Vec3 centre, double radius) {
         List<Mob> found = level.getEntitiesOfClass(Mob.class, new AABB(centre, centre).inflate(radius, 6.0, radius),
-                m -> m.isAlive() && AutoAttackSystem.isEmberfallHostile(m) && flat(m.position(), centre) <= radius);
+                m -> m.isAlive() && AutoAttackSystem.isTargetable(m) && flat(m.position(), centre) <= radius);
         if (found.size() > ReapersRite.MAX_FOES) {
             found.sort(java.util.Comparator.comparingDouble(m -> flat(m.position(), centre)));
             return new ArrayList<>(found.subList(0, ReapersRite.MAX_FOES));

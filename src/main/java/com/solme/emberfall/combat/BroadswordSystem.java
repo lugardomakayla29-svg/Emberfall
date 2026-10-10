@@ -114,7 +114,7 @@ public final class BroadswordSystem {
         Vec3 origin = player.position();
         Vec3 facing = facing(player, primary);
         List<Mob> foes = level.getEntitiesOfClass(Mob.class, new AABB(origin, origin).inflate(reach),
-                m -> m.isAlive() && m != primary && AutoAttackSystem.isEmberfallHostile(m)
+                m -> m.isAlive() && m != primary && AutoAttackSystem.isTargetable(m)
                         && inArc(origin, facing, m.position(), reach, arcRad));
         drawArc(level, player, facing, reach, arcRad);
         for (Mob m : foes) {
@@ -132,7 +132,7 @@ public final class BroadswordSystem {
         float damage = (float) (swordDamage * ultimateDamageMultiple(lvl));
         Vec3 origin = player.position();
         List<Mob> foes = level.getEntitiesOfClass(Mob.class, new AABB(origin, origin).inflate(radius),
-                m -> m.isAlive() && AutoAttackSystem.isEmberfallHostile(m) && m.position().distanceTo(origin) <= radius);
+                m -> m.isAlive() && AutoAttackSystem.isTargetable(m) && m.position().distanceTo(origin) <= radius);
         foes.sort(Comparator.comparingDouble(m -> m.position().distanceTo(origin)));
         for (Mob m : foes) {
             float before = m.getHealth();
