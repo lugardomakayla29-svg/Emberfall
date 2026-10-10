@@ -58,8 +58,7 @@ public class RunEndScreen extends Screen {
         y = line(g, cx, y, "kills", "Enemies defeated", Integer.toString(run.kills()), RewardFormula.forKills(run.kills()));
         y = line(g, cx, y, "gold", "Gold collected", Integer.toString(run.gold()), RewardFormula.forGold(run.gold()));
         if (run.hydraDown() || run.devourerDown()) {
-            String bosses = run.hydraDown() && run.devourerDown() ? "Ember Guardian, Devourer"
-                    : run.hydraDown() ? "Ember Guardian" : "Devourer";
+            String bosses = RewardFormula.bossNames(run.hydraDown(), run.devourerDown());
             y = line(g, cx, y, "bosses", "Bosses defeated", bosses, RewardFormula.forBosses(run.hydraDown(), run.devourerDown()));
         }
         y += 4;

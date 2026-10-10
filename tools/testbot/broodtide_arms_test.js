@@ -85,15 +85,18 @@ bot.once('spawn', async () => {
   const left = await count(ARM); const leftBoss = await count('@e[type=emberfall:broodtide]');
   check('K9 after the boss is killed no arm display is left behind', left === 0 && leftBoss === 0, `arms left=${left} boss left=${leftBoss}`);
 
-  // Second exit path: a boss removed by /emberfall run teardown, not by a kill. Spawn again, then discard the body without killing (tp to the void is not safe here);
-  // use /emberfall wavestop plus /kill of the run is not the same path, so this check discards the display owner through the remove(...) hook by unloading via kill of
-  // the run mobs. Judged only by the count: after the fight ends nothing tagged as an arm may remain.
+  // Second exit path: the run is TORN DOWN while the boss is alive (no kill). A kill ends the run, so a fresh run is needed: leave, re-enter, spawn, then teardown.
+  await ask('/emberfall teardown 0', 1500); await sleep(2000);
+  await ask('/character select juggernaut', 600); await ask('/expedition', 1500);
+  for (let i = 0; i < 60; i++) { await sleep(2000); if (/expedition/.test(await ask('/data get entity @s Dimension', 400))) break; }
+  await sleep(1500);
   console.log('boss2:', (await ask('/emberfall boss 0', 1500)).slice(0, 80)); await sleep(2500);
-  const again = await count(ARM);
-  check('K10 a second boss gets its own 40 displays (the first set did not leak into the count)', again === 40, `count=${again}`);
-  await ask('/kill @e[type=!player]', 1200); await sleep(1500);
-  const end = await count(ARM);
-  check('K11 a mass kill of every non-player entity leaves no arm display either', end === 0, `left=${end}`);
+  await ask('/emberfall wavestop 0', 400);
+  const again = await count(ARM); const bossAgain = await count('@e[type=emberfall:broodtide]');
+  check('K10 a second run gets its own boss and exactly 40 displays (nothing leaked from the first)', again === 40 && bossAgain === 1, `arms=${again} boss=${bossAgain}`);
+  await ask('/emberfall teardown 0', 1500); await sleep(2500);
+  const afterTear = await count(ARM); const bossTear = await count('@e[type=emberfall:broodtide]');
+  check('K11 the boss is still ALIVE when the run is torn down; after teardown no arm display and no boss remain (discard path, not a kill)', afterTear === 0 && bossTear === 0, `arms=${afterTear} boss=${bossTear}`);
 
   console.log(fails === 0 ? 'ALL PASS' : `FAILED ${fails}`);
   process.exit(fails === 0 ? 0 : 1);

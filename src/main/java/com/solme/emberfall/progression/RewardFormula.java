@@ -37,6 +37,21 @@ public final class RewardFormula {
         return (hydra ? HYDRA_BONUS : 0) + (devourer ? DEVOURER_BONUS : 0);
     }
 
+    /** The first boss's name on the run-end screen. The flag is still called "hydra" on the wire (renaming it would change the packet), but the boss is the Broodtide. */
+    public static final String FIRST_BOSS_NAME = "The Broodtide";
+    public static final String SECOND_BOSS_NAME = "The Devourer";
+
+    /**
+     * The "Bosses defeated" line: the names of the bosses that fell, in fight order, joined with a comma; empty when none did. Pure, so a check can pin the text
+     * (the screen once said "Ember Guardian" after the Broodtide had replaced it).
+     */
+    public static String bossNames(boolean firstDown, boolean devourerDown) {
+        if (firstDown && devourerDown) {
+            return FIRST_BOSS_NAME + ", " + SECOND_BOSS_NAME;
+        }
+        return firstDown ? FIRST_BOSS_NAME : devourerDown ? SECOND_BOSS_NAME : "";
+    }
+
     public static long total(long seconds, int level, int kills, int gold, boolean hydra, boolean devourer) {
         return forTime(seconds) + forKills(kills) + forLevels(level) + forGold(gold) + forBosses(hydra, devourer);
     }
