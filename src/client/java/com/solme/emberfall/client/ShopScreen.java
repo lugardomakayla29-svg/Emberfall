@@ -2,6 +2,7 @@ package com.solme.emberfall.client;
 
 import com.solme.emberfall.network.BuyShopItemPayload;
 import com.solme.emberfall.network.OpenShopPayload;
+import com.solme.emberfall.relic.MenuGlyphs;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -31,6 +32,9 @@ public class ShopScreen extends Screen {
     private static final int ROW_SPACING = 4;
 
     private final long balance;
+    /** Where each row button is and which kind it is, so render() can draw its glyph after the buttons. */
+    private final java.util.List<Button> rowButtons = new java.util.ArrayList<>();
+    private final java.util.List<String> rowKinds = new java.util.ArrayList<>();
     private final java.util.List<OpenShopPayload.WeaponEntry> weapons;
     private final java.util.List<OpenShopPayload.UpgradeEntry> upgrades;
 
@@ -58,6 +62,8 @@ public class ShopScreen extends Screen {
                     .build();
             button.active = !weapon.owned() && balance >= weapon.cost();
             addRenderableWidget(button);
+            rowButtons.add(button);
+            rowKinds.add("weapon");
             y += ROW_HEIGHT + ROW_SPACING;
         }
 
@@ -72,6 +78,8 @@ public class ShopScreen extends Screen {
                     .build();
             button.active = !maxed && balance >= upgrade.nextCost();
             addRenderableWidget(button);
+            rowButtons.add(button);
+            rowKinds.add("upgrade");
             y += ROW_HEIGHT + ROW_SPACING;
         }
 
@@ -88,8 +96,12 @@ public class ShopScreen extends Screen {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.renderTransparentBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        for (int i = 0; i < rowButtons.size(); i++) {
+            Button b = rowButtons.get(i);
+            MenuGlyphDraw.onButton(guiGraphics, this.font, MenuGlyphs.glyph(MenuGlyphs.SHOP, rowKinds.get(i)), b.getX(), b.getY(), b.getHeight(), b.active, 0xFFD5DCE4);
+        }
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 0xFFFFFFFF);
-        guiGraphics.drawCenteredString(this.font, "Balance: " + balance + " currency", this.width / 2, 32, 0xFFFFD700);
+        MenuGlyphDraw.centredWithGlyph(guiGraphics, this.font, MenuGlyphs.glyph(MenuGlyphs.SHOP, "silver"), "Balance: " + balance + " currency", this.width / 2, 32, 0xFFD5DCE4, 0xFFFFD700);
     }
 
     @Override

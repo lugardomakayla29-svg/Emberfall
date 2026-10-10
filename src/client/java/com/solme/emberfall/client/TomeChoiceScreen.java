@@ -4,6 +4,7 @@ import com.solme.emberfall.network.BanishTomePayload;
 import com.solme.emberfall.network.ChooseTomePayload;
 import com.solme.emberfall.network.OpenTomeChoicePayload;
 import com.solme.emberfall.network.RerollTomePayload;
+import com.solme.emberfall.relic.MenuGlyphs;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -39,6 +40,9 @@ import java.util.List;
  */
 public class TomeChoiceScreen extends Screen {
     private final int newLevel;
+    /** The per-card Banish buttons and the Reroll button, so render() can draw their glyphs AFTER the buttons paint. */
+    private final java.util.List<Button> banishButtons = new java.util.ArrayList<>();
+    private Button rerollBtn;
     private final List<OpenTomeChoicePayload.OfferInfo> offers;
     private final int rerollsRemaining;
     private final int banishesRemaining;
@@ -102,6 +106,7 @@ public class TomeChoiceScreen extends Screen {
                     .build();
             banishButton.active = banishesRemaining > 0;
             addRenderableWidget(banishButton);
+            banishButtons.add(banishButton);
         }
 
         int bottomY = cardY + CARD_HEIGHT + CARD_TO_BANISH_GAP + BANISH_HEIGHT + BANISH_TO_BOTTOM_GAP;
@@ -111,6 +116,7 @@ public class TomeChoiceScreen extends Screen {
                 .build();
         rerollButton.active = canReroll();
         addRenderableWidget(rerollButton);
+        this.rerollBtn = rerollButton;
 
         addRenderableWidget(Button.builder(Component.literal("Skip"), button -> skip())
                 .bounds(this.width / 2 + 15, bottomY, 150, 20)
@@ -159,10 +165,18 @@ public class TomeChoiceScreen extends Screen {
             int cardX = startX + i * (cardWidth + spacing);
             int textW = cardWidth - 2 * CARD_PAD;
             String label = offer.displayName() + (offer.tags().isEmpty() ? "" : " [" + offer.tags() + "]");
-            guiGraphics.drawCenteredString(this.font, label, cardX + cardWidth / 2, cardY + 6, 0xFFFFFFFF);
+            MenuGlyphDraw.centredWithGlyph(guiGraphics, this.font, MenuGlyphs.glyph(MenuGlyphs.TOME, "tome"), label, cardX + cardWidth / 2, cardY + 6, 0xFFD5DCE4, 0xFFFFFFFF);
             CardText.draw(guiGraphics, this.font, CardText.summary(offer.description()),
                     cardX + CARD_PAD, cardY + this.font.lineHeight + 14, textW, 0xFFCCCCCC);
             CardText.tooltipIfOver(guiGraphics, offer.description(), mouseX, mouseY, cardX, cardY, cardWidth, CARD_HEIGHT);
+        }
+        // The buttons were painted by super.render above, so these glyphs go on top of them.
+        String banishGlyph = MenuGlyphs.glyph(MenuGlyphs.TOME, "banish");
+        for (Button banish : banishButtons) {
+            MenuGlyphDraw.onButton(guiGraphics, this.font, banishGlyph, banish.getX(), banish.getY(), banish.getHeight(), banish.active, 0xFFD5DCE4);
+        }
+        if (rerollBtn != null) {
+            MenuGlyphDraw.onButton(guiGraphics, this.font, MenuGlyphs.glyph(MenuGlyphs.TOME, "reroll"), rerollBtn.getX(), rerollBtn.getY(), rerollBtn.getHeight(), rerollBtn.active, 0xFFD5DCE4);
         }
     }
 
