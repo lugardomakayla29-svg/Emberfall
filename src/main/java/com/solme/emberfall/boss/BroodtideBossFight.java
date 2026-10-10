@@ -46,8 +46,7 @@ public final class BroodtideBossFight {
         if (mods != null) {
             brain.applyCurse(mods.bossStatMultiplier()); // Boss Curse shrine: before the boss enters the world
         }
-        brain.setPartyDamageFactor(com.solme.emberfall.wave.PartyHealth.applyBoss(brain, com.solme.emberfall.world.RunManager.partySize(instance.slot())));
-        brain.rememberPartyScaling();                      // so a later phase resize keeps the party's health instead of erasing it
+        brain.applyParty(com.solme.emberfall.world.RunManager.partySize(instance.slot())); // the body owns the whole pool, so the 1024 attribute ceiling is applied once to the true total
         brain.startFight(instance.slot());
         level.addFreshEntity(brain);
 

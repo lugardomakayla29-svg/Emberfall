@@ -37,8 +37,9 @@ public class BroodtideBody extends Slime {
     private com.solme.emberfall.boss.BroodtideGrabber grabber;
     private boolean defeated = false;
     private double curseMultiplier = 1.0;
-    /** Party scaling's damage correction (PartyHealth.applyBoss): below 1.0 only when a big party's health would pass the attribute ceiling. */
-    private float partyDamageFactor = 1.0F;
+    /** The curse's share of the pool the 1024 attribute ceiling cannot hold (BroodtideRules.overflowFactor); recomputed on every resize, multiplied with the party factor. */
+    private float overflowDamageFactor = 1.0F;
+    private static final boolean LOG_PARTY_HP = Boolean.getBoolean("emberfall.logPartyHp");
     /** The health multiplier party scaling applied, remembered so a later {@link #applySize} (a phase resize) reproduces it instead of erasing it. */
     private double partyHealthMultiplier = 1.0;
 
@@ -58,7 +59,10 @@ public class BroodtideBody extends Slime {
     /** Sets the size and puts the boss stats back. {@code Slime.setSize} overwrites them, so the health FRACTION is captured and restored. */
     public void applySize(int size, double healthFraction) {
         super.setSize(size, false);
-        setBase(Attributes.MAX_HEALTH, BossTuning.broodtideHealth() * curseMultiplier * partyHealthMultiplier);
+        // The pool the curse (and party) WANT; the attribute holds at most 1024, the rest comes back as a damage factor (same idea as PartyHealth.applyBoss).
+        double wantedPool = BossTuning.broodtideHealth() * curseMultiplier * partyHealthMultiplier;
+        setBase(Attributes.MAX_HEALTH, com.solme.emberfall.boss.BroodtideRules.attributeFor(wantedPool));
+        this.overflowDamageFactor = com.solme.emberfall.boss.BroodtideRules.overflowFactor(wantedPool);
         setBase(Attributes.MOVEMENT_SPEED, 0.0);
         setBase(Attributes.ATTACK_DAMAGE, BossTuning.broodtideDamage() * curseMultiplier);
         this.setHealth((float) (this.getMaxHealth() * com.solme.emberfall.boss.BroodtideRules.clampedFraction(healthFraction)));
@@ -78,18 +82,21 @@ public class BroodtideBody extends Slime {
     }
 
     /**
-     * Records the party health multiplier that {@code PartyHealth.applyBoss} just applied to the MAX_HEALTH attribute, so {@link #applySize} keeps it.
-     * Read back from the attribute: the ratio of the current max to the unscaled base, which is exact however the wrapper computed it.
+     * Party scaling for {@code partySize} players. The body owns the WHOLE pool (base x curse x party), so the 1024 attribute ceiling is applied once, to the true
+     * total, by {@link #applySize}: the part the attribute cannot hold comes back as a damage factor. (The old read-back of the attribute would have seen an
+     * already-clamped base and under-counted a cursed boss.) Call after {@link #applyCurse}; a later phase resize keeps the multiplier.
      */
-    public void rememberPartyScaling() {
-        double unscaled = BossTuning.broodtideHealth() * curseMultiplier;
-        double now = this.getAttributeBaseValue(Attributes.MAX_HEALTH);
-        this.partyHealthMultiplier = unscaled > 0.0 ? Math.max(1.0, now / unscaled) : 1.0;
+    public void applyParty(int partySize) {
+        this.partyHealthMultiplier = Math.max(1.0, com.solme.emberfall.world.PartyScaling.bossHealthMultiplier(partySize));
+        applySize(BODY_SIZE, 1.0);
+        if (LOG_PARTY_HP) {   // same line and fields PartyHealth.applyBoss logs, so party_boss_grade.sh keeps working
+            com.solme.emberfall.EmberfallMod.LOGGER.info("PARTYBOSS type={} effective={} attribute={} damageFactor={}",
+                    net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(this.getType()),
+                    String.format("%.1f", BossTuning.broodtideHealth() * curseMultiplier * partyHealthMultiplier),
+                    String.format("%.1f", this.getMaxHealth()), String.format("%.4f", overflowDamageFactor));
+        }
     }
 
-    public void setPartyDamageFactor(float factor) {
-        this.partyDamageFactor = Math.max(0.0001F, Math.min(1.0F, factor));
-    }
 
     /** Called by the fight wrapper right after construction: full size, full health. */
     public void initBoss() {
@@ -159,7 +166,7 @@ public class BroodtideBody extends Slime {
         if (source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return super.hurtServer(level, source, amount);
         }
-        float scaled = com.solme.emberfall.boss.BroodtideRules.damageTaken(amount, fightTick, partyDamageFactor);
+        float scaled = com.solme.emberfall.boss.BroodtideRules.damageTaken(amount, fightTick, overflowDamageFactor);
         return super.hurtServer(level, source, scaled);
     }
 

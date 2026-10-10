@@ -1,5 +1,6 @@
 import com.solme.emberfall.boss.BroodtideRules;
 import com.solme.emberfall.boss.TideClock;
+import com.solme.emberfall.boss.BossTuning;
 
 /**
  * Pure checks for the Broodtide body's small rules (BroodtideRules): the rooted jump delay survives the aggressive divide, the Tide armour is applied
@@ -37,6 +38,21 @@ public class BroodtideRulesCheck {
         check("R12 the Brood-Kin cap is the plan's 6", BroodtideRules.KIN_CAP == 6, "cap " + BroodtideRules.KIN_CAP);
         check("R13 eating is allowed with 5 alive and refused with 6 (no off-by-one)", BroodtideRules.mayDevour(5) && !BroodtideRules.mayDevour(6) && !BroodtideRules.mayDevour(7), "");
         check("R14 eating is allowed with none alive", BroodtideRules.mayDevour(0), "");
+
+        // The 1024 attribute ceiling: effective health (attribute / factor) must equal the pool the curse promises, at every tier.
+        double base = BossTuning.broodtideHealth();
+        double[] tiers = {1.0, 1.2, 1.3, 1.4, 1.5};
+        boolean allExact = true; String worst = "";
+        for (double t : tiers) {
+            double wanted = base * t;
+            double eff = BroodtideRules.attributeFor(wanted) / BroodtideRules.overflowFactor(wanted);
+            if (Math.abs(eff - wanted) > wanted * 1e-5) { allExact = false; worst += " tier " + t + " wanted " + wanted + " got " + eff; }
+        }
+        check("R15 effective health equals the wanted pool at every curse tier, including the ones past the 1024 ceiling" , allExact, worst);
+        check("R16 the attribute never exceeds the ceiling (it would be silently clamped otherwise)", BroodtideRules.attributeFor(base * 1.5) <= BroodtideRules.ATTRIBUTE_CEILING && BroodtideRules.attributeFor(1e9) == BroodtideRules.ATTRIBUTE_CEILING, "attr " + BroodtideRules.attributeFor(base * 1.5));
+        check("R17 a pool of exactly 1024 fits with no damage factor, 1025 needs one (no off-by-one)", BroodtideRules.overflowFactor(1024.0) == 1.0F && BroodtideRules.overflowFactor(1025.0) < 1.0F, "at 1024 " + BroodtideRules.overflowFactor(1024.0) + " at 1025 " + BroodtideRules.overflowFactor(1025.0));
+        check("R18 the curse IV Broodtide (the live bug: 1215 became 1024) now holds 1215 effective", Math.abs(BroodtideRules.attributeFor(base * 1.5) / BroodtideRules.overflowFactor(base * 1.5) - 1215.0) < 0.5, "base " + base);
+        check("R19 a small pool is untouched: attribute equals the pool, factor 1.0", BroodtideRules.attributeFor(810.0) == 810.0 && BroodtideRules.overflowFactor(810.0) == 1.0F, "");
 
         System.out.println();
         System.out.println(fails == 0 ? "ALL PASS (" + total + " checks)" : "SOME FAIL (" + fails + " of " + total + ")");

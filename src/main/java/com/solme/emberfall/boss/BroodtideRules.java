@@ -48,6 +48,27 @@ public final class BroodtideRules {
         return (float) (amount * TideClock.armourAt(tick) * f);
     }
 
+    /** Vanilla's hard ceiling for the max_health attribute: it silently clamps anything above this (same value as PartyHealth.ATTRIBUTE_CEILING). */
+    public static final double ATTRIBUTE_CEILING = 1024.0;
+
+    /**
+     * What the max_health attribute is set to for a wanted pool: the whole pool while it fits, else the ceiling. The attribute alone cannot hold more.
+     */
+    public static double attributeFor(double wantedPool) {
+        return Math.min(Math.max(wantedPool, 1.0), ATTRIBUTE_CEILING);
+    }
+
+    /**
+     * The damage factor that carries the part of the pool the attribute cannot hold: {@code attribute / wanted}, so effective health is exactly the
+     * wanted pool. 1.0 whenever the pool fits. A boss at 1215 wanted takes 1024/1215 of every hit and so lasts 1215 hits-worth, not 1024.
+     */
+    public static float overflowFactor(double wantedPool) {
+        if (wantedPool <= ATTRIBUTE_CEILING) {
+            return 1.0F;
+        }
+        return (float) (ATTRIBUTE_CEILING / wantedPool);
+    }
+
     /** Health fraction after a resize, clamped to 0..1, so a size change never heals above max or kills. */
     public static double clampedFraction(double fraction) {
         return Math.max(0.0, Math.min(1.0, fraction));
