@@ -75,6 +75,9 @@ public final class BroodtideGrabber {
                     clearEffects(p);
                 }
                 it.remove();
+                if (grabs.isEmpty() && body.arms() != null) {
+                    body.arms().clearGrab();
+                }
                 continue;
             }
             long age = fightTick - g.start;
@@ -109,6 +112,9 @@ public final class BroodtideGrabber {
         int n = Math.min(BroodtideGrab.maxTargets(phase), targets.size());
         for (int i = 0; i < n; i++) {
             grabs.add(new Grab(targets.get(i).getUUID(), fightTick));
+            if (i == 0 && body.arms() != null) {
+                body.arms().startGrab(targets.get(i).getUUID());   // the nearest arm now reaches for them during the wind-up
+            }
         }
         lastStart = fightTick;
         grabsStarted++;

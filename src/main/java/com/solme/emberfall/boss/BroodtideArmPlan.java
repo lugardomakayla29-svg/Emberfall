@@ -126,6 +126,35 @@ public final class BroodtideArmPlan {
         return r;
     }
 
+    // ---- look (names are vanilla item ids; BroodtideArms turns them into items) ----
+    /** Dark moss for the thick root, translucent slime through the middle, a dripstone spike, and a glowing froglight on the very tip. */
+    public static final String ROOT_ITEM = "moss_block";
+    public static final String MID_ITEM = "slime_block";
+    public static final String SPIKE_ITEM = "pointed_dripstone";
+    public static final String TIP_ITEM = "verdant_froglight";
+    /** Display scale at the root and at the tip: thick to thin, like the Kuudra reference. */
+    public static final float BASE_SIZE = 1.9F;
+    public static final float TIP_SIZE = 0.55F;
+
+    /** The item id of link {@code i} of {@code n}: the first third is root, then slime, the second-last link is the spike and the last is the glow. */
+    public static String itemFor(int i, int n) {
+        if (i >= n - 1) {
+            return TIP_ITEM;
+        }
+        if (i == n - 2) {
+            return SPIKE_ITEM;
+        }
+        return i < n / 3 ? ROOT_ITEM : MID_ITEM;
+    }
+
+    /** Display scale of link {@code i} of {@code n}: linear from BASE_SIZE at the root to TIP_SIZE at the tip. */
+    public static float scaleFor(int i, int n) {
+        if (n <= 1) {
+            return BASE_SIZE;
+        }
+        return BASE_SIZE + (TIP_SIZE - BASE_SIZE) * (i / (float) (n - 1));
+    }
+
     /** True if a grabbing arm can physically reach a player at horizontal distance {@code dist} from the body centre. The Grab's own REACH must always satisfy this. */
     public static boolean armTouches(double dist) {
         return dist <= HUNT_REACH;

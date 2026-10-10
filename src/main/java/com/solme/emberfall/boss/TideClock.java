@@ -30,6 +30,13 @@ public final class TideClock {
         return (t % CYCLE_TICKS) < EBB_TICKS ? State.EBB : State.FLOOD;
     }
 
+    /** Ticks since the current state began: 0 on the first tick of an Ebb or a Flood. With {@link #ticksLeft} it always adds up to that state's length. */
+    public static int ticksInto(long tick) {
+        long t = Math.max(0L, tick);
+        long into = t % CYCLE_TICKS;
+        return (int) (into < EBB_TICKS ? into : into - EBB_TICKS);
+    }
+
     /** The damage multiplier at {@code tick}: {@link #FLOOD_ARMOUR} in Flood, {@link #EBB_ARMOUR} in Ebb. */
     public static double armourAt(long tick) {
         return stateAt(tick) == State.FLOOD ? FLOOD_ARMOUR : EBB_ARMOUR;

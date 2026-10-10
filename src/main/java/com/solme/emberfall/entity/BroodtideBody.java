@@ -35,6 +35,8 @@ public class BroodtideBody extends Slime {
     private long fightTick = 0;
     /** The Grab and the phase latch. Created when the fight starts (the slot is known), null for a body loaded without a fight. */
     private com.solme.emberfall.boss.BroodtideGrabber grabber;
+    /** The kraken's arms: 40 displays allocated once in {@link #startFight}, discarded on every exit path in {@link #remove}. Null for a body loaded without a fight. */
+    private BroodtideArms arms;
     private boolean defeated = false;
     private double curseMultiplier = 1.0;
     /** The curse's share of the pool the 1024 attribute ceiling cannot hold (BroodtideRules.overflowFactor); recomputed on every resize, multiplied with the party factor. */
@@ -135,11 +137,21 @@ public class BroodtideBody extends Slime {
         if (grabber != null) {
             grabber.tick(level, this, fightTick, this.getMaxHealth() > 0 ? this.getHealth() / this.getMaxHealth() : 1.0);
         }
+        if (arms != null && grabber != null) {
+            arms.tick(this.position(), grabber.phase(), TideClock.stateAt(fightTick), TideClock.ticksInto(fightTick));
+        }
     }
 
     /** Binds this body to a run slot and starts its Grab. Called once by the fight wrapper right after the spawn. */
     public void startFight(int slot) {
         this.grabber = new com.solme.emberfall.boss.BroodtideGrabber(slot);
+        if (this.level() instanceof ServerLevel sl) {
+            this.arms = new BroodtideArms(sl, this.position());
+        }
+    }
+
+    public BroodtideArms arms() {
+        return arms;
     }
 
     public com.solme.emberfall.boss.BroodtideGrabber grabber() {
@@ -186,6 +198,10 @@ public class BroodtideBody extends Slime {
     public void remove(Entity.RemovalReason reason) {
         if (grabber != null && this.level() instanceof ServerLevel sl) {
             grabber.clearAll(sl);   // no player keeps Slowness / Mining Fatigue from a boss that is gone
+        }
+        if (arms != null) {
+            arms.discard();   // every exit path: death, discard, unload, run teardown. No orphan display may outlive the boss.
+            arms = null;
         }
         if (!this.level().isClientSide() && this.getSize() > 1) {
             super.setSize(1, false);

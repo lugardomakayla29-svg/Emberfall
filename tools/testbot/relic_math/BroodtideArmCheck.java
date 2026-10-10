@@ -103,6 +103,37 @@ public class BroodtideArmCheck {
         check("A23 the extension time fits inside the shortest Ebb, so the arms are fully out for most of it", BroodtideArmPlan.EXTEND_TICKS * 3 <= TideClock.EBB_TICKS, "extend " + BroodtideArmPlan.EXTEND_TICKS + " ebb " + TideClock.EBB_TICKS);
         check("A24 the Grab's wind-up is no shorter than the arm's reach time, so the arm lands when the Grab does", BroodtideGrab.WINDUP_TICKS >= BroodtideArmPlan.EXTEND_TICKS, "windup " + BroodtideGrab.WINDUP_TICKS + " extend " + BroodtideArmPlan.EXTEND_TICKS);
 
+        // ---- look: thick to thin, root to tip ----
+        int n8 = BroodtideArmPlan.LINKS;
+        boolean thinning = true;
+        for (int i = 1; i < n8; i++) {
+            if (BroodtideArmPlan.scaleFor(i, n8) >= BroodtideArmPlan.scaleFor(i - 1, n8)) {
+                thinning = false;
+            }
+        }
+        check("A25 every link is thinner than the one before it (thick root to thin tip, as in the Kuudra reference)", thinning, "");
+        check("A26 the root link is 1.9 and the tip link is 0.55 (hand numbers, not read from the constants)", Math.abs(BroodtideArmPlan.scaleFor(0, n8) - 1.9) < 1.0e-5 && Math.abs(BroodtideArmPlan.scaleFor(n8 - 1, n8) - 0.55) < 1.0e-5, "root " + BroodtideArmPlan.scaleFor(0, n8) + " tip " + BroodtideArmPlan.scaleFor(n8 - 1, n8));
+        check("A27 link 0 is moss, the last is the froglight, the one before it is the spike", BroodtideArmPlan.itemFor(0, n8).equals("moss_block") && BroodtideArmPlan.itemFor(n8 - 1, n8).equals("verdant_froglight") && BroodtideArmPlan.itemFor(n8 - 2, n8).equals("pointed_dripstone"), "");
+        int slimeLinks = 0, mossLinks = 0;
+        for (int i = 0; i < n8; i++) {
+            String it = BroodtideArmPlan.itemFor(i, n8);
+            if (it.equals("slime_block")) { slimeLinks++; }
+            if (it.equals("moss_block")) { mossLinks++; }
+        }
+        check("A28 the arm has some moss root and some slime middle (not one material), and exactly one spike and one glow", mossLinks >= 2 && slimeLinks >= 2 && mossLinks + slimeLinks == n8 - 2, "moss " + mossLinks + " slime " + slimeLinks);
+        check("A29 a 1 link arm is only the glow and never throws (an edge case, not a real arm)", BroodtideArmPlan.itemFor(0, 1).equals("verdant_froglight") && BroodtideArmPlan.scaleFor(0, 1) > 0, "");
+
+        // ---- the clock helper the arms rely on ----
+        int intoBad = 0;
+        for (long t = 0; t < 3L * TideClock.CYCLE_TICKS; t++) {
+            int len = TideClock.stateAt(t) == TideClock.State.EBB ? TideClock.EBB_TICKS : TideClock.FLOOD_TICKS;
+            if (TideClock.ticksInto(t) + TideClock.ticksLeft(t) != len || TideClock.ticksInto(t) < 0 || TideClock.ticksInto(t) >= len) {
+                intoBad++;
+            }
+        }
+        check("A30 ticksInto + ticksLeft is the state's length on every tick of three full cycles, and ticksInto is 0 on the first tick of each state", intoBad == 0 && TideClock.ticksInto(0) == 0 && TideClock.ticksInto(TideClock.EBB_TICKS) == 0 && TideClock.ticksInto(TideClock.CYCLE_TICKS) == 0, "bad " + intoBad);
+        check("A31 ticksInto never goes negative for a negative tick", TideClock.ticksInto(-5) == 0, "");
+
         System.out.println();
         System.out.println(fails == 0 ? "ALL PASS (" + total + " checks)" : "FAILED " + fails + " of " + total);
         System.exit(fails == 0 ? 0 : 1);
