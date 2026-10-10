@@ -113,7 +113,7 @@ public class MenuGlyphCheck {
         // "kills" -> "killz" passed and drew no icon. RunEndScreen.line(g, cx, y, "<meaning>", ...) feeds RUN_END; ShopScreen rowKinds.add("<meaning>") feeds SHOP. ----
         String runEnd = Files.readString(ROOT.resolve("src/client/java/com/solme/emberfall/client/RunEndScreen.java"));
         String shop = Files.readString(ROOT.resolve("src/client/java/com/solme/emberfall/client/ShopScreen.java"));
-        Matcher lc = Pattern.compile("[^A-Za-z0-9_.]line\\(g,\\s*cx,\\s*y,\\s*\"([^\"]*)\"").matcher(runEnd);
+        Matcher lc = Pattern.compile("(?<![A-Za-z0-9_])(?:this\\s*\\.\\s*)?line\\s*\\(\\s*g\\s*,\\s*cx\\s*,\\s*y\\s*,\\s*\"([^\"]*)\"").matcher(runEnd);
         List<String> runEndMeanings = new ArrayList<>(); while (lc.find()) runEndMeanings.add(lc.group(1));
         Matcher rk = Pattern.compile("rowKinds\\.add\\(\"([^\"]*)\"\\)").matcher(shop);
         List<String> shopMeanings = new ArrayList<>(); while (rk.find()) shopMeanings.add(rk.group(1));
@@ -123,7 +123,7 @@ public class MenuGlyphCheck {
         check("G12b every meaning passed through a variable (RunEnd line(...), Shop rowKinds.add(...)) exists in its menu", badVar.isEmpty(), badVar.isEmpty() ? "(" + runEndMeanings.size() + " + " + shopMeanings.size() + " read)" : "(" + badVar + ")");
         // The scan above is only as good as its patterns, so pin the counts: every call that feeds a variable meaning must have been READ. A new call written another way would
         // change the total below and turn this red instead of slipping past G12b.
-        int runEndCalls = 0; Matcher anyLine = Pattern.compile("[^A-Za-z0-9_.]line\\(g,").matcher(runEnd); while (anyLine.find()) runEndCalls++;
+        int runEndCalls = 0; Matcher anyLine = Pattern.compile("(?<![A-Za-z0-9_])(?:this\\s*\\.\\s*)?line\\s*\\(\\s*g\\s*,").matcher(runEnd); while (anyLine.find()) runEndCalls++;
         int shopAdds = 0; Matcher anyAdd = Pattern.compile("rowKinds\\.add\\(").matcher(shop); while (anyAdd.find()) shopAdds++;
         check("G12c every call that feeds a variable meaning was read: RunEnd line(g, ...) calls == meanings read, Shop rowKinds.add calls == meanings read", runEndCalls == runEndMeanings.size() && shopAdds == shopMeanings.size() && !runEndMeanings.isEmpty() && !shopMeanings.isEmpty(), "(RunEnd " + runEndCalls + " calls / " + runEndMeanings.size() + " read, Shop " + shopAdds + " / " + shopMeanings.size() + ")");
         // The two variable sinks themselves must be exactly the ones this section knows about: a third glyph(X, <variable>) call would be a new blind spot.
