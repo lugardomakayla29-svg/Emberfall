@@ -38,6 +38,15 @@ public final class ChainGlue {
         return Math.max(0.0, spacing - (Math.abs(a) + Math.abs(b)) * 0.5);
     }
 
+    /** Total length of a glued chain of these sizes: the sum of its links. */
+    public static double total(float[] sizes) {
+        double t = 0.0;
+        for (double d : spacings(sizes)) {
+            t += d;
+        }
+        return t;
+    }
+
     /** Position along a ring of part i when each link has its own spacing: the arc length so far is the sum of the earlier links. */
     public static double arcBefore(double[] spacings, int i) {
         double s = 0.0;

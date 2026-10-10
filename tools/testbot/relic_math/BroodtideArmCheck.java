@@ -24,7 +24,7 @@ public class BroodtideArmCheck {
         // ---- counts and the entity budget (hand numbers: 3, 4, 5 arms; 8 links; at most 40 displays) ----
         check("A1 3 arms in phase one, 4 in phase two, 5 in phase three", BroodtideArmPlan.armCount(Phase.ONE) == 3 && BroodtideArmPlan.armCount(Phase.TWO) == 4 && BroodtideArmPlan.armCount(Phase.THREE) == 5, "");
         check("A2 the arms never exceed MAX_ARMS = 5, so the displays are allocated once", BroodtideArmPlan.MAX_ARMS == 5 && BroodtideArmPlan.armCount(Phase.THREE) <= BroodtideArmPlan.MAX_ARMS, "");
-        check("A3 the entity budget is at most 40 displays (5 arms x 8 links), the number the brief allows", BroodtideArmPlan.maxEntities() == 40 && BroodtideArmPlan.LINKS == 8, "entities " + BroodtideArmPlan.maxEntities());
+        check("A3 the entity budget is 45 displays (5 arms x 9 links): 5 more than the brief's 40, the price of arms that are glued with no gaps AND still reach the Grab (owner rule 2026-10-10)", BroodtideArmPlan.maxEntities() == 45 && BroodtideArmPlan.LINKS == 9, "entities " + BroodtideArmPlan.maxEntities());
         boolean grows = true;
         for (Phase p : Phase.values()) {
             if (p.ordinal() > 0 && BroodtideArmPlan.armCount(p) <= BroodtideArmPlan.armCount(Phase.values()[p.ordinal() - 1])) {
@@ -112,16 +112,19 @@ public class BroodtideArmCheck {
             }
         }
         check("A25 every link is thinner than the one before it (thick root to thin tip, as in the Kuudra reference)", thinning, "");
-        check("A26 the root link is 1.9 and the tip link is 0.55 (hand numbers, not read from the constants)", Math.abs(BroodtideArmPlan.scaleFor(0, n8) - 1.9) < 1.0e-5 && Math.abs(BroodtideArmPlan.scaleFor(n8 - 1, n8) - 0.55) < 1.0e-5, "root " + BroodtideArmPlan.scaleFor(0, n8) + " tip " + BroodtideArmPlan.scaleFor(n8 - 1, n8));
-        check("A27 link 0 is moss, the last is the froglight, the one before it is the spike", BroodtideArmPlan.itemFor(0, n8).equals("moss_block") && BroodtideArmPlan.itemFor(n8 - 1, n8).equals("verdant_froglight") && BroodtideArmPlan.itemFor(n8 - 2, n8).equals("pointed_dripstone"), "");
-        int slimeLinks = 0, mossLinks = 0;
-        for (int i = 0; i < n8; i++) {
-            String it = BroodtideArmPlan.itemFor(i, n8);
-            if (it.equals("slime_block")) { slimeLinks++; }
-            if (it.equals("moss_block")) { mossLinks++; }
-        }
-        check("A28 the arm has some moss root and some slime middle (not one material), and exactly one spike and one glow", mossLinks >= 2 && slimeLinks >= 2 && mossLinks + slimeLinks == n8 - 2, "moss " + mossLinks + " slime " + slimeLinks);
-        check("A29 a 1 link arm is only the glow and never throws (an edge case, not a real arm)", BroodtideArmPlan.itemFor(0, 1).equals("verdant_froglight") && BroodtideArmPlan.scaleFor(0, 1) > 0, "");
+        check("A26 the root link is 2.4 and the tip link is 0.8 (hand numbers, not read from the constants)", Math.abs(BroodtideArmPlan.scaleFor(0, n8) - 2.4) < 1.0e-5 && Math.abs(BroodtideArmPlan.scaleFor(n8 - 1, n8) - 0.8) < 1.0e-5, "root " + BroodtideArmPlan.scaleFor(0, n8) + " tip " + BroodtideArmPlan.scaleFor(n8 - 1, n8));
+        boolean allCube = true;
+        for (int i = 0; i < n8; i++) { if (!BroodtideArmPlan.itemFor(i, n8).equals("sickly_slime_cube")) { allCube = false; } }
+        check("A27 every link is the sickly slime cube: one material, a bunch of slimes from big to small (owner photo 2)", allCube, "");
+        boolean shrinks = true;
+        for (int i = 1; i < BroodtideArmPlan.LINKS; i++) { if (BroodtideArmPlan.SIZES[i] >= BroodtideArmPlan.SIZES[i - 1]) { shrinks = false; } }
+        check("A28 every link is strictly smaller than the one before it (big at the base, small at the tip)", shrinks, "");
+        boolean glued = true; double worstGap = 0;
+        for (int i = 0; i + 1 < BroodtideArmPlan.LINKS; i++) { double g = com.solme.emberfall.entity.ChainGlue.gap(BroodtideArmPlan.SIZES[i], BroodtideArmPlan.SIZES[i + 1], BroodtideArmPlan.BONES[i]); worstGap = Math.max(worstGap, g); if (g > 1.0e-9) { glued = false; } }
+        check("A29 NO GAP at any link of the real arm constants (owner rule: glued super firmly)", glued && BroodtideArmPlan.BONES.length == BroodtideArmPlan.LINKS - 1, "worst gap " + worstGap);
+        check("A32 the glued arm still reaches the Grab: HUNT_REACH >= 14.3 (the old reach) and >= BroodtideGrab.REACH", BroodtideArmPlan.HUNT_REACH >= 14.3 && BroodtideArmPlan.HUNT_REACH >= BroodtideGrab.REACH, "reach " + BroodtideArmPlan.HUNT_REACH);
+        double neighbourRoots = 2.0 * BroodtideArmPlan.ROOT_RADIUS * Math.sin(Math.PI / 5.0);
+        check("A33 five arm roots do not sit inside each other: neighbour distance >= the root cube (" + BroodtideArmPlan.SIZES[0] + ")", neighbourRoots >= BroodtideArmPlan.SIZES[0], "distance " + neighbourRoots);
 
         // ---- the clock helper the arms rely on ----
         int intoBad = 0;

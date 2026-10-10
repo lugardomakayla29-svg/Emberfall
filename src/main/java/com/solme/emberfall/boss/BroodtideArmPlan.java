@@ -12,17 +12,15 @@ public final class BroodtideArmPlan {
     private BroodtideArmPlan() {}
 
     /** Links per arm. 8 matches the Guardian's chains (4 x 8 = 32 displays), the entity budget the brief names. */
-    public static final int LINKS = 8;
+    public static final int LINKS = 9;
     /** Distance between neighbouring joints, in blocks: 7 gaps of 1.7 reach 11.9 blocks, so root ring (2.4) plus chain (11.9) = 14.3, past the 14 block Grab reach. A check pins this, so an arm never visibly falls short of a grab. */
-    public static final double SPACING = 1.7;
+    public static final double SPACING = 1.7;   // legacy mean; the glued arm uses BONES (per-link) below
     /** The arms root on a ring of this radius around the body centre, and this high above its feet. */
-    public static final double ROOT_RADIUS = 2.4;
+    public static final double ROOT_RADIUS = 3.4;
     public static final double ROOT_HEIGHT = 1.6;
     /** A resting (curled) arm ends this far from the body centre horizontally and this high. */
     public static final double CURL_RADIUS = 3.2;
     public static final double CURL_HEIGHT = 3.4;
-    /** A hunting arm points at the nearest player but never farther than this from the body centre (its own length from the root ring). */
-    public static final double HUNT_REACH = ROOT_RADIUS + SPACING * (LINKS - 1);
     /** Ticks an arm takes to go from curled to fully out, and back. The Tide's Flood swell is the cue. */
     public static final int EXTEND_TICKS = 18;
 
@@ -148,24 +146,30 @@ public final class BroodtideArmPlan {
     }
 
     // ---- look (names are vanilla item ids; BroodtideArms turns them into items) ----
-    /** Dark moss for the thick root, translucent slime through the middle, a dripstone spike, and a glowing froglight on the very tip. */
-    public static final String ROOT_ITEM = "moss_block";
-    public static final String MID_ITEM = "slime_block";
-    public static final String SPIKE_ITEM = "pointed_dripstone";
-    public static final String TIP_ITEM = "verdant_froglight";
+    /** Every link is the same material, a cube in the sickly slime colour (owner, 2026-10-10: a bunch of slimes from big to small, glued together). */
+    public static final String LINK_ITEM = "sickly_slime_cube";
     /** Display scale at the root and at the tip: thick to thin, like the Kuudra reference. */
-    public static final float BASE_SIZE = 1.9F;
-    public static final float TIP_SIZE = 0.55F;
+    public static final float BASE_SIZE = 2.4F;
+    public static final float TIP_SIZE = 0.8F;
+    /** Size of every link, root first: linear from BASE_SIZE to TIP_SIZE. */
+    public static final float[] SIZES = sizes();
+    /** Distance from joint i to joint i+1, glued: the two cubes touch, less a small overlap (see ChainGlue). */
+    public static final double[] BONES = com.solme.emberfall.entity.ChainGlue.spacings(SIZES);
 
-    /** The item id of link {@code i} of {@code n}: the first third is root, then slime, the second-last link is the spike and the last is the glow. */
+    private static float[] sizes() {
+        float[] out = new float[LINKS];
+        for (int i = 0; i < LINKS; i++) {
+            out[i] = LINKS <= 1 ? BASE_SIZE : BASE_SIZE + (TIP_SIZE - BASE_SIZE) * (i / (float) (LINKS - 1));
+        }
+        return out;
+    }
+
+    /** A hunting arm points at the nearest player but never farther than this from the body centre (its own length from the root ring). */
+    public static final double HUNT_REACH = ROOT_RADIUS + com.solme.emberfall.entity.ChainGlue.total(SIZES);
+
+    /** The item id of link {@code i}: always the slime cube. */
     public static String itemFor(int i, int n) {
-        if (i >= n - 1) {
-            return TIP_ITEM;
-        }
-        if (i == n - 2) {
-            return SPIKE_ITEM;
-        }
-        return i < n / 3 ? ROOT_ITEM : MID_ITEM;
+        return LINK_ITEM;
     }
 
     /** Display scale of link {@code i} of {@code n}: linear from BASE_SIZE at the root to TIP_SIZE at the tip. */

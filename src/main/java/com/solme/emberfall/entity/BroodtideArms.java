@@ -58,7 +58,7 @@ public final class BroodtideArms {
         for (int a = 0; a < BroodtideArmPlan.MAX_ARMS; a++) {
             floorY[a] = bodyPos.y;
             Vec3 root = bodyPos.add(BroodtideArmPlan.rootDx(a, BroodtideArmPlan.MAX_ARMS, 0.0), BroodtideArmPlan.ROOT_HEIGHT, BroodtideArmPlan.rootDz(a, BroodtideArmPlan.MAX_ARMS, 0.0));
-            TentacleMath.lay(joints[a], root, new Vec3(0.0, 1.0, 0.0), BroodtideArmPlan.SPACING);
+            TentacleMath.lay(joints[a], root, new Vec3(0.0, 1.0, 0.0), BroodtideArmPlan.BONES);
             List<Display.ItemDisplay> chain = new ArrayList<>(BroodtideArmPlan.LINKS);
             for (int i = 0; i < BroodtideArmPlan.LINKS; i++) {
                 Display.ItemDisplay d = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, level);
@@ -81,7 +81,7 @@ public final class BroodtideArms {
     }
 
     private static Item itemOf(String id) {
-        return BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(id));
+        return BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath("emberfall", id));
     }
 
     private static void setScale(Display.ItemDisplay d, float s) {
@@ -179,8 +179,8 @@ public final class BroodtideArms {
             if (refreshFloor) {
                 floorY[a] = groundBelow(Math.max(root.y, target.y) + 1.0, target.x, target.z, floorY[a]);
             }
-            TentacleMath.solve(joints[a], root, target, BroodtideArmPlan.SPACING, 2);
-            TentacleMath.keepAboveFloor(joints[a], root, floorY[a], BroodtideArmPlan.SPACING, BroodtideArmPlan.BASE_SIZE, BroodtideArmPlan.TIP_SIZE);
+            TentacleMath.solve(joints[a], root, target, BroodtideArmPlan.BONES, 2);
+            TentacleMath.keepAboveFloor(joints[a], root, floorY[a], BroodtideArmPlan.BONES, BroodtideArmPlan.SIZES);
             apply(a);
         }
         sinceFloor = refreshFloor ? 1 : sinceFloor + 1;
