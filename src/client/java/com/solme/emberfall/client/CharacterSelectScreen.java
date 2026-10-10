@@ -156,9 +156,10 @@ public class CharacterSelectScreen extends Screen {
             // Badge with the initial, then the name and the weapon.
             int badge = Math.min(26, lay.cardH - 8);
             g.fill(x + 4, y + 4, x + 4 + badge, y + 4 + badge, accent);
-            String initial = e.name().isEmpty() ? "?" : e.name().substring(0, 1).toUpperCase();
+            String shown = SelectLayout.cardName(e.name());
+            String initial = shown.isEmpty() ? "?" : shown.substring(0, 1).toUpperCase();
             g.drawCenteredString(this.font, initial, x + 4 + badge / 2, y + 4 + (badge - 8) / 2, 0xFF181418);
-            g.drawString(this.font, this.font.plainSubstrByWidth(e.name(), SelectLayout.CARD_W - 38), x + 34, y + (lay.cardH < SelectLayout.CARD_H ? 7 : 8), current ? 0xFFFFE9B8 : 0xFFFFFFFF, false);
+            g.drawString(this.font, this.font.plainSubstrByWidth(shown, SelectLayout.CARD_W - 38), x + 34, y + (lay.cardH < SelectLayout.CARD_H ? 7 : 8), current ? 0xFFFFE9B8 : 0xFFFFFFFF, false);
             if (lay.cardH >= SelectLayout.CARD_H) {
                 g.drawString(this.font, this.font.plainSubstrByWidth(e.weapon(), SelectLayout.CARD_W - 38), x + 34, y + 20, 0xFF9A9098, false);
             }

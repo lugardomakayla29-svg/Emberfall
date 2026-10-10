@@ -8,7 +8,8 @@ package com.solme.emberfall.character;
 public final class SelectLayout {
     /** The widest grid. Narrow windows use fewer columns (see {@link #columnsFor}), so the panel never runs off the sides. */
     public static final int COLUMNS = 4;
-    public static final int CARD_W = 104;
+    /** Wide enough for the longest card line at the default font ("Spectral Sickles", 81 px) beside the 34 px badge area; SelectLayoutCheck measures it. */
+    public static final int CARD_W = 124;
     public static final int CARD_H = 34;
     /** The card height on a very short window: the badge and name only, no weapon line. */
     public static final int CARD_H_COMPACT = 22;
@@ -58,7 +59,7 @@ public final class SelectLayout {
         this.detailY = gridY + rows * (cardH + GAP) + 4;
     }
 
-    /** How many cards fit across: the panel is columns * 104 + gaps + 24 wide, and must leave 8 px each side. */
+    /** How many cards fit across: the panel is columns * CARD_W + gaps + 24 wide, and must leave 8 px each side. */
     public static int columnsFor(int windowW) {
         for (int c = COLUMNS; c >= 1; c--) {
             if (c * CARD_W + (c - 1) * GAP + 24 + 16 <= windowW) {
@@ -66,6 +67,14 @@ public final class SelectLayout {
             }
         }
         return 1;
+    }
+
+    /** The name as shown on a card: without a leading "The ", which wastes 24 px and made every badge show "T". The detail pane keeps the full title. */
+    public static String cardName(String name) {
+        if (name != null && name.startsWith("The ") && name.length() > 4) {
+            return name.substring(4);
+        }
+        return name == null ? "" : name;
     }
 
     public int cardX(int i) {
