@@ -93,14 +93,15 @@ public class DevourerBrain extends Silverfish {
     /** minecraft-heads.com "Worm (body)" (ID 129528), same set as the head; verified to decode to a textures.minecraft.net URL. */
     private static final String SEGMENT_HEAD_TEXTURE =
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODZiMjZhZjJmOGIxOWMwNjFhNzU3YTFlNmQ2Y2IwN2QyZDE1MTUwNjA3ZmNjYTlmOWJjZWJkYjk0Y2NmNjY5In19fQ==";
-    private static final float HEAD_DISPLAY_SCALE = 2.1F;
+    /** Glued-chain growth (owner, 2026-10-10: no gaps). Per-link spacing makes the body 22.3 blocks long instead of 28.5, which would open the Coil from a 4.6 to an 11.4 block gap; growing every part by this factor keeps the length (28.5 / 22.26) and the taper. */
+    private static final float GLUE_GROWTH = 1.28F;
+    private static final float HEAD_DISPLAY_SCALE = 2.1F * GLUE_GROWTH;
     private static final double HEAD_Y_OFFSET = 0.8;
     private static final double HEAD_FORWARD_OFFSET = 0.5;
 
     /** 19 body segments + the head = 20 parts (28.5 blocks of body): the shortest worm whose ring leaves a fair gap (measured, see devourer_expansion_design.md). */
     private static final int SEGMENT_COUNT = 19;
     /** Distance between neighbouring worm parts along its path, in blocks. */
-    private static final double WORM_SPACING = 1.5;
 
     // Fractions of max HP at which a one-time phase transition fires.
     private static final double[] PHASE_THRESHOLDS = {0.66, 0.33};
@@ -235,7 +236,7 @@ public class DevourerBrain extends Silverfish {
 
     /** Body segment scale, tapering from 1.7 behind the head to 0.9 at the tail. */
     private static float segmentScale(int i) {
-        return 1.7F - 0.8F * i / (SEGMENT_COUNT - 1);
+        return (1.7F - 0.8F * i / (SEGMENT_COUNT - 1)) * GLUE_GROWTH;
     }
 
     /** Builds the full head-display + segment-chain rig. Call once, right after this brain is added to the level. */
@@ -264,7 +265,7 @@ public class DevourerBrain extends Silverfish {
         }
         worm = new WormBody(level, this.position().add(0.0, sizes[0] * 0.5, 0.0), horizontalFacing(),
                 headItemStack(), EliteHeads.customHead(SEGMENT_HEAD_TEXTURE, "devourer_seg"),
-                sizes, WORM_SPACING);
+                sizes);
 
         bossEvent = new ServerBossEvent(
                 this.getDisplayName() != null ? this.getDisplayName() : Component.literal("The Devourer"),

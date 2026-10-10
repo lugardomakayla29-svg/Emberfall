@@ -54,6 +54,98 @@ public final class TentacleMath {
         }
     }
 
+    // ---- Per-link bone lengths (owner, 2026-10-10: tentacles are big slimes at the root down to small ones at the tip, glued with NO gaps). ----
+    // The scalar versions above keep one length for every link; these take one length PER LINK (bones[i] joins joint i to joint i+1), so a tapering chain
+    // can have long links where its cubes are big and short links where they are small. Same algorithm, same guarantees, link by link.
+
+    /** Total length of a chain with these bones. */
+    public static double reachOf(double[] bones) {
+        double r = 0.0;
+        for (double b : bones) {
+            r += b;
+        }
+        return r;
+    }
+
+    /** {@link #solve(Vec3[], Vec3, Vec3, double, int)} with one bone length per link; {@code bones.length} must be {@code joints.length - 1}. */
+    public static void solve(Vec3[] joints, Vec3 root, Vec3 target, double[] bones, int iterations) {
+        int n = joints.length;
+        if (n < 2) {
+            if (n == 1) {
+                joints[0] = root;
+            }
+            return;
+        }
+        double reach = reachOf(bones);
+        Vec3 toTarget = target.subtract(root);
+        double dist = toTarget.length();
+        if (dist >= reach) {
+            Vec3 dir = dist > 1.0E-9 ? toTarget.scale(1.0 / dist) : new Vec3(0.0, 1.0, 0.0);
+            double along = 0.0;
+            for (int i = 0; i < n; i++) {
+                joints[i] = root.add(dir.scale(along));
+                if (i < bones.length) {
+                    along += bones[i];
+                }
+            }
+            return;
+        }
+        for (int it = 0; it < iterations; it++) {
+            joints[n - 1] = target;
+            for (int i = n - 2; i >= 0; i--) {
+                joints[i] = step(joints[i + 1], joints[i], bones[i]);
+            }
+            joints[0] = root;
+            for (int i = 1; i < n; i++) {
+                joints[i] = step(joints[i - 1], joints[i], bones[i - 1]);
+            }
+        }
+    }
+
+    /** {@link #lay(Vec3[], Vec3, Vec3, double)} with one bone length per link. */
+    public static void lay(Vec3[] joints, Vec3 root, Vec3 dir, double[] bones) {
+        Vec3 u = dir.lengthSqr() > 1.0E-12 ? dir.normalize() : new Vec3(0.0, 1.0, 0.0);
+        double along = 0.0;
+        for (int i = 0; i < joints.length; i++) {
+            joints[i] = root.add(u.scale(along));
+            if (i < bones.length) {
+                along += bones[i];
+            }
+        }
+    }
+
+    /** {@link #worstLinkError(Vec3[], double)} with one bone length per link. */
+    public static double worstLinkError(Vec3[] joints, double[] bones) {
+        double worst = 0.0;
+        for (int i = 1; i < joints.length; i++) {
+            worst = Math.max(worst, Math.abs(joints[i].distanceTo(joints[i - 1]) - bones[i - 1]));
+        }
+        return worst;
+    }
+
+    /** {@link #keepAboveFloor(Vec3[], Vec3, double, double, float, float)} with one bone length per link and the real size of each joint. */
+    public static void keepAboveFloor(Vec3[] joints, Vec3 root, double floorY, double[] bones, float[] sizes) {
+        int n = joints.length;
+        for (int pass = 0; pass < 3; pass++) {
+            for (int i = 1; i < n; i++) {
+                double rest = floorY + sizes[i] * 0.5;
+                if (joints[i].y < rest) {
+                    joints[i] = new Vec3(joints[i].x, rest, joints[i].z);
+                }
+            }
+            joints[0] = root;
+            for (int i = 1; i < n; i++) {
+                joints[i] = step(joints[i - 1], joints[i], bones[i - 1]);
+            }
+        }
+        for (int i = 1; i < n; i++) {
+            double rest = floorY + sizes[i] * 0.5;
+            if (joints[i].y < rest) {
+                joints[i] = new Vec3(joints[i].x, rest, joints[i].z);
+            }
+        }
+    }
+
     /** The point exactly {@code spacing} from {@code anchor}, on the ray toward {@code from}. */
     private static Vec3 step(Vec3 anchor, Vec3 from, double spacing) {
         Vec3 d = from.subtract(anchor);

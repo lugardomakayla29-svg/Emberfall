@@ -34,7 +34,8 @@ public final class WormBody {
 
     private final List<Display.ItemDisplay> displays = new ArrayList<>();
     private final float[] sizes;
-    private final double spacing;
+    /** Distance from part i to part i+1: one per link, from the two cube sizes, so neighbours are glued (see {@link ChainGlue}). */
+    private final double[] link;
     private final Vec3[] pos;
     private Vec3 headDirection = new Vec3(0.0, 0.0, 1.0);
     private boolean visible = true;
@@ -42,11 +43,10 @@ public final class WormBody {
 
     /**
      * @param sizes   display scale for the head (index 0) then each body segment, biggest first
-     * @param spacing distance between neighbouring parts, in blocks
      */
-    public WormBody(ServerLevel level, Vec3 origin, Vec3 facing, ItemStack head, ItemStack body, float[] sizes, double spacing) {
+    public WormBody(ServerLevel level, Vec3 origin, Vec3 facing, ItemStack head, ItemStack body, float[] sizes) {
         this.sizes = sizes.clone();
-        this.spacing = spacing;
+        this.link = ChainGlue.spacings(sizes);
         this.pos = new Vec3[sizes.length];
         for (int i = 0; i < sizes.length; i++) {
             Display.ItemDisplay d = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, level);
@@ -67,7 +67,7 @@ public final class WormBody {
         Vec3 back = facing.lengthSqr() > 1.0E-6 ? facing.normalize().scale(-1.0) : new Vec3(0.0, 0.0, -1.0);
         this.headDirection = back.scale(-1.0);
         for (int i = 0; i < pos.length; i++) {
-            pos[i] = origin.add(back.scale(i * spacing));
+            pos[i] = origin.add(back.scale(ChainGlue.arcBefore(link, i)));
         }
     }
 
@@ -102,7 +102,7 @@ public final class WormBody {
                 Vec3 toMe = pos[i].subtract(lead);
                 double d = toMe.length();
                 Vec3 dir = d > 1.0E-6 ? toMe.scale(1.0 / d) : new Vec3(0.0, 0.0, -1.0);
-                pos[i] = lead.add(dir.scale(spacing));
+                pos[i] = lead.add(dir.scale(link[i - 1]));
             }
         }
         // 3. Floor last, so nothing the constraint did can leave a body part underground.
@@ -135,7 +135,7 @@ public final class WormBody {
      */
     public void placeOnRing(Vec3 centre, double radius, double headAngle, double floorY, double headY) {
         for (int i = 0; i < pos.length; i++) {
-            double a = headAngle - i * spacing / radius;
+            double a = headAngle - ChainGlue.arcBefore(link, i) / radius;
             double y = i == 0 ? headY : floorY + sizes[i] * 0.5;
             pos[i] = new Vec3(centre.x + Math.cos(a) * radius, y, centre.z + Math.sin(a) * radius);
         }
