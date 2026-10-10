@@ -82,6 +82,7 @@ public class HordeSpitter extends Zombie {
 
     public void prepare() {
         this.setHealth(this.getMaxHealth());
+        EliteHeads.wear(this, EliteHeads.zombieTier2Head());
         MobNames.apply(this, "Horde Spitter", MobNames.Tier.ELITE);
     }
 

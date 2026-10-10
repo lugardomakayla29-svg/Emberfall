@@ -76,6 +76,7 @@ public class HordeCharger extends Zombie {
     /** Called once right after construction, before the entity is added to the world. */
     public void prepare() {
         this.setHealth(this.getMaxHealth());
+        EliteHeads.wear(this, EliteHeads.eliteZombieHead());
         MobNames.apply(this, "Horde Charger", MobNames.Tier.ELITE);
     }
 

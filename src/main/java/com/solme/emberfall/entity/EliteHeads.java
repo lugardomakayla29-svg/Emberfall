@@ -67,6 +67,24 @@ public final class EliteHeads {
     private static final String SPIDER_EGG_SAC = // head #45040 "Spider Egg Sac"
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTI4NmE2Mjg4NjRlZmVjNzZkMjFmMWJmYjg0ZDE4MDliMzAyZGVhYjcyOGI4ZGFiNmJlODA0NjdiN2U2ZmNlOCJ9fX0=";
 
+    // 2026-10-10 owner-chosen fodder heads (his /give commands, base64 copied unchanged; each decodes to a textures.minecraft.net URL, checked by FodderHeadCheck).
+    static final String UNDEAD_KNIGHT = // mcheads.ru #46697 "Undead Knight": the Horde Shieldbearer
+            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWVmOTA0YzY2ZjRjZDM1N2ViODBhMWU0MDU3ODNmNTIxZDI4NDUwMzQzNWFlZGU2MDNjODlkYjE1ZTY4NTcwOSJ9fX0=";
+    static final String ELITE_ZOMBIE = // minecraft-heads #60468 "Elite Zombie": the Horde Charger
+            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2JhNzU3YWEzYmMxOTIxMmVlZTQ0YzU2YmQwNzdlY2NmOTlmZWJlMGZmNmY2Y2M4NWFlMTJkOWQyMTVkYTA2NCJ9fX0=";
+    static final String ZOMBIE_TIER_2 = // minecraft-heads #60474 "Zombie Tier 2": the Horde Spitter
+            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjUyM2VhNzczZTAxY2NjNWMwZjdjYWRkM2ZiODhiMmI3NTFmMzFjMjc4OTllZjAyNmU2NDdlODcyY2FlNDRlNSJ9fX0=";
+
+    public static ItemStack undeadKnightHead() { return skull(UNDEAD_KNIGHT, "undead_knight"); }
+    public static ItemStack eliteZombieHead() { return skull(ELITE_ZOMBIE, "elite_zombie"); }
+    public static ItemStack zombieTier2Head() { return skull(ZOMBIE_TIER_2, "zombie_tier2"); }
+
+    /** Puts a fodder head on a mob and makes sure it can never drop (a worn head must not become loot). */
+    public static void wear(net.minecraft.world.entity.Mob mob, ItemStack head) {
+        mob.setItemSlot(net.minecraft.world.entity.EquipmentSlot.HEAD, head);
+        mob.setDropChance(net.minecraft.world.entity.EquipmentSlot.HEAD, 0.0F);
+    }
+
     public static ItemStack plaguedZombieHead() { return skull(PLAGUED_ZOMBIE, "plague_colossus"); }
     public static ItemStack plagueKnightHead() { return skull(PLAGUE_KNIGHT, "plague_knight"); }
     public static ItemStack broodSpiderHead() { return skull(BROOD_SPIDER_HEAD, "brood_head"); }

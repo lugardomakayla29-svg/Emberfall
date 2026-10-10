@@ -70,6 +70,7 @@ public class HordeShieldbearer extends Zombie {
     /** Called once right after construction, before the entity is added to the world. */
     public void prepare() {
         this.setHealth(this.getMaxHealth());
+        EliteHeads.wear(this, EliteHeads.undeadKnightHead());
         this.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
         this.setDropChance(EquipmentSlot.OFFHAND, 0.0F);
         MobNames.apply(this, "Horde Shieldbearer", MobNames.Tier.BONE);
