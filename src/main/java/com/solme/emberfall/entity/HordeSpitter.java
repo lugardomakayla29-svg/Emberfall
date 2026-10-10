@@ -83,11 +83,14 @@ public class HordeSpitter extends Zombie {
     public void prepare() {
         this.setHealth(this.getMaxHealth());
         EliteHeads.wear(this, EliteHeads.zombieTier2Head());
+        FodderLook.dressSpitter(this);
+        FodderLook.applyScale(this, FodderLook.SPITTER_SCALE, false);
         MobNames.apply(this, "Horde Spitter", MobNames.Tier.ELITE);
     }
 
     public void becomeVeteran() {
         this.veteran = true;
+        FodderLook.applyScale(this, FodderLook.SPITTER_SCALE, true);
         AttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
         if (health != null) {
             health.setBaseValue(health.getBaseValue() * VETERAN_HEALTH_MULT);

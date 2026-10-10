@@ -42,6 +42,8 @@ bot.once('spawn', async () => {
   await ask(`/tag @e[type=emberfall:horde_zombie,limit=1,sort=nearest] add subj`, 300);
   const have = await count('@e[tag=subj]');
   check('V1 the subject exists (tagged)', have === 1, `count=${have}`);
+  const skinBefore = await ask('/data get entity @e[tag=subj,limit=1] emberfall_brood_kin_skin', 700);
+  check('V1b before the swallow the sickly-skin flag is OFF (so V17b cannot pass on a flag that was always on)', /0b|false/.test(skinBefore), skinBefore.slice(-60));
   await ask('/attribute @e[tag=subj,limit=1] minecraft:max_health base set 40', 250);
   await ask('/effect give @e[tag=subj,limit=1] minecraft:instant_health 1 10 true', 300);
   const baseHp = num(await data('@e[tag=subj,limit=1]', 'Health'));
@@ -51,8 +53,9 @@ bot.once('spawn', async () => {
   let swallowed = false, sawReach = false;
   for (let i = 0; i < 120 && !swallowed; i++) {
     await sleep(400);
+    if (i % 10 === 0) { const r = await ask('/attribute @e[tag=subj,limit=1] minecraft:max_health get', 400); console.log('DIAG pre-swallow max_health sample', i, r.slice(-40)); }
     if (await count(`@e[tag=subj,tag=${SW}]`) === 1) swallowed = true;
-    if (!sawReach && (await count(ARM)) === 40) sawReach = true;
+    if (!sawReach && (await count(ARM)) === 45) sawReach = true;
   }
   check('V2 the zombie is SWALLOWED within about 48 s (the tag appears)', swallowed);
   if (!swallowed) { console.log('FAILED (no swallow)'); bot.quit(); process.exit(1); }
@@ -71,7 +74,7 @@ bot.once('spawn', async () => {
     const d = Math.hypot(+mb[1] - +ms[1], +mb[3] - +ms[3]);
     check('V9 hidden: it was pulled INTO the body (within 3 blocks of its centre)', d <= 3.0, `dist=${d.toFixed(2)}`);
   } else check('V9 hidden: it was pulled INTO the body', false, 'no position');
-  check('V10 the arms are still exactly 40 displays (the reach reused them, no new entity)', await count(ARM) === 40, '');
+  check('V10 the arms are still exactly 45 displays (the reach reused them, no new entity)', await count(ARM) === 45, '');
 
   // The spit: waits for Flood.
   let spat = false, floodWhenSpat = null;
@@ -88,13 +91,15 @@ bot.once('spawn', async () => {
   check('V15 spat out: Silent is cleared', !/Silent: 1b/.test(after), '');
   check('V16 spat out: the invisibility effect is gone', !/invisibility/i.test(after), '');
   check('V17 spat out: it is a Brood-Kin (tagged)', await count('@e[tag=subj,tag=emberfall_brood_kin]') === 1, '');
+  const kinSkin = await ask('/data get entity @e[tag=subj,limit=1] emberfall_brood_kin_skin', 700);
+  check('V17b spat out: the sickly-skin flag is set (the client draws the sickly zombie from it)', /1b|true/.test(kinSkin), kinSkin.slice(-60));
   const maxNow = num(await data('@e[tag=subj,limit=1]', 'attributes[{id:"minecraft:max_health"}].base'));
   check('V18 spat out: its max health is 1.5x what it was', Math.abs(maxNow - baseMax * 1.5) < 0.5, `was ${baseMax} now ${maxNow}`);
 
   // Aggro: the spat mob must hurt the player again (Prototype A's test), within 15 s.
   const h0 = hurts; await sleep(15000);
   check('V19 aggro intact: the Brood-Kin hurts the player again', hurts - h0 > 0, `hits=${hurts - h0}`);
-  check('V20 the arms are still exactly 40 after the whole Devour', await count(ARM) === 40, '');
+  check('V20 the arms are still exactly 45 after the whole Devour', await count(ARM) === 45, '');
 
   // Teardown: a mob swallowed when the boss dies is given back.
   await ask('/kill @e[tag=subj]', 400);

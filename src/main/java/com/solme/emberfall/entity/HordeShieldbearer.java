@@ -71,6 +71,8 @@ public class HordeShieldbearer extends Zombie {
     public void prepare() {
         this.setHealth(this.getMaxHealth());
         EliteHeads.wear(this, EliteHeads.undeadKnightHead());
+        FodderLook.dressShieldbearer(this);
+        FodderLook.applyScale(this, FodderLook.SHIELDBEARER_SCALE, false);
         this.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
         this.setDropChance(EquipmentSlot.OFFHAND, 0.0F);
         MobNames.apply(this, "Horde Shieldbearer", MobNames.Tier.BONE);
@@ -78,6 +80,7 @@ public class HordeShieldbearer extends Zombie {
 
     public void becomeVeteran() {
         this.veteran = true;
+        FodderLook.applyScale(this, FodderLook.SHIELDBEARER_SCALE, true);
         AttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
         if (health != null) {
             health.setBaseValue(health.getBaseValue() * VETERAN_HEALTH_MULT);

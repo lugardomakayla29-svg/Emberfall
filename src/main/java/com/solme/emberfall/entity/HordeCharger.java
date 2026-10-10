@@ -77,11 +77,14 @@ public class HordeCharger extends Zombie {
     public void prepare() {
         this.setHealth(this.getMaxHealth());
         EliteHeads.wear(this, EliteHeads.eliteZombieHead());
+        FodderLook.dressCharger(this);
+        FodderLook.applyScale(this, FodderLook.CHARGER_SCALE, false);
         MobNames.apply(this, "Horde Charger", MobNames.Tier.ELITE);
     }
 
     public void becomeVeteran() {
         this.veteran = true;
+        FodderLook.applyScale(this, FodderLook.CHARGER_SCALE, true);
         AttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
         if (health != null) {
             health.setBaseValue(health.getBaseValue() * VETERAN_HEALTH_MULT);
@@ -109,7 +112,7 @@ public class HordeCharger extends Zombie {
         if (now < stunUntilTick) {
             holdStill();
             if ((now & 3L) == 0L) {
-                level.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + 2.0, this.getZ(), 2, 0.3, 0.1, 0.3, 0.0);
+                level.sendParticles(ParticleTypes.CRIT, this.getX(), this.getY() + this.getBbHeight() + 0.05, this.getZ(), 2, 0.3, 0.1, 0.3, 0.0);
             }
             return;
         }

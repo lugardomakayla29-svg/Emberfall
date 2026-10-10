@@ -25,7 +25,7 @@ public class EmberfallModClient implements ClientModInitializer {
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private static void registerRenderers() {
 		// Zombie-based
-		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.HORDE_ZOMBIE, ZombieRenderer::new);
+		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.HORDE_ZOMBIE, HordeZombieRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.HORDE_CHARGER, ZombieRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.HORDE_SHIELDBEARER, ZombieRenderer::new);
 		EntityRendererRegistry.register((net.minecraft.world.entity.EntityType) ModEntities.HORDE_SPITTER, ZombieRenderer::new);

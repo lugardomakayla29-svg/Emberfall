@@ -80,6 +80,42 @@ public class HordeZombie extends Zombie {
     private static final double LUNGE_MIN_SPEED = 0.3;
     private static final int LUNGE_FLIGHT_TICKS = 14;      // simulated flight time of the impulse (12 to 14 ticks)
 
+    /**
+     * Synced to every client so the renderer can draw the sickly "eaten by the Broodtide" skin on a Brood-Kin and the normal skin on every other zombie.
+     * Entity tags are server-only in vanilla, so the tag the Devour already adds cannot reach a renderer; this flag is the client-visible twin of it.
+     * The id is allocated through HordeZombie.class, never Zombie.class, so it cannot collide with the ids vanilla Zombie defines.
+     */
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Boolean> DATA_BROOD_KIN =
+            net.minecraft.network.syncher.SynchedEntityData.defineId(HordeZombie.class, net.minecraft.network.syncher.EntityDataSerializers.BOOLEAN);
+
+    @Override
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_BROOD_KIN, false);
+    }
+
+    /** True while this zombie is a Brood-Kin (eaten by the Broodtide and spat out). Readable on the client. */
+    public boolean isBroodKin() {
+        return this.entityData.get(DATA_BROOD_KIN);
+    }
+
+    public void setBroodKin(boolean kin) {
+        this.entityData.set(DATA_BROOD_KIN, kin);
+    }
+
+    /** The flag is saved with the zombie so a Brood-Kin that is unloaded and loaded again keeps its sickly skin. */
+    @Override
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putBoolean("emberfall_brood_kin_skin", isBroodKin());
+    }
+
+    @Override
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        setBroodKin(input.getBooleanOr("emberfall_brood_kin_skin", false));
+    }
+
     private boolean veteran = false;
     private long nextEnrageAtTick = 0L;
     private static final boolean TEST_MODE = Boolean.getBoolean("emberfall.testMode");

@@ -246,6 +246,9 @@ public final class BroodtideDevourer {
     private void spit(ServerLevel level, BroodtideBody body, Mob mob, Eaten e, long fightTick) {
         reveal(mob, e);
         mob.addTag(KIN_TAG);
+        if (mob instanceof com.solme.emberfall.entity.HordeZombie zombie) {
+            zombie.setBroodKin(true);   // the client-visible twin of the tag: the sickly skin
+        }
         double hp = BroodtideDevour.kinHealth(e.baseMaxHealth);
         var attr = mob.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH);
         if (attr != null) {
